@@ -23,7 +23,7 @@ function LogoSvg(props: SvgProps) {
         <Path
           id="prefix__c"
           stroke="#FFF"
-          strokeWidth={3}
+          strokeWidth={6}
           strokeLinejoin="round"
           strokeLinecap="round"
           fill="none"

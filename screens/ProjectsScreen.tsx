@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
+import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, Image } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
+import { LoadingComponent } from '../components/LoadingComponent';
+import * as root from '../Root';
 
-export default function ProjectsScreen() {
+export default function ProjectsScreen({ navigation }: any) {
   const [state, setState] = useState({
     projects: [],
     loading: false
@@ -14,31 +16,39 @@ export default function ProjectsScreen() {
   }, []);
 
   let onRefresh = async () => {
+    setState({ ...state, loading: true });
     let data = await API.graphql(graphqlOperation(`{
       projects {
         id
         name
+        image
       }
     }
     `));
-    setState({ ...state, projects: data.data.projects })
+    setTimeout(() => {
+      setState({ ...state, loading: false, projects: data.data.projects });
+    }, 0);
   }
 
   return (
     <View style={styles.container}>
-      <Text>Projects</Text>
+      {root.desktopWeb ?
+        <View style={{ height: 50 }} />
+        :
+        <View style={{ paddingTop: 40, paddingBottom: 10 }}>
+          <Text>Projects</Text>
+        </View>}
       <FlatList
-        // ref={ }
-        // ListHeaderComponent={ }
-        // stickyHeaderIndices={ }
         style={{ width: '100%', height: '100%' }}
-        numColumns={2}
+        numColumns={root.desktopWeb ? 4 : 2}
         data={state.projects}
         contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
         renderItem={({ item, index }) => (
-          <TouchableOpacity style={{ alignItems: 'center', margin: 20, width: 100, height: 125 }} key={item.id}>
-            <View style={{ width: 100, height: 100, borderColor: '#ffffff', borderWidth: 1, marginBottom: 5 }}>
-            </View>
+          <TouchableOpacity onPress={() => { navigation.navigate('project', { id: item.id }) }} style={{ alignItems: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 120 }} key={item.id}>
+            <Image
+              style={{ width: 120, height: 120, borderColor: '#ffffff', borderWidth: 1, marginBottom: 5 }}
+              source={{ uri: `https://files.productabot.com/${item.image}` }}
+            />
             <Text numberOfLines={1} ellipsizeMode='tail'>{item.name}</Text>
           </TouchableOpacity>
         )}
@@ -55,14 +65,16 @@ export default function ProjectsScreen() {
         onEndReached={() => { }}
         ListEmptyComponent={<View></View>}
       />
+      {state.loading && <LoadingComponent />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    display: 'flex',
+    flex: 1,
+    backgroundColor: '#000000',
     alignItems: 'center',
-    paddingTop: 50,
+    justifyContent: 'center'
   },
 });

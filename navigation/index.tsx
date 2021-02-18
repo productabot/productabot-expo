@@ -1,21 +1,24 @@
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
-import { Dimensions } from 'react-native';
+import { Dimensions, Platform, View, Text, TouchableOpacity } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import LinkingConfiguration from './LinkingConfiguration';
 import ProjectsScreen from '../screens/ProjectsScreen';
+import ProjectScreen from '../screens/ProjectScreen';
 import BlankScreen from '../screens/BlankScreen';
 import { RootStackParamList, AuthStackParamList, AppBottomTabParamList, TabOneStackParamList, TabTwoStackParamList } from '../types';
+import SettingsScreen from '../screens/SettingsScreen';
+import LogoSvg from "../svgs/logo"
 
-export default function Navigation() {
+export default function Navigation({ navigation }: any) {
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
       theme={DarkTheme}>
-      <RootNavigator />
+      <RootNavigator navigation={navigation} />
     </NavigationContainer>
   );
 }
@@ -30,61 +33,49 @@ const TabTwoStack = createStackNavigator<TabTwoStackParamList>();
 function RootNavigator() {
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      <RootStack.Screen name="Auth" options={{ animationEnabled: false }}>
+      <RootStack.Screen name="auth" options={{ animationEnabled: false }}>
         {props => <AuthStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-          <AuthStack.Screen name="Login" component={LoginScreen} options={{ animationEnabled: false }} />
-          <AuthStack.Screen name="Signup" component={SignupScreen} options={{ animationEnabled: false }} />
+          <AuthStack.Screen name="login" component={LoginScreen} options={{ animationEnabled: false }} />
+          <AuthStack.Screen name="signup" component={SignupScreen} options={{ animationEnabled: false }} />
         </AuthStack.Navigator>}
       </RootStack.Screen>
-      <RootStack.Screen name="App" options={{ animationEnabled: false }}>
+      <RootStack.Screen name="app" options={{ animationEnabled: false }}>
         {props =>
-          Dimensions.get('window').width < 800 ?
-            <AppBottomTab.Navigator {...props}
-              tabBarOptions={{ activeTintColor: '#ffffff' }}>
-              <AppBottomTab.Screen name="Projects">
-                {props => <TabOneStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                  <TabOneStack.Screen name="Projects" component={ProjectsScreen} />
-                </TabOneStack.Navigator>}
-              </AppBottomTab.Screen>
-              <AppBottomTab.Screen name="Timesheet">
-                {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                  <TabOneStack.Screen name="Blank" component={BlankScreen} />
-                </TabTwoStack.Navigator>}
-              </AppBottomTab.Screen>
-              <AppBottomTab.Screen name="Calendar">
-                {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                  <TabOneStack.Screen name="Blank" component={BlankScreen} />
-                </TabTwoStack.Navigator>}
-              </AppBottomTab.Screen>
-              <AppBottomTab.Screen name="Settings">
-                {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                  <TabOneStack.Screen name="Blank" component={BlankScreen} />
-                </TabTwoStack.Navigator>}
-              </AppBottomTab.Screen>
-            </AppBottomTab.Navigator>
-            :
-            <AppStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-              <AppBottomTab.Screen name="Projects">
-                {props => <TabOneStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                  <TabOneStack.Screen name="Projects" component={ProjectsScreen} />
-                </TabOneStack.Navigator>}
-              </AppBottomTab.Screen>
-              <AppBottomTab.Screen name="Timesheet">
-                {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                  <TabOneStack.Screen name="Blank" component={BlankScreen} />
-                </TabTwoStack.Navigator>}
-              </AppBottomTab.Screen>
-              <AppBottomTab.Screen name="Calendar">
-                {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                  <TabOneStack.Screen name="Blank" component={BlankScreen} />
-                </TabTwoStack.Navigator>}
-              </AppBottomTab.Screen>
-              <AppBottomTab.Screen name="Settings">
-                {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                  <TabOneStack.Screen name="Blank" component={BlankScreen} />
-                </TabTwoStack.Navigator>}
-              </AppBottomTab.Screen>
-            </AppStack.Navigator>
+          <AppBottomTab.Navigator {...props} initialRouteName="projects"
+            tabBarOptions={{ activeTintColor: '#ffffff', style: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: 800, marginLeft: 'auto', marginRight: 'auto' } : {}, labelStyle: Platform.OS !== 'web' ? { top: -12, fontSize: 20 } : {} }}>
+            {Platform.OS === 'web' &&
+              <AppBottomTab.Screen name="logo"
+                component={BlankScreen}
+                options={{
+                  tabBarButton: props =>
+                    <TouchableOpacity onPress={() => { }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                      <LogoSvg width={25} height={25} style={{ marginRight: 5 }} />
+                      <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>
+                    </TouchableOpacity>
+                }}
+              />}
+            <AppBottomTab.Screen name="projects">
+              {props => <TabOneStack.Navigator {...props} screenOptions={{ headerShown: false }}>
+                <TabOneStack.Screen name="projects" component={ProjectsScreen} />
+                <TabOneStack.Screen name="project" component={ProjectScreen} />
+              </TabOneStack.Navigator>}
+            </AppBottomTab.Screen>
+            <AppBottomTab.Screen name="timesheet">
+              {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
+                <TabOneStack.Screen name="blank" component={BlankScreen} />
+              </TabTwoStack.Navigator>}
+            </AppBottomTab.Screen>
+            <AppBottomTab.Screen name="calendar">
+              {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
+                <TabOneStack.Screen name="blank" component={BlankScreen} />
+              </TabTwoStack.Navigator>}
+            </AppBottomTab.Screen>
+            <AppBottomTab.Screen name="settings">
+              {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
+                <TabOneStack.Screen name="settings" component={SettingsScreen} />
+              </TabTwoStack.Navigator>}
+            </AppBottomTab.Screen>
+          </AppBottomTab.Navigator>
         }
       </RootStack.Screen>
     </RootStack.Navigator >

@@ -1,24 +1,28 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, TextInput, Platform, Keyboard } from 'react-native';
 import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo"
+import { LoadingComponent } from '../components/LoadingComponent';
 
 export default function LoginScreen({
     navigation,
-}: StackScreenProps<{ Login: undefined; Signup: undefined; App: undefined; }, 'Login'>) {
-    const [state, setState] = useState({ email: 'chris@heythisischris.com', password: 'productabot', errorMessage: '', successMessage: '' });
+}: StackScreenProps<{ login: undefined; signup: undefined; app: undefined; }, 'login'>) {
+    const [state, setState] = useState({ email: 'chris@heythisischris.com', password: 'productabot', errorMessage: '', successMessage: '', loading: false });
     const login = async () => {
+        Keyboard.dismiss();
+        setState({ ...state, loading: true })
         try {
             await Auth.signIn({
                 username: state.email,
                 password: state.password
             });
-            navigation.replace('App');
+            setState({ ...state, loading: false, errorMessage: '' });
+            navigation.navigate('app');
         }
         catch (err) {
             console.log(err);
-            setState({ ...state, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' })
+            setState({ ...state, loading: false, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
         }
     }
     return (
@@ -32,7 +36,7 @@ export default function LoginScreen({
                 {state.successMessage.length > 0 && <Text style={[styles.baseText]}>{state.successMessage}</Text>}
                 <TextInput inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]}></TextInput>
                 <TextInput inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
-                    onSubmitEditing={() => { }}></TextInput>
+                    onSubmitEditing={login}></TextInput>
             </View>
             <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F0054' }]}
                 onPress={login}
@@ -41,10 +45,11 @@ export default function LoginScreen({
             </TouchableOpacity>
             <TouchableOpacity
                 style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]}
-                onPress={() => { navigation.navigate('Signup') }}>
+                onPress={() => { navigation.navigate('signup') }}>
                 <Text style={[styles.baseText, styles.buttonText]}>signup</Text>
             </TouchableOpacity>
             <Text style={[styles.baseText, { fontSize: 10, color: '#aaaaaa', marginTop: 30 }]}>© {new Date().getFullYear()} productabot</Text>
+            {state.loading && <LoadingComponent />}
         </View>
     );
 }
@@ -57,8 +62,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000000',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: s(20),
+        justifyContent: 'center'
     },
     baseText: {
         fontFamily: 'Arial',

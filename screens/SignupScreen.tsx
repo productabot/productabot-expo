@@ -2,17 +2,16 @@ import { StackScreenProps } from '@react-navigation/stack';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, Keyboard } from 'react-native';
 import { Auth } from "aws-amplify";
-import LogoSvg from "../svgs/logo"
+import LogoSvg from "../svgs/logo";
+import { LoadingComponent } from '../components/LoadingComponent';
 
 export default function SignupScreen({
     navigation,
-}: StackScreenProps<{ Login: undefined; Signup: undefined; App: undefined; }, 'Login'>) {
+}: StackScreenProps<{ Login: undefined; Signup: undefined; App: undefined; }, 'login'>) {
     const [state, setState] = useState({
-        email: '', username: '', password: '', confirmPassword: '', errorMessage: ''
+        email: '', username: '', password: '', confirmPassword: '', errorMessage: '', loading: false
     });
     const signup = async () => {
-        console.log("signup!!");
-        console.log(state);
         Keyboard.dismiss();
         if (!state.email || !state.username || !state.password || !state.confirmPassword) {
             setState({ ...state, errorMessage: "You're missing some information" });
@@ -24,6 +23,8 @@ export default function SignupScreen({
             try {
                 let response = await Auth.signUp({ username: state.email, password: state.password, attributes: { 'custom:username': state.username, 'custom:userType': 'user' } });
                 console.log(response);
+                setState({ ...state, errorMessage: '' });
+                navigation.navigate('login');
             }
             catch (err) {
                 console.log(err);
@@ -60,9 +61,10 @@ export default function SignupScreen({
             </TouchableOpacity>
             <TouchableOpacity
                 style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
-                onPress={() => { navigation.navigate('Login') }}>
+                onPress={() => { navigation.navigate('login') }}>
                 <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
             </TouchableOpacity>
+            {state.loading && <LoadingComponent />}
         </View>
     );
 }
@@ -75,8 +77,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000000',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: s(20),
+        justifyContent: 'center'
     },
     baseText: {
         fontFamily: 'Arial',
