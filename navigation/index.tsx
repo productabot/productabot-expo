@@ -12,6 +12,8 @@ import BlankScreen from '../screens/BlankScreen';
 import { RootStackParamList, AuthStackParamList, AppBottomTabParamList, TabOneStackParamList, TabTwoStackParamList } from '../types';
 import SettingsScreen from '../screens/SettingsScreen';
 import LogoSvg from "../svgs/logo"
+import CalendarScreen from '../screens/CalendarScreen';
+import EntryScreen from '../screens/EntryScreen';
 
 export default function Navigation({ navigation }: any) {
   return (
@@ -62,10 +64,11 @@ function RootNavigator() {
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="timesheet">
               {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                <TabOneStack.Screen name="blank" component={BlankScreen} />
+                <TabOneStack.Screen name="calendar" component={CalendarScreen} />
+                <TabOneStack.Screen name="entry" component={EntryScreen} />
               </TabTwoStack.Navigator>}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="calendar">
+            <AppBottomTab.Screen name="notifications">
               {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
                 <TabOneStack.Screen name="blank" component={BlankScreen} />
               </TabTwoStack.Navigator>}

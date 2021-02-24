@@ -13,3 +13,8 @@ export let windowWidth = Dimensions.get('window').width;
 export let sidebarPaddingLeft = 845;
 export let mainbarPaddingRight = desktopWeb ? 355 : 0;
 export let imageWidth = desktopWeb ? 750 : Dimensions.get('window').width - 20;
+
+export let exportDate = async (date: Date, days: number = 0) => {
+    date.setDate(date.getDate() + days);
+    return date.toLocaleDateString('fr-CA');
+}

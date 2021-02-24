@@ -7,7 +7,7 @@ import * as root from '../Root';
 
 export default function ProjectScreen({ route, navigation }: any) {
     const [state, setState] = useState({
-        project: { description: ' ' },
+        project: { description: ' ', timesheets: [] },
         loading: false
     });
     useEffect(() => {
@@ -23,6 +23,11 @@ export default function ProjectScreen({ route, navigation }: any) {
             name
             image
             description
+            timesheets(limit: 10, order_by: {date: desc}) {
+              date
+              details
+              hours
+            }
         }
         }`));
         setTimeout(() => {
@@ -64,29 +69,120 @@ export default function ProjectScreen({ route, navigation }: any) {
                 <View style={[{ width: '100%' }, root.desktopWeb && { flexDirection: 'row', justifyContent: 'space-between', width: '100%' }]}>
                     <View style={root.desktopWeb && { width: '49%' }}>
                         <Text style={{ fontSize: 20, marginTop: 20, width: '100%' }}>timesheet</Text>
-                        <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', borderWidth: 1, borderColor: '#ffffff' }}>
-                            {['entry 1', 'entry 2', 'entry 3', 'entry 4', 'entry 5'].map((obj, index) => <Text key={index} style={{ fontSize: 16, margin: 10 }}>{obj}</Text>)}
-                        </View>
+                        {/* <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', borderWidth: 1, borderColor: '#ffffff' }}>
+                            {state.project.timesheets.map((obj, index) =>
+                                <View key={index} style={{ flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between', padding: 5, width: '100%' }}>
+                                    <Text style={{ fontSize: 14, width: '20%' }}>{`${new Date(obj.date).toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
+                                    <Text style={{ fontSize: 14, width: '65%' }}>{`${obj.details}`}</Text>
+                                    <Text style={{ fontSize: 14, width: '15%' }}>{`${obj.hours} hours`}</Text>
+                                </View>
+                            )}
+                        </View> */}
+                        <FlatList
+                            style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#ffffff', overflowY: 'scroll' }}
+                            numColumns={1}
+                            data={state.project.timesheets}
+                            contentContainerStyle={{ width: '100%' }}
+                            renderItem={({ item, index }) => (
+                                <TouchableOpacity key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
+                                    <Text style={{ fontSize: 14, width: '20%' }}>{`${new Date(item.date).toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
+                                    <Text style={{ fontSize: 14, width: '60%' }}>{`${item.details}`}</Text>
+                                    <Text style={{ fontSize: 14, width: '20%' }}>{`${item.hours} hours`}</Text>
+                                </TouchableOpacity>
+                            )}
+                            keyExtractor={item => item.id}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={state.loading}
+                                    onRefresh={onRefresh}
+                                    colors={["#ffffff"]}
+                                    tintColor='#ffffff'
+                                    titleColor="#ffffff"
+                                    title=""
+                                />}
+                            onEndReached={() => { }}
+                            ListEmptyComponent={<View></View>}
+                        />
                     </View>
                     <View style={root.desktopWeb && { width: '49%' }}>
                         <Text style={{ fontSize: 20, marginTop: 20, width: '100%' }}>documents</Text>
-                        <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', borderWidth: 1, borderColor: '#ffffff' }}>
-                            {['entry 1', 'entry 2', 'entry 3', 'entry 4', 'entry 5'].map((obj, index) => <Text key={index} style={{ fontSize: 16, margin: 10 }}>{obj}</Text>)}
-                        </View>
+                        <FlatList
+                            style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#ffffff', overflowY: 'scroll' }}
+                            numColumns={1}
+                            data={[]}
+                            contentContainerStyle={{ width: '100%' }}
+                            renderItem={({ item, index }) => (
+                                <TouchableOpacity key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
+                                    <Text style={{ fontSize: 14, width: '20%' }}>{item}</Text>
+                                </TouchableOpacity>
+                            )}
+                            keyExtractor={item => item}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={state.loading}
+                                    onRefresh={onRefresh}
+                                    colors={["#ffffff"]}
+                                    tintColor='#ffffff'
+                                    titleColor="#ffffff"
+                                    title=""
+                                />}
+                            onEndReached={() => { }}
+                            ListEmptyComponent={<View></View>}
+                        />
                     </View>
                 </View>
                 <View style={[{ width: '100%' }, root.desktopWeb && { flexDirection: 'row', justifyContent: 'space-between', width: '100%' }]}>
                     <View style={root.desktopWeb && { width: '49%' }}>
                         <Text style={{ fontSize: 20, marginTop: 20, width: '100%' }}>journal</Text>
-                        <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', borderWidth: 1, borderColor: '#ffffff' }}>
-                            {['entry 1', 'entry 2', 'entry 3', 'entry 4', 'entry 5'].map((obj, index) => <Text key={index} style={{ fontSize: 16, margin: 10 }}>{obj}</Text>)}
-                        </View>
+                        <FlatList
+                            style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#ffffff', overflowY: 'scroll' }}
+                            numColumns={1}
+                            data={[]}
+                            contentContainerStyle={{ width: '100%' }}
+                            renderItem={({ item, index }) => (
+                                <TouchableOpacity key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
+                                    <Text style={{ fontSize: 14, width: '20%' }}>{item}</Text>
+                                </TouchableOpacity>
+                            )}
+                            keyExtractor={item => item}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={state.loading}
+                                    onRefresh={onRefresh}
+                                    colors={["#ffffff"]}
+                                    tintColor='#ffffff'
+                                    titleColor="#ffffff"
+                                    title=""
+                                />}
+                            onEndReached={() => { }}
+                            ListEmptyComponent={<View></View>}
+                        />
                     </View>
                     <View style={root.desktopWeb && { width: '49%' }}>
                         <Text style={{ fontSize: 20, marginTop: 20, width: '100%' }}>kanban</Text>
-                        <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', borderWidth: 1, borderColor: '#ffffff' }}>
-                            {['entry 1', 'entry 2', 'entry 3', 'entry 4', 'entry 5'].map((obj, index) => <Text key={index} style={{ fontSize: 16, margin: 10 }}>{obj}</Text>)}
-                        </View>
+                        <FlatList
+                            style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#ffffff', overflowY: 'scroll' }}
+                            numColumns={1}
+                            data={[]}
+                            contentContainerStyle={{ width: '100%' }}
+                            renderItem={({ item, index }) => (
+                                <TouchableOpacity key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
+                                    <Text style={{ fontSize: 14, width: '20%' }}>{item}</Text>
+                                </TouchableOpacity>
+                            )}
+                            keyExtractor={item => item}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={state.loading}
+                                    onRefresh={onRefresh}
+                                    colors={["#ffffff"]}
+                                    tintColor='#ffffff'
+                                    titleColor="#ffffff"
+                                    title=""
+                                />}
+                            onEndReached={() => { }}
+                            ListEmptyComponent={<View></View>}
+                        />
                     </View>
                 </View>
 
