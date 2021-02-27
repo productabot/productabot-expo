@@ -4,30 +4,31 @@ import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
+import { useFocusEffect } from '@react-navigation/native';
 
-export default function ProjectsScreen({ navigation }: any) {
+export default function ProjectsScreen({ route, navigation }: any) {
   const [state, setState] = useState({
     projects: [],
     loading: false
   });
-  useEffect(() => {
-    console.log(`componentDidMount`);
-    onRefresh();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!route.params) { route.params = {}; }
+      onRefresh();
+    }, [])
+  );
 
   let onRefresh = async () => {
     setState({ ...state, loading: true });
     let data = await API.graphql(graphqlOperation(`{
-      projects {
+      projects(order_by: {name: asc}) {
         id
         name
         image
       }
     }
     `));
-    setTimeout(() => {
-      setState({ ...state, loading: false, projects: data.data.projects });
-    }, 0);
+    setState({ ...state, loading: false, projects: data.data.projects.concat({ id: null }) });
   }
 
   return (
@@ -44,13 +45,30 @@ export default function ProjectsScreen({ navigation }: any) {
         data={state.projects}
         contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
         renderItem={({ item, index }) => (
-          <TouchableOpacity onPress={() => { navigation.navigate('project', { id: item.id }) }} style={{ alignItems: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 120 }} key={item.id}>
-            <Image
-              style={{ width: 120, height: 120, borderColor: '#ffffff', borderWidth: 1, marginBottom: 5 }}
-              source={{ uri: `https://files.productabot.com/${item.image}` }}
-            />
+          item.id ? <TouchableOpacity onPress={() => { navigation.navigate('project', { id: item.id }) }} style={{ alignItems: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 120 }} key={item.id}>
+            {item.image ?
+              <Image
+                style={{ width: 120, height: 120, borderColor: '#ffffff', borderWidth: 1 }}
+                source={{ uri: `https://files.productabot.com/${item.image}` }}
+              />
+              :
+              <View style={{ width: 120, height: 120, borderColor: '#ffffff', borderWidth: 1 }} />
+            }
             <Text numberOfLines={1} ellipsizeMode='tail'>{item.name}</Text>
           </TouchableOpacity>
+            :
+            <TouchableOpacity onPress={async () => {
+              setState({ ...state, loading: true });
+              let data = await API.graphql(graphqlOperation(`mutation {
+                insert_projects_one(object: {name: "new project", key: "NP", description: "Add a description to your new project", color: "#ff0000"}) {
+                  id
+                }
+              }`));
+              setState({ ...state, loading: false });
+              navigation.navigate('project', { id: data.data.insert_projects_one.id });
+            }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 120, height: 140 }}>
+              <Text style={{ fontSize: 30 }}>+</Text>
+            </TouchableOpacity>
         )}
         keyExtractor={item => item.id}
         refreshControl={

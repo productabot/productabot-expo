@@ -1,9 +1,10 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, TextInput, Platform, Keyboard } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, TextInput, Platform, Keyboard, LogBox } from 'react-native';
 import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo"
 import { LoadingComponent } from '../components/LoadingComponent';
+Platform.OS !== 'web' && LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 export default function LoginScreen({
     navigation,

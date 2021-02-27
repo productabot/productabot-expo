@@ -14,6 +14,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import LogoSvg from "../svgs/logo"
 import CalendarScreen from '../screens/CalendarScreen';
 import EntryScreen from '../screens/EntryScreen';
+import KanbanScreen from '../screens/KanbanScreen';
 
 export default function Navigation({ navigation }: any) {
   return (
@@ -44,7 +45,7 @@ function RootNavigator() {
       <RootStack.Screen name="app" options={{ animationEnabled: false }}>
         {props =>
           <AppBottomTab.Navigator {...props} initialRouteName="projects"
-            tabBarOptions={{ activeTintColor: '#ffffff', style: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: 800, marginLeft: 'auto', marginRight: 'auto' } : {}, labelStyle: Platform.OS !== 'web' ? { top: -12, fontSize: 20 } : {} }}>
+            tabBarOptions={{ activeTintColor: '#ffffff', style: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: 800, marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000' } : {}, labelStyle: Platform.OS !== 'web' ? { top: -12, fontSize: 20 } : {} }}>
             {Platform.OS === 'web' &&
               <AppBottomTab.Screen name="logo"
                 component={BlankScreen}
@@ -60,15 +61,16 @@ function RootNavigator() {
               {props => <TabOneStack.Navigator {...props} screenOptions={{ headerShown: false }}>
                 <TabOneStack.Screen name="projects" component={ProjectsScreen} />
                 <TabOneStack.Screen name="project" component={ProjectScreen} />
+                <TabOneStack.Screen name="kanban" component={KanbanScreen} />
               </TabOneStack.Navigator>}
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="timesheet">
               {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                <TabOneStack.Screen name="calendar" component={CalendarScreen} />
+                <TabOneStack.Screen name="timesheet" component={CalendarScreen} />
                 <TabOneStack.Screen name="entry" component={EntryScreen} />
               </TabTwoStack.Navigator>}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="notifications">
+            <AppBottomTab.Screen name="reminders">
               {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
                 <TabOneStack.Screen name="blank" component={BlankScreen} />
               </TabTwoStack.Navigator>}

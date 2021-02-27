@@ -10,17 +10,19 @@ export default function EntryScreen({ route, navigation }: any) {
     const [state, setState] = useState({
         projects: [],
         dates: [],
+        timesheet: {},
         loading: false,
         date: new Date()
     });
     useEffect(() => {
         console.log(`componentDidMount`);
+        if (!route.params) { route.params = {}; }
         onRefresh();
     }, []);
 
     let onRefresh = async () => {
         setState({ ...state, loading: true });
-        console.log(route.params);
+
         //create an array of dates
         let dates = []
         for (let i = -20; i < 40; i++) {
@@ -37,21 +39,56 @@ export default function EntryScreen({ route, navigation }: any) {
             }
           }
           `));
-        console.log(dates[20].value);
-        setState({ ...state, loading: false, dates: dates, projects: projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id }) }), project: projects.data.projects[0].id, date: route.params ? await root.exportDate(new Date(route.params.date), 1) : dates[20].value, hours: null, details: null });
+
+        //load existing timesheet if editing
+        let timesheet = {};
+        if (route.params.id) {
+            let data = await API.graphql(graphqlOperation(`{
+                    timesheets_by_pk(id: "${route.params.id}") {
+                      id
+                      project_id
+                      date
+                      hours
+                      details
+                    }
+                  }
+                  `));
+            timesheet = data.data.timesheets_by_pk;
+        }
+
+        setState({
+            ...state,
+            loading: false,
+            dates: dates,
+            projects: projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id }) }),
+            project: route.params.id ? timesheet.project_id : route.params.project_id ? route.params.project_id : projects.data.projects[0].id,
+            date: route.params.id ? timesheet.date : route.params.date ? await root.exportDate(new Date(route.params.date), 1) : dates[20].value,
+            hours: route.params.id ? timesheet.hours.toString() : null,
+            details: route.params.id ? timesheet.details : null
+        });
+
     }
 
     const submit = async () => {
         Keyboard.dismiss();
         setState({ ...state, loading: true })
         try {
-            await API.graphql(graphqlOperation(`
-            mutation($project_id: uuid, $date: date, $hours: numeric, $details: String) {
-                insert_timesheets_one(object: {project_id: $project_id, date: $date, hours: $hours, details: $details }) {id}
-              }
+            let response = await API.graphql(graphqlOperation(route.params.id
+                ?
+                `            
+                mutation($project_id: uuid, $date: date, $hours: numeric, $details: String) {
+                    update_timesheets_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, hours: $hours, details: $details, project_id: $project_id}) {id}
+                }
+                `
+                :
+                `
+                mutation($project_id: uuid, $date: date, $hours: numeric, $details: String) {
+                    insert_timesheets_one(object: {project_id: $project_id, date: $date, hours: $hours, details: $details }) {id}
+                }
               `, { project_id: state.project, date: state.date, hours: state.hours, details: state.details }));
+            console.log(response);
             setState({ ...state, hours: null, details: null, date: state.dates[20].value, project: state.projects[0].value, loading: false });
-            navigation.navigate('calendar');
+            navigation.navigate('timesheet');
         }
         catch (err) {
             setState({ ...state, hours: null, details: null, date: state.dates[20].value, project: state.projects[0].value, loading: false });
@@ -65,7 +102,7 @@ export default function EntryScreen({ route, navigation }: any) {
                 <View style={{ height: 50 }} />
                 :
                 <View style={{ paddingTop: 40, paddingBottom: 10 }}>
-                    <Text>Timesheet</Text>
+                    <Text>{route.params.id ? 'Edit Entry' : 'Add Entry'}</Text>
                 </View>}
             <ScrollView
                 style={{ maxWidth: 800, width: '100%', height: '100%', padding: 10 }}
@@ -79,6 +116,7 @@ export default function EntryScreen({ route, navigation }: any) {
                         titleColor="#ffffff"
                         title=""
                     />}
+                keyboardShouldPersistTaps="always"
             >
                 <RNPickerSelect
                     placeholder={{}}
@@ -105,11 +143,11 @@ export default function EntryScreen({ route, navigation }: any) {
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F0054' }]}
                     onPress={submit}
                 >
-                    <Text style={[styles.baseText, styles.buttonText]}>submit</Text>
+                    <Text style={[styles.baseText, styles.buttonText]}>{route.params.id ? `save` : `submit`}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
-                    onPress={() => { navigation.navigate('calendar', { refresh: true }) }}>
+                    onPress={() => { navigation.navigate('timesheet') }}>
                     <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
                 </TouchableOpacity>
             </ScrollView>
