@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Text, View } from '../components/Themed';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { RefreshControl, ScrollView, TouchableOpacity, Alert } from 'react-native';
@@ -6,7 +6,6 @@ import * as root from '../Root';
 import { API, graphqlOperation } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { LoadingComponent } from '../components/LoadingComponent';
-import { MenuProvider } from 'react-native-popup-menu';
 import Popover from '../components/PopoverMenuRenderer';
 
 LocaleConfig.locales['en'] = {
@@ -60,33 +59,31 @@ export default function CalendarScreen({ route, navigation }: any) {
         setRootState({ ...rootState, loading: false, timesheets: data.data.timesheets });
     }
     return (
-        <MenuProvider>
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                {root.desktopWeb ?
-                    <View style={{ height: 50 }} />
-                    :
-                    <View style={{ paddingTop: 40, paddingBottom: 10 }}>
-                        <Text>Timesheet</Text>
-                    </View>}
-                <ScrollView
-                    style={{ maxWidth: 800, width: '100%', height: '100%', padding: 10 }}
-                    contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={rootState.loading}
-                            onRefresh={onRefresh}
-                            colors={["#ffffff"]}
-                            tintColor='#ffffff'
-                            titleColor="#ffffff"
-                            title=""
-                        />}
-                >
-                    {!rootState.loading && <CalendarCustom rootState={rootState} navigation={navigation} onRefresh={onRefresh} />}
-                    {rootState.loading && <CalendarCustom rootState={rootState} navigation={navigation} onRefresh={onRefresh} />}
-                </ScrollView>
-                {rootState.loading && <LoadingComponent />}
-            </View>
-        </MenuProvider>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            {root.desktopWeb ?
+                <View style={{ height: 50 }} />
+                :
+                <View style={{ paddingTop: 40, paddingBottom: 10 }}>
+                    <Text>Timesheet</Text>
+                </View>}
+            <ScrollView
+                style={{ maxWidth: 800, width: '100%', height: '100%', padding: 10 }}
+                contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={rootState.loading}
+                        onRefresh={onRefresh}
+                        colors={["#ffffff"]}
+                        tintColor='#ffffff'
+                        titleColor="#ffffff"
+                        title=""
+                    />}
+            >
+                {!rootState.loading && <CalendarCustom rootState={rootState} navigation={navigation} onRefresh={onRefresh} />}
+                {rootState.loading && <CalendarCustom rootState={rootState} navigation={navigation} onRefresh={onRefresh} />}
+            </ScrollView>
+            {rootState.loading && <LoadingComponent />}
+        </View>
     );
 }
 

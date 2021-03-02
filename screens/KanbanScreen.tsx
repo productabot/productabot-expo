@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, Image, Platform, TextInput } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { API, graphqlOperation, Auth } from 'aws-amplify';
+import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
-import Draggable from 'react-native-draggable';
-import DraggableFlatList, {
-    RenderItemParams,
-} from 'react-native-draggable-flatlist';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function KanbanScreen({ route, navigation }: any) {

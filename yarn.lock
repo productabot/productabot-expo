@@ -7485,6 +7485,11 @@ lodash.frompairs@^4.0.1:
   resolved "https://registry.yarnpkg.com/lodash.frompairs/-/lodash.frompairs-4.0.1.tgz#bc4e5207fa2757c136e573614e9664506b2b1bd2"
   integrity sha1-vE5SB/onV8E25XNhTpZkUGsrG9I=
 
+lodash.get@^4.4.2:
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/lodash.get/-/lodash.get-4.4.2.tgz#2d177f652fa31e939b4438d5341499dfa3825e99"
+  integrity sha1-LRd/ZS+jHpObRDjVNBSZ36OCXpk=
+
 lodash.isequal@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
@@ -8807,6 +8812,13 @@ react-native-draggable@^3.3.0:
   integrity sha512-aU20CaKBmzXrwE9eTJZ+GDOr52mXLchg5Vydbx5rz8nYXlN+ppHIoTPgyXduyWNwpZ/DR6tyFtMwdgUHpuN6oA==
   dependencies:
     prop-types "^15.7.2"
+
+react-native-final-tree-view@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-final-tree-view/-/react-native-final-tree-view-2.1.0.tgz#e93cf92e2fd566daf7280d243d9f174710bd3938"
+  integrity sha512-p9jdzuN3iTFqMdINVpgewsqdHGat3MvbEgKIRm9dFZEimTEyb/jy98021Sx00jS5thP+XaQX3B/G9w3AZBrRNA==
+  dependencies:
+    lodash.get "^4.4.2"
 
 react-native-gesture-handler@~1.8.0:
   version "1.8.0"

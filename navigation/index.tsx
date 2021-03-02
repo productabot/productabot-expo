@@ -1,7 +1,7 @@
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
-import { Dimensions, Platform, View, Text, TouchableOpacity } from 'react-native';
+import { View, Platform, Text, TouchableOpacity } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -9,12 +9,13 @@ import LinkingConfiguration from './LinkingConfiguration';
 import ProjectsScreen from '../screens/ProjectsScreen';
 import ProjectScreen from '../screens/ProjectScreen';
 import BlankScreen from '../screens/BlankScreen';
-import { RootStackParamList, AuthStackParamList, AppBottomTabParamList, TabOneStackParamList, TabTwoStackParamList } from '../types';
 import SettingsScreen from '../screens/SettingsScreen';
 import LogoSvg from "../svgs/logo"
 import CalendarScreen from '../screens/CalendarScreen';
 import EntryScreen from '../screens/EntryScreen';
 import KanbanScreen from '../screens/KanbanScreen';
+import NotificationsComponent from '../components/NotificationsComponent';
+import NotesScreen from '../screens/NotesScreen';
 
 export default function Navigation({ navigation }: any) {
   return (
@@ -26,12 +27,10 @@ export default function Navigation({ navigation }: any) {
   );
 }
 
-const RootStack = createStackNavigator<RootStackParamList>();
-const AuthStack = createStackNavigator<AuthStackParamList>();
-const AppBottomTab = createBottomTabNavigator<AppBottomTabParamList>();
-const AppStack = createStackNavigator<AppBottomTabParamList>();
-const TabOneStack = createStackNavigator<TabOneStackParamList>();
-const TabTwoStack = createStackNavigator<TabTwoStackParamList>();
+const RootStack = createStackNavigator<any>();
+const AuthStack = createStackNavigator<any>();
+const AppBottomTab = createBottomTabNavigator<any>();
+const AppStack = createStackNavigator<any>();
 
 function RootNavigator() {
   return (
@@ -58,28 +57,41 @@ function RootNavigator() {
                 }}
               />}
             <AppBottomTab.Screen name="projects">
-              {props => <TabOneStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                <TabOneStack.Screen name="projects" component={ProjectsScreen} />
-                <TabOneStack.Screen name="project" component={ProjectScreen} />
-                <TabOneStack.Screen name="kanban" component={KanbanScreen} />
-              </TabOneStack.Navigator>}
+              {props => <AppStack.Navigator {...props} screenOptions={{ headerShown: false }}>
+                <AppStack.Screen name="projects" component={ProjectsScreen} />
+                <AppStack.Screen name="project" component={ProjectScreen} />
+                <AppStack.Screen name="kanban" component={KanbanScreen} />
+              </AppStack.Navigator>}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="timesheet">
-              {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                <TabOneStack.Screen name="timesheet" component={CalendarScreen} />
-                <TabOneStack.Screen name="entry" component={EntryScreen} />
-              </TabTwoStack.Navigator>}
+            <AppBottomTab.Screen name="calendar">
+              {props => <AppStack.Navigator {...props} screenOptions={{ headerShown: false }}>
+                <AppStack.Screen name="timesheet" component={CalendarScreen} />
+                <AppStack.Screen name="entry" component={EntryScreen} />
+              </AppStack.Navigator>}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="reminders">
-              {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                <TabOneStack.Screen name="blank" component={BlankScreen} />
-              </TabTwoStack.Navigator>}
+            <AppBottomTab.Screen name="notes">
+              {props => <AppStack.Navigator {...props} screenOptions={{ headerShown: false }}>
+                <AppStack.Screen name="notes" component={NotesScreen} />
+              </AppStack.Navigator>}
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="settings">
-              {props => <TabTwoStack.Navigator {...props} screenOptions={{ headerShown: false }}>
-                <TabOneStack.Screen name="settings" component={SettingsScreen} />
-              </TabTwoStack.Navigator>}
+              {props => <AppStack.Navigator {...props} screenOptions={{ headerShown: false }}>
+                <AppStack.Screen name="settings" component={SettingsScreen} />
+              </AppStack.Navigator>}
             </AppBottomTab.Screen>
+            {Platform.OS === 'web' &&
+              <AppBottomTab.Screen name="webcontrols"
+                component={BlankScreen}
+                options={{
+                  tabBarButton: props =>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, width: 120 }}>
+                      <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 30 }} onPress={() => { }} >
+                        <Text style={{ color: '#ffffff', fontSize: 14, transform: [{ rotate: '90deg' }] }}>↻</Text>
+                      </TouchableOpacity>
+                      <NotificationsComponent />
+                    </View>
+                }}
+              />}
           </AppBottomTab.Navigator>
         }
       </RootStack.Screen>
