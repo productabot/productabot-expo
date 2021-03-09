@@ -1,4 +1,3 @@
-import { StackScreenProps } from '@react-navigation/stack';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, TextInput, Platform, Keyboard, LogBox } from 'react-native';
 import { Auth } from "aws-amplify";
@@ -6,10 +5,19 @@ import LogoSvg from "../svgs/logo"
 import { LoadingComponent } from '../components/LoadingComponent';
 Platform.OS !== 'web' && LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
-export default function LoginScreen({
-    navigation,
-}: StackScreenProps<{ login: undefined; signup: undefined; app: undefined; }, 'login'>) {
-    const [state, setState] = useState({ email: 'chris@heythisischris.com', password: 'productabot', errorMessage: '', successMessage: '', loading: false });
+export default function LoginScreen({ route, navigation }: any) {
+    const [state, setState] = useState({ email: 'chris@heythisischris.com', password: 'productabot', errorMessage: '', successMessage: '', success: false, loading: false });
+
+    useEffect(() => {
+        if (!route.params) { route.params = {}; }
+        if (route.params.success) { setState({ ...state, success: true, successMessage: 'Success! Confirm your email before logging in' }); }
+        if (route.params.username && route.params.code) {
+            Auth.confirmSignUp(route.params.username, route.params.code).then((response) => {
+                setState({ ...state, success: true, successMessage: 'Email successfully confirmed! You may log in' });
+            });
+        }
+    }, [route.params]);
+
     const login = async () => {
         Keyboard.dismiss();
         setState({ ...state, loading: true })
@@ -18,12 +26,12 @@ export default function LoginScreen({
                 username: state.email,
                 password: state.password
             });
-            setState({ ...state, loading: false, errorMessage: '' });
+            setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
             navigation.navigate('app');
         }
         catch (err) {
             console.log(err);
-            setState({ ...state, loading: false, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
+            setState({ ...state, loading: false, success: false, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
         }
     }
     return (
@@ -34,7 +42,7 @@ export default function LoginScreen({
             </TouchableOpacity>
             <View style={{ margin: 30 }}>
                 {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
-                {state.successMessage.length > 0 && <Text style={[styles.baseText]}>{state.successMessage}</Text>}
+                {state.success && <Text style={[styles.baseText, { color: '#006600', textAlign: 'center', marginTop: -16 }]}>{state.successMessage}</Text>}
                 <TextInput inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]}></TextInput>
                 <TextInput inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                     onSubmitEditing={login}></TextInput>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard } from 'react-native';
+import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -7,24 +7,27 @@ import * as root from '../Root';
 import RNPickerSelect from 'react-native-picker-select';
 
 export default function EntryScreen({ route, navigation }: any) {
-    const [state, setState] = useState({
-        projects: [],
-        dates: [],
-        timesheet: {},
-        loading: false,
-        date: new Date()
+    const [projects, setProjects] = useState([]);
+    const [dates, setDates] = useState([]);
+    const [timesheet, setTimesheet] = useState({
+        date: new Date(),
+        project: null,
+        category: null,
+        hours: null,
+        details: null
     });
+    const [loading, setLoading] = useState(false);
+
     useEffect(() => {
-        console.log(`componentDidMount`);
         if (!route.params) { route.params = {}; }
         onRefresh();
     }, []);
 
     let onRefresh = async () => {
-        setState({ ...state, loading: true });
+        setLoading(true);
 
         //create an array of dates
-        let dates = []
+        let dates = [];
         for (let i = -20; i < 40; i++) {
             let date = new Date();
             date.setDate(date.getDate() + i);
@@ -32,13 +35,19 @@ export default function EntryScreen({ route, navigation }: any) {
         }
         //get all projects
         let projects = await API.graphql(graphqlOperation(`{
-            projects {
+            projects(order_by: {name: asc}) {
               id
               name
               image
             }
           }
           `));
+
+        //check if the user has any projects
+        if (projects.data.projects.length === 0) {
+            alert('You must add a project before adding a time entry');
+            navigation.navigate('projects');
+        }
 
         //load existing timesheet if editing
         let timesheet = {};
@@ -48,6 +57,7 @@ export default function EntryScreen({ route, navigation }: any) {
                       id
                       project_id
                       date
+                      category
                       hours
                       details
                     }
@@ -56,42 +66,43 @@ export default function EntryScreen({ route, navigation }: any) {
             timesheet = data.data.timesheets_by_pk;
         }
 
-        setState({
-            ...state,
-            loading: false,
-            dates: dates,
-            projects: projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id }) }),
-            project: route.params.id ? timesheet.project_id : route.params.project_id ? route.params.project_id : projects.data.projects[0].id,
+        setTimesheet({
+            project: route.params.id ? timesheet.project_id : route.params.project_id ? route.params.project_id : projects.data.projects.length !== 0 ? projects.data.projects[0].id : null,
             date: route.params.id ? timesheet.date : route.params.date ? await root.exportDate(new Date(route.params.date), 1) : dates[20].value,
+            category: route.params.id ? timesheet.category : null,
             hours: route.params.id ? timesheet.hours.toString() : null,
             details: route.params.id ? timesheet.details : null
         });
-
+        setProjects(projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id }) }));
+        setDates(dates);
+        setLoading(false);
     }
 
     const submit = async () => {
         Keyboard.dismiss();
-        setState({ ...state, loading: true })
+        setLoading(true);
         try {
             let response = await API.graphql(graphqlOperation(route.params.id
                 ?
                 `            
-                mutation($project_id: uuid, $date: date, $hours: numeric, $details: String) {
-                    update_timesheets_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, hours: $hours, details: $details, project_id: $project_id}) {id}
+                mutation($project_id: uuid, $date: date, $hours: numeric, $details: String, $category: String) {
+                    update_timesheets_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, hours: $hours, details: $details, project_id: $project_id, category: $category}) {id}
                 }
                 `
                 :
                 `
-                mutation($project_id: uuid, $date: date, $hours: numeric, $details: String) {
-                    insert_timesheets_one(object: {project_id: $project_id, date: $date, hours: $hours, details: $details }) {id}
+                mutation($project_id: uuid, $date: date, $hours: numeric, $details: String, $category: String) {
+                    insert_timesheets_one(object: {project_id: $project_id, date: $date, hours: $hours, details: $details, category: $category }) {id}
                 }
-              `, { project_id: state.project, date: state.date, hours: state.hours, details: state.details }));
+              `, { project_id: timesheet.project, date: timesheet.date, hours: timesheet.hours, details: timesheet.details, category: timesheet.category }));
             console.log(response);
-            setState({ ...state, hours: null, details: null, date: state.dates[20].value, project: state.projects[0].value, loading: false });
+            setTimesheet({ hours: null, details: null, category: null, date: dates[20].value, project: projects[0].value });
+            setLoading(false);
             navigation.navigate('timesheet');
         }
         catch (err) {
-            setState({ ...state, hours: null, details: null, date: state.dates[20].value, project: state.projects[0].value, loading: false });
+            setTimesheet({ hours: null, details: null, date: dates[20].value, project: projects[0].value });
+            setLoading(false);
             console.log(err);
         }
     }
@@ -105,11 +116,11 @@ export default function EntryScreen({ route, navigation }: any) {
                     <Text>{route.params.id ? 'Edit Entry' : 'Add Entry'}</Text>
                 </View>}
             <ScrollView
-                style={{ maxWidth: 800, width: '100%', height: '100%', padding: 10 }}
+                style={{ maxWidth: root.desktopWidth, width: '100%', height: '100%', padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl
-                        refreshing={state.loading}
+                        refreshing={loading}
                         onRefresh={onRefresh}
                         colors={["#ffffff"]}
                         tintColor='#ffffff'
@@ -124,9 +135,9 @@ export default function EntryScreen({ route, navigation }: any) {
                         inputWeb: styles.picker,
                         inputIOS: styles.picker
                     }}
-                    value={state.project}
-                    onValueChange={(value) => setState({ ...state, project: value })}
-                    items={state.projects}
+                    value={timesheet.project}
+                    onValueChange={(value) => setTimesheet({ ...timesheet, project: value })}
+                    items={projects}
                 />
                 <RNPickerSelect
                     placeholder={{}}
@@ -134,12 +145,13 @@ export default function EntryScreen({ route, navigation }: any) {
                         inputWeb: styles.picker,
                         inputIOS: styles.picker
                     }}
-                    value={state.date}
-                    onValueChange={(value) => setState({ ...state, date: value })}
-                    items={state.dates}
+                    value={timesheet.date}
+                    onValueChange={(value) => setTimesheet({ ...timesheet, date: value })}
+                    items={dates}
                 />
-                <TextInput value={state.hours} keyboardType='numeric' onChangeText={value => { setState({ ...state, hours: value }) }} placeholder='hours' style={[styles.textInput, isWeb && { outlineWidth: 0 }]}></TextInput>
-                <TextInput value={state.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setState({ ...state, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }, isWeb && { outlineWidth: 0 }]}></TextInput>
+                <TextInput value={timesheet.category} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, category: value }) }} placeholder='category' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
+                <TextInput value={timesheet.hours} keyboardType='numeric' onChangeText={value => { setTimesheet({ ...timesheet, hours: value.replace(/[^0-9]/g, '') }) }} placeholder='hours' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
+                <TextInput value={timesheet.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }, isWeb && { outlineWidth: 0 }]} />
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F0054' }]}
                     onPress={submit}
                 >
@@ -147,11 +159,13 @@ export default function EntryScreen({ route, navigation }: any) {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
-                    onPress={() => { navigation.navigate('timesheet') }}>
+                    onPress={() => {
+                        navigation.goBack();
+                    }}>
                     <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
                 </TouchableOpacity>
             </ScrollView>
-            {state.loading && <LoadingComponent />}
+            {loading && <LoadingComponent />}
         </View>
     );
 }

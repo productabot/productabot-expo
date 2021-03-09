@@ -6,13 +6,13 @@ import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import RNPickerSelect from 'react-native-picker-select';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 
 export default function ProjectScreen({ route, navigation }: any) {
-    const [state, setState] = useState({
-        project: {},
-        loading: false,
-        colors: []
-    });
+    const [loading, setLoading] = useState(false);
+    const [project, setProject] = useState({ kanban_projects: [], documents: [] });
+    const [colors, setColors] = useState([]);
+
 
     useFocusEffect(
         React.useCallback(() => {
@@ -22,7 +22,7 @@ export default function ProjectScreen({ route, navigation }: any) {
     );
 
     let onRefresh = async () => {
-        setState({ ...state, loading: true });
+        setLoading(true);
         let data = await API.graphql(graphqlOperation(`{
         projects_by_pk(id: "${route.params.id}") {
             id
@@ -31,15 +31,28 @@ export default function ProjectScreen({ route, navigation }: any) {
             description
             key
             color
-            timesheets(limit: 10, order_by: {date: desc}) {
+            timesheets(order_by: {date: desc}) {
               id
               date
+              category
               details
               hours
             }
-            kanban_projects(limit: 10, order_by: {name: asc}) {
+            kanban_projects(order_by: {order: asc}) {
                 id
                 name
+                kanban_columns(order_by: {order: asc}) {
+                        name
+                        kanban_items_aggregate {
+                        aggregate {
+                            count
+                        }
+                    }
+                }
+            }
+            documents(order_by: {order: asc}) {
+              id
+              title
             }
         }
         colors {
@@ -47,9 +60,9 @@ export default function ProjectScreen({ route, navigation }: any) {
             value
         }
         }`));
-        setTimeout(() => {
-            setState({ ...state, loading: false, project: data.data.projects_by_pk, colors: data.data.colors.map(obj => { return ({ label: obj.label, value: obj.value, color: obj.value }) }) });
-        }, 0);
+        setProject(data.data.projects_by_pk);
+        setColors(data.data.colors.map(obj => { return ({ label: obj.label, value: obj.value, color: obj.value }) }));
+        setLoading(false);
     }
 
     return (
@@ -61,11 +74,11 @@ export default function ProjectScreen({ route, navigation }: any) {
                     <Text>Project</Text>
                 </View>}
             <ScrollView
-                style={{ maxWidth: 800, width: '100%', height: '100%', padding: 10 }}
+                style={{ maxWidth: root.desktopWidth, width: '100%', height: '100%', padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl
-                        refreshing={state.loading}
+                        refreshing={loading}
                         onRefresh={onRefresh}
                         colors={["#ffffff"]}
                         tintColor='#ffffff'
@@ -74,31 +87,31 @@ export default function ProjectScreen({ route, navigation }: any) {
                     />}
             >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '100%' }}>
-                    {state.project.image ?
+                    {project.image ?
                         <Image
                             style={{ width: 80, height: 80, marginRight: 10, borderColor: '#ffffff', borderWidth: 1 }}
-                            source={{ uri: `https://files.productabot.com/${state.project.image}` }}
+                            source={{ uri: `https://files.productabot.com/${project.image}` }}
                         />
                         :
                         <View style={{ width: 80, height: 80, marginRight: 10, borderColor: '#ffffff', borderWidth: 1 }} />
                     }
                     <View style={{ width: '75%' }}>
-                        <TextInput value={state.project.name} numberOfLines={1} style={[{ fontSize: 40, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
-                            onChangeText={(value) => { setState({ ...state, project: { ...state.project, name: value } }); }}
+                        <TextInput value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
+                            onChangeText={(value) => { setProject({ ...project, name: value }); }}
                             onBlur={async () => {
                                 await API.graphql(graphqlOperation(`mutation {
-                                    update_projects_by_pk(pk_columns: {id: "${state.project.id}"}, _set: {name: "${state.project.name}"}) {
+                                    update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {name: "${project.name}"}) {
                                       id
                                     }
                                   }`));
                             }}
                         />
-                        <TextInput value={state.project.description} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
-                            onChangeText={(value) => { setState({ ...state, project: { ...state.project, description: value } }); }}
+                        <TextInput value={project.description} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
+                            onChangeText={(value) => { setProject({ ...project, description: value }); }}
                             onBlur={async () => {
                                 await API.graphql(graphqlOperation(`
                                 mutation {
-                                    update_projects_by_pk(pk_columns: {id: "${state.project.id}"}, _set: {description: "${state.project.description}"}) {
+                                    update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {description: "${project.description}"}) {
                                         id
                                     }
                                 }`));
@@ -107,12 +120,12 @@ export default function ProjectScreen({ route, navigation }: any) {
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '100%' }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
                                 <Text style={{ fontSize: 20, color: '#ffffff' }}>key: </Text>
-                                <TextInput value={state.project.key} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff', borderBottomColor: '#ffffff', borderBottomWidth: 1, width: 35 }, root.desktopWeb && { outlineWidth: 0 }]}
-                                    onChangeText={(value) => { setState({ ...state, project: { ...state.project, key: value } }); }}
+                                <TextInput value={project.key} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff', borderBottomColor: '#ffffff', borderBottomWidth: 1, width: 35 }, root.desktopWeb && { outlineWidth: 0 }]}
+                                    onChangeText={(value) => { setProject({ ...project, key: value }); }}
                                     onBlur={async () => {
                                         await API.graphql(graphqlOperation(`
                         mutation {
-                            update_projects_by_pk(pk_columns: {id: "${state.project.id}"}, _set: {key: "${state.project.key}"}) {
+                            update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {key: "${project.key}"}) {
                                 id
                             }
                         }`));
@@ -124,22 +137,22 @@ export default function ProjectScreen({ route, navigation }: any) {
                                 <RNPickerSelect
                                     placeholder={{}}
                                     style={{
-                                        inputWeb: { ...styles.picker, color: '#ffffff', borderColor: state.project.color, backgroundColor: '#000000', marginTop: 6 },
-                                        inputIOS: { ...styles.picker, color: state.project.color, borderColor: state.project.color }
+                                        inputWeb: { ...styles.picker, color: '#ffffff', borderColor: project.color, backgroundColor: '#000000', marginTop: 6 },
+                                        inputIOS: { ...styles.picker, color: project.color, borderColor: project.color }
                                     }}
-                                    value={state.project.color}
+                                    value={project.color}
                                     onValueChange={async (value) => {
                                         if (value) {
-                                            setState({ ...state, project: { ...state.project, color: value } })
+                                            setProject({ ...project, color: value });
                                             await API.graphql(graphqlOperation(`
                                         mutation {
-                                            update_projects_by_pk(pk_columns: {id: "${state.project.id}"}, _set: {color: "${value}"}) {
+                                            update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {color: "${value}"}) {
                                                 id
                                             }
                                         }`));
                                         }
                                     }}
-                                    items={state.colors}
+                                    items={colors}
                                 />
                             </View>
                         </View>
@@ -152,26 +165,28 @@ export default function ProjectScreen({ route, navigation }: any) {
                             <Text style={{ fontSize: 20 }}>timesheet entries</Text>
                             <TouchableOpacity
                                 onPress={() => {
-                                    navigation.navigate('timesheet', { screen: 'entry', params: { project_id: state.project.id } })
+                                    navigation.navigate('calendar', { screen: 'entry', params: { project_id: project.id } })
                                 }}
                             ><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
                         </View>
                         <FlatList
-                            style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#ffffff' }}
+                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#ffffff' }}
                             numColumns={1}
-                            data={state.project.timesheets}
+                            data={project.timesheets}
                             contentContainerStyle={{ width: '100%' }}
                             renderItem={({ item, index }) => (
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
-                                    <Text style={{ fontSize: 14, width: '20%' }}>{`${new Date(item.date).toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
-                                    <Text style={{ fontSize: 14, width: '60%' }}>{`${item.details}`}</Text>
+                                <TouchableOpacity onPress={() => {
+                                    navigation.navigate('calendar', { screen: 'entry', params: { id: item.id } })
+                                }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
+                                    <Text style={{ fontSize: 14, width: '30%' }}>{`${new Date(item.date).toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}{item.category ? '\n' + item.category : ''}</Text>
+                                    <Text style={{ fontSize: 14, width: '50%' }}>{`${item.details}`}</Text>
                                     <Text style={{ fontSize: 14, width: '20%', textAlign: 'right' }}>{`${item.hours} hours`}</Text>
                                 </TouchableOpacity>
                             )}
                             keyExtractor={item => item.id}
                             refreshControl={
                                 <RefreshControl
-                                    refreshing={state.loading}
+                                    refreshing={loading}
                                     onRefresh={onRefresh}
                                     colors={["#ffffff"]}
                                     tintColor='#ffffff'
@@ -187,40 +202,42 @@ export default function ProjectScreen({ route, navigation }: any) {
                             <Text style={{ fontSize: 20 }}>kanban boards</Text>
                             <TouchableOpacity
                                 onPress={async () => {
-                                    setState({ ...state, loading: true });
+                                    setLoading(true);
                                     let count = await API.graphql(graphqlOperation(`{
-                                        kanban_projects_aggregate(where: {project_id: {_eq: "${state.project.id}"}}) {
+                                        kanban_projects_aggregate(where: {project_id: {_eq: "${project.id}"}}) {
                                           aggregate {
                                             max {
                                               name
                                             }
+                                            count
                                           }
                                         }
                                       }`));
                                     let data = await API.graphql(graphqlOperation(`mutation {
-                                        insert_kanban_projects_one(object: {name: "${state.project.key + ' board ' + (parseInt(count.data.kanban_projects_aggregate.aggregate.max.name ? count.data.kanban_projects_aggregate.aggregate.max.name.slice(-1) : '0') + 1)}", kanban_columns: {data: [{name: "To-do", order: 0},{name: "In Progress", order: 1},{name: "Done", order: 2}]}, project_id: "${state.project.id}"}) {
+                                        insert_kanban_projects_one(object: {name: "${project.key + ' board ' + (parseInt(count.data.kanban_projects_aggregate.aggregate.max.name ? !isNaN(count.data.kanban_projects_aggregate.aggregate.max.name.slice(-1)) ? count.data.kanban_projects_aggregate.aggregate.max.name.slice(-1) : count.data.kanban_projects_aggregate.aggregate.count : count.data.kanban_projects_aggregate.aggregate.count) + 1)}", description:"add a description here", kanban_columns: {data: [{name: "To-do", order: 0},{name: "In Progress", order: 1},{name: "Done", order: 2}]}, project_id: "${project.id}"}) {
                                           id
                                         }
                                       }`));
-                                    setState({ ...state, loading: false });
+                                    setLoading(false);
                                     navigation.navigate('kanban', { id: data.data.insert_kanban_projects_one.id })
                                 }}
                             ><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
                         </View>
-                        <FlatList
-                            style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#ffffff' }}
-                            numColumns={1}
-                            data={state.project.kanban_projects}
+                        <DraggableFlatList
+                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#ffffff' }}
+                            data={project.kanban_projects}
                             contentContainerStyle={{ width: '100%' }}
-                            renderItem={({ item, index }) => (
-                                <TouchableOpacity key={index} onPress={() => { navigation.navigate('kanban', { id: item.id }) }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
-                                    <Text style={{ fontSize: 14, width: '100%' }}>{`${item.name}`}</Text>
+                            renderItem={(item) => (
+                                <TouchableOpacity onPress={() => { navigation.navigate('kanban', { id: item.item.id }) }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
+                                    <Text style={{ fontSize: 14, width: '75%' }}>{`${item.item.name}`}</Text>
+                                    <Text style={{ fontSize: 14, width: '20%' }}>{`${item.item.kanban_columns[2].kanban_items_aggregate.aggregate.count}/${item.item.kanban_columns[0].kanban_items_aggregate.aggregate.count + item.item.kanban_columns[1].kanban_items_aggregate.aggregate.count + item.item.kanban_columns[2].kanban_items_aggregate.aggregate.count} done`}</Text>
+                                    <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={0} onLongPress={item.drag} style={{ width: '5%', cursor: 'grab' }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
                                 </TouchableOpacity>
                             )}
-                            keyExtractor={item => item.id}
+                            keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
                             refreshControl={
                                 <RefreshControl
-                                    refreshing={state.loading}
+                                    refreshing={loading}
                                     onRefresh={onRefresh}
                                     colors={["#ffffff"]}
                                     tintColor='#ffffff'
@@ -229,26 +246,46 @@ export default function ProjectScreen({ route, navigation }: any) {
                                 />}
                             onEndReached={() => { }}
                             ListEmptyComponent={<View></View>}
+                            dragItemOverflow={false}
+                            onDragEnd={async ({ data }) => {
+                                setProject({ ...project, kanban_projects: data });
+                                await API.graphql(graphqlOperation(`mutation {
+                                    ${data.map((kanban, kanbanIndex) => `data${kanbanIndex}: update_kanban_projects_by_pk(pk_columns: {id: "${kanban.id}"}, _set: {order: ${kanbanIndex}}) {id}`)}
+                                }`));
+                            }}
                         />
                     </View>
                 </View>
                 <View style={[{ width: '100%' }, root.desktopWeb && { flexDirection: 'row', justifyContent: 'space-between', width: '100%' }]}>
                     <View style={root.desktopWeb && { width: '49%' }}>
-                        <Text style={{ fontSize: 20, marginTop: 20, width: '100%' }}>documents</Text>
-                        <FlatList
-                            style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#ffffff' }}
-                            numColumns={1}
-                            data={[]}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+                            <Text style={{ fontSize: 20 }}>documents</Text>
+                            <TouchableOpacity
+                                onPress={async () => {
+                                    setLoading(true);
+                                    let data = await API.graphql(graphqlOperation(`mutation {
+                                        insert_documents_one(object: {title: "New Document", content: "", order: ${project.documents.length}, project_id: "${project.id}"}) {id}
+                                      }`));
+                                    console.log(data);
+                                    setLoading(false);
+                                    navigation.navigate('document', { id: data.data.insert_documents_one.id })
+                                }}
+                            ><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
+                        </View>
+                        <DraggableFlatList
+                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#ffffff' }}
+                            data={project.documents}
                             contentContainerStyle={{ width: '100%' }}
-                            renderItem={({ item, index }) => (
-                                <TouchableOpacity key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
-                                    <Text style={{ fontSize: 14, width: '20%' }}>{item}</Text>
+                            renderItem={(item) => (
+                                <TouchableOpacity onPress={() => { navigation.navigate('document', { id: item.item.id }) }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
+                                    <Text style={{ fontSize: 14, width: '75%' }}>{`${item.item.title}`}</Text>
+                                    <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={0} onLongPress={item.drag} style={{ width: '5%', cursor: 'grab' }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
                                 </TouchableOpacity>
                             )}
-                            keyExtractor={item => item}
+                            keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
                             refreshControl={
                                 <RefreshControl
-                                    refreshing={state.loading}
+                                    refreshing={loading}
                                     onRefresh={onRefresh}
                                     colors={["#ffffff"]}
                                     tintColor='#ffffff'
@@ -257,24 +294,37 @@ export default function ProjectScreen({ route, navigation }: any) {
                                 />}
                             onEndReached={() => { }}
                             ListEmptyComponent={<View></View>}
+                            dragItemOverflow={false}
+                            onDragEnd={async ({ data }) => {
+                                setProject({ ...project, documents: data });
+                                await API.graphql(graphqlOperation(`mutation {
+                                    ${data.map((document, documentIndex) => `data${documentIndex}: update_documents_by_pk(pk_columns: {id: "${document.id}"}, _set: {order: ${documentIndex}}) {id}`)}
+                                }`));
+                            }}
                         />
                     </View>
                     <View style={root.desktopWeb && { width: '49%' }}>
-                        <Text style={{ fontSize: 20, marginTop: 20, width: '100%' }}>reminders</Text>
-                        <FlatList
-                            style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#ffffff' }}
-                            numColumns={1}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+                            <Text style={{ fontSize: 20 }}>reminders</Text>
+                            <TouchableOpacity
+                                onPress={async () => {
+                                }}
+                            ><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
+                        </View>
+                        <DraggableFlatList
+                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#ffffff' }}
                             data={[]}
                             contentContainerStyle={{ width: '100%' }}
-                            renderItem={({ item, index }) => (
-                                <TouchableOpacity key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
-                                    <Text style={{ fontSize: 14, width: '20%' }}>{item}</Text>
+                            renderItem={(item) => (
+                                <TouchableOpacity onPress={() => { navigation.navigate('document', { id: item.item.id }) }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
+                                    <Text style={{ fontSize: 14, width: '75%' }}>{`${item.item.title}`}</Text>
+                                    <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={0} onLongPress={item.drag} style={{ width: '5%', cursor: 'grab' }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
                                 </TouchableOpacity>
                             )}
-                            keyExtractor={item => item}
+                            keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
                             refreshControl={
                                 <RefreshControl
-                                    refreshing={state.loading}
+                                    refreshing={loading}
                                     onRefresh={onRefresh}
                                     colors={["#ffffff"]}
                                     tintColor='#ffffff'
@@ -283,22 +333,29 @@ export default function ProjectScreen({ route, navigation }: any) {
                                 />}
                             onEndReached={() => { }}
                             ListEmptyComponent={<View></View>}
+                            dragItemOverflow={false}
+                            onDragEnd={async ({ data }) => {
+                                // setProject({ ...project, documents: data });
+                                // await API.graphql(graphqlOperation(`mutation {
+                                //     ${data.map((document, documentIndex) => `data${documentIndex}: update_documents_by_pk(pk_columns: {id: "${document.id}"}, _set: {order: ${documentIndex}}) {id}`)}
+                                // }`));
+                            }}
                         />
                     </View>
                 </View>
                 <TouchableOpacity style={{ margin: 20 }} onPress={async () => {
-                    setState({ ...state, loading: true });
+                    setLoading(true);
                     await API.graphql(graphqlOperation(`mutation {
-                        delete_projects_by_pk(id: "${state.project.id}") {
+                        delete_projects_by_pk(id: "${project.id}") {
                           id
                         }
                       }
                       `));
-                    setState({ ...state, loading: false });
+                    setLoading(false);
                     navigation.navigate('projects');
                 }}><Text style={{ color: '#ff0000' }}>delete project</Text></TouchableOpacity>
             </ScrollView>
-            {state.loading && <LoadingComponent />}
+            {loading && <LoadingComponent />}
         </View>
     );
 }

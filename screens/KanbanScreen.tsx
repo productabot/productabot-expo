@@ -1,22 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { useFocusEffect } from '@react-navigation/native';
+import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 
 export default function KanbanScreen({ route, navigation }: any) {
-    const [state, setState] = useState({
-        loading: false,
-        cancelContentTouches: true,
-        kanban: { kanban_columns: [] },
-        columnWidth: 0,
-        columnPadding: 0,
-        layoutInvalidationKey: new Date().toISOString(),
-        doNotUpdate: false
-    });
+    const [loading, setLoading] = useState(false);
+    const [update, setUpdate] = useState(true);
+    const [kanban, setKanban] = useState({ kanban_columns: [] });
 
     useFocusEffect(
         React.useCallback(() => {
@@ -26,11 +21,12 @@ export default function KanbanScreen({ route, navigation }: any) {
     );
 
     let onRefresh = async () => {
-        setState({ ...state, loading: true });
+        setLoading(true);
         let data = await API.graphql(graphqlOperation(`{
             kanban_projects_by_pk(id: "${route.params.id}") {
                 id
               name
+              description
               project {
                   key
                   id
@@ -46,63 +42,87 @@ export default function KanbanScreen({ route, navigation }: any) {
               }
             }
           }`));
-        setState({ ...state, loading: false, kanban: data.data.kanban_projects_by_pk, columnWidth: root.desktopWeb ? Math.round(750 * 0.3333) : Math.round((root.windowWidth * 3) * 0.3333), columnPadding: root.desktopWeb ? 30 : 50 });
+        setKanban(data.data.kanban_projects_by_pk);
+        setLoading(false);
     }
 
     useEffect(() => {
         updateKanban();
-    }, [state.kanban]);
+    }, [kanban]);
 
     let updateKanban = async () => {
-        if (state.kanban.kanban_columns.length > 0 && !state.doNotUpdate) {
+        if (kanban.kanban_columns.length > 0 && update) {
             let response = await API.graphql(graphqlOperation(`mutation {
-            ${state.kanban.kanban_columns.map((column, columnIndex) => `column${columnIndex}: update_kanban_columns_by_pk(pk_columns: {id: "${column.id}"}, _set: {order: ${columnIndex}}) {id}
+            ${kanban.kanban_columns.map((column, columnIndex) => `column${columnIndex}: update_kanban_columns_by_pk(pk_columns: {id: "${column.id}"}, _set: {order: ${columnIndex}}) {id}
                 ${column.kanban_items.map((item, itemIndex) => `column${columnIndex}item${itemIndex}: update_kanban_items_by_pk(pk_columns: {id: "${item.id}"}, _set: {order: ${itemIndex}, name: "${item.name.replace(/[\r\n]/g, "\\n").replace(/"/g, `\\"`)}", kanban_column_id: "${column.id}"}) {id}`)}
             `)}
             }`));
-            //console.log(response);
-            //     setTimeout(() => {
-            //         setState({ ...state, updateInProgress: false })
-            //     }, 5000);
         }
         else {
-            setState({ ...state, doNotUpdate: false });
+            setUpdate(true);
         }
     }
 
     return (
-        <View style={styles.container}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 50, marginBottom: root.desktopWeb ? 0 : -20, zIndex: 10, position: 'relative' }}>
-                <TouchableOpacity style={{ marginRight: 10 }} onPress={async () => {
-                    navigation.navigate('project', { id: state.kanban.project.id })
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={[styles.container, { width: '100%', height: '100%' }]}
+        >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 50, marginBottom: root.desktopWeb ? 0 : -20, zIndex: 10, position: 'relative', width: root.desktopWeb ? root.desktopWidth : '100%', paddingLeft: 30, paddingRight: 30 }}>
+                <TouchableOpacity hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} style={{ marginRight: 10 }} onPress={async () => {
+                    navigation.navigate('project', { id: kanban.project.id })
                 }}><Text>←</Text></TouchableOpacity>
-                <Text>{state.kanban.name}</Text>
-                <TouchableOpacity style={{ marginLeft: 10 }} onPress={async () => {
-                    setState({ ...state, loading: true });
+                <View style={{ flexDirection: 'column', alignItems: 'center', width: '80%' }}>
+                    <TextInput
+                        value={kanban.name}
+                        onChangeText={(value) => {
+                            setUpdate(false);
+                            setKanban({ ...kanban, name: value });
+                        }}
+                        onBlur={async () => {
+                            await API.graphql(graphqlOperation(`mutation {update_kanban_projects_by_pk(pk_columns: {id: "${kanban.id}"}, _set: {name: "${kanban.name}"}) {id}}`));
+                        }}
+                        style={[{ color: '#ffffff', textAlign: 'center', width: '100%', fontWeight: 'bold' }, root.desktopWeb && { outlineWidth: 0 }]}
+                    />
+                    <TextInput
+                        multiline={true}
+                        value={kanban.description}
+                        onChangeText={(value) => {
+                            setUpdate(false);
+                            setKanban({ ...kanban, description: value });
+                        }}
+                        onBlur={async () => {
+                            await API.graphql(graphqlOperation(`mutation {update_kanban_projects_by_pk(pk_columns: {id: "${kanban.id}"}, _set: {description: "${kanban.description}"}) {id}}`));
+                        }}
+                        style={[{ color: '#ffffff', textAlign: 'center', width: '100%' }, root.desktopWeb && { outlineWidth: 0 }]}
+                    />
+                </View>
+                <TouchableOpacity hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} style={{ marginLeft: 10 }} onPress={async () => {
+                    setLoading(true);
                     await API.graphql(graphqlOperation(`mutation {
-                        delete_kanban_projects_by_pk(id: "${state.kanban.id}") {
+                        delete_kanban_projects_by_pk(id: "${kanban.id}") {
                           id
                         }
                       }
                       `));
-
-                    setState({ ...state, loading: false });
-                    navigation.navigate('project', { id: state.kanban.project.id })
+                    setLoading(false);
+                    navigation.navigate('project', { id: kanban.project.id })
                 }}><Text>×</Text></TouchableOpacity>
             </View>
             <DraggableFlatList
+                pagingEnabled={true}
                 horizontal={true}
-                containerStyle={{ width: root.desktopWeb ? 750 : root.windowWidth }}
-                data={state.kanban.kanban_columns}
+                containerStyle={[{ width: root.desktopWeb ? 750 : root.windowWidth - 10, paddingTop: root.desktopWeb ? 0 : 10 }]}
+                data={kanban.kanban_columns}
                 renderItem={(columnParams) => {
                     return (
-                        <View style={{ flexDirection: 'column', width: root.desktopWeb ? (750 / state.kanban.kanban_columns.length) : root.windowWidth, height: root.desktopWeb ? 600 : '100%', padding: root.desktopWeb ? 2 : 20 }}>
+                        <View style={{ flexDirection: 'column', width: root.desktopWeb ? (750 / kanban.kanban_columns.length) : root.windowWidth - 10, height: root.desktopWeb ? root.windowHeight - 100 : '100%', padding: root.desktopWeb ? 2 : 10 }}>
                             <TouchableOpacity delayLongPress={0} onLongPress={columnParams.drag} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 10, cursor: 'grab' }}>
                                 <Text>{columnParams.item.name}</Text>
-                                <TouchableOpacity delayLongPress={5} onPress={async () => {
-                                    console.log("add!!");
+                                <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={async () => {
                                     let count = await API.graphql(graphqlOperation(`{
-                                        kanban_items_aggregate(where: {kanban_column_id: {_in: [${state.kanban.kanban_columns.map(obj => `"${obj.id}"`).join(',')}]}}) {
+                                        kanban_items_aggregate(where: {kanban_column_id: {_in: [${kanban.kanban_columns.map(obj => `"${obj.id}"`).join(',')}]}}) {
                                             aggregate {
                                                 max {
                                                     key
@@ -115,9 +135,9 @@ export default function KanbanScreen({ route, navigation }: any) {
                                           id
                                         }
                                       }`));
-                                    let newKanbanColumns = state.kanban.kanban_columns;
+                                    let newKanbanColumns = kanban.kanban_columns;
                                     newKanbanColumns[columnParams.index].kanban_items.push({ id: data.data.insert_kanban_items_one.id, kanban_column_id: columnParams.item.id, name: '', key: count.data.kanban_items_aggregate.aggregate.max.key + 1 });
-                                    setState({ ...state, kanban: { ...state.kanban, kanban_columns: newKanbanColumns }, layoutInvalidationKey: new Date().toISOString() })
+                                    setKanban({ ...kanban, kanban_columns: newKanbanColumns });
                                 }}>
                                     <Text style={{ fontSize: 20, fontWeight: 'bold' }}>+</Text>
                                 </TouchableOpacity>
@@ -127,71 +147,71 @@ export default function KanbanScreen({ route, navigation }: any) {
                                 data={columnParams.item.kanban_items}
                                 renderItem={(itemParams) => {
                                     return (
-                                        <View style={{ padding: 5, height: 150 }}>
-                                            <View
-                                                style={{
-                                                    height: 140,
-                                                    flexDirection: 'column',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'flex-start',
-                                                    borderColor: '#ffffff',
-                                                    borderWidth: 1,
-                                                    backgroundColor: '#000000',
-                                                    paddingBottom: 1
-                                                }}>
-                                                <TouchableOpacity delayLongPress={0}
-                                                    onLongPress={itemParams.drag} style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#ffffff', height: 22, cursor: 'grab' }}>
-                                                    {columnParams.index !== 0 ?
-                                                        <TouchableOpacity onPress={() => {
-                                                            console.log("press!")
-                                                            let newKanbanColumns = state.kanban.kanban_columns;
-                                                            newKanbanColumns[columnParams.index - 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(itemParams.index, 1)[0]);
-                                                            setState({ ...state, kanban: { ...state.kanban, kanban_columns: newKanbanColumns }, layoutInvalidationKey: new Date().toISOString() })
-                                                        }}><Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{`←`}</Text></TouchableOpacity> :
-                                                        <TouchableOpacity onPress={async () => {
-                                                            await API.graphql(graphqlOperation(`mutation {delete_kanban_items_by_pk(id: "${itemParams.item.id}") {id}}`));
-                                                            let newKanbanColumns = state.kanban.kanban_columns;
-                                                            newKanbanColumns[columnParams.index].kanban_items.splice(itemParams.index, 1);
-                                                            setState({ ...state, kanban: { ...state.kanban, kanban_columns: newKanbanColumns }, layoutInvalidationKey: new Date().toISOString() })
-                                                        }}><Text>×</Text></TouchableOpacity>
-                                                    }
-                                                    <Text style={{ fontSize: 12, marginRight: 10 }}>{state.kanban.project.key}-{itemParams.item.key}</Text>
-                                                    {columnParams.index !== state.kanban.kanban_columns.length - 1 ?
-                                                        <TouchableOpacity onPress={() => {
-                                                            let newKanbanColumns = state.kanban.kanban_columns;
-                                                            newKanbanColumns[columnParams.index + 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(itemParams.index, 1)[0]);
-                                                            setState({ ...state, kanban: { ...state.kanban, kanban_columns: newKanbanColumns }, layoutInvalidationKey: new Date().toISOString() })
-                                                        }}><Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{`→`}</Text></TouchableOpacity> :
-                                                        <TouchableOpacity onPress={async () => {
-                                                            await API.graphql(graphqlOperation(`mutation {delete_kanban_items_by_pk(id: "${itemParams.item.id}") {id}}`));
-                                                            let newKanbanColumns = state.kanban.kanban_columns;
-                                                            newKanbanColumns[columnParams.index].kanban_items.splice(itemParams.index, 1);
-                                                            setState({ ...state, kanban: { ...state.kanban, kanban_columns: newKanbanColumns }, layoutInvalidationKey: new Date().toISOString() })
-                                                        }}><Text>×</Text></TouchableOpacity>
-                                                    }
-                                                </TouchableOpacity>
-                                                <TextInput multiline={true} textAlignVertical={'top'} style={[{ color: '#ffffff', fontSize: 18, width: '100%', padding: 5 }, root.desktopWeb && { outlineWidth: 0, height: '100%' }]} value={itemParams.item.name}
-                                                    onChangeText={(value) => {
-                                                        let newKanbanColumns = state.kanban.kanban_columns;
-                                                        newKanbanColumns[columnParams.index].kanban_items[itemParams.index].name = value;
-                                                        setState({ ...state, kanban: { ...state.kanban, kanban_columns: newKanbanColumns }, layoutInvalidationKey: new Date().toISOString(), doNotUpdate: true })
-                                                    }}
-                                                    onBlur={async () => {
-                                                        setState({ ...state, kanban: { ...state.kanban }, doNotUpdate: false })
-                                                    }}
-                                                />
-                                            </View>
+                                        <View
+                                            style={{
+                                                margin: 5,
+                                                height: 120,
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'flex-start',
+                                                borderColor: '#ffffff',
+                                                borderWidth: 1,
+                                                backgroundColor: '#000000',
+                                                paddingBottom: 1
+                                            }}>
+                                            <TouchableOpacity delayLongPress={0}
+                                                onLongPress={itemParams.drag} style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#ffffff', height: 22, cursor: 'grab', paddingLeft: 5, paddingRight: 5 }}>
+                                                {columnParams.index !== 0 ?
+                                                    <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={() => {
+                                                        let newKanbanColumns = kanban.kanban_columns;
+                                                        newKanbanColumns[columnParams.index - 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(itemParams.index, 1)[0]);
+                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                    }}><Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{`←`}</Text></TouchableOpacity> :
+                                                    <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={async () => {
+                                                        await API.graphql(graphqlOperation(`mutation {delete_kanban_items_by_pk(id: "${itemParams.item.id}") {id}}`));
+                                                        let newKanbanColumns = kanban.kanban_columns;
+                                                        newKanbanColumns[columnParams.index].kanban_items.splice(itemParams.index, 1);
+                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                    }}><Text>×</Text></TouchableOpacity>
+                                                }
+                                                <Text style={{ fontSize: 10, marginRight: 10 }}>{kanban.project.key}-{kanban.name}-{itemParams.item.key}</Text>
+                                                {columnParams.index !== kanban.kanban_columns.length - 1 ?
+                                                    <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={() => {
+                                                        let newKanbanColumns = kanban.kanban_columns;
+                                                        newKanbanColumns[columnParams.index + 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(itemParams.index, 1)[0]);
+                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                    }}><Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{`→`}</Text></TouchableOpacity> :
+                                                    <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={async () => {
+                                                        await API.graphql(graphqlOperation(`mutation {delete_kanban_items_by_pk(id: "${itemParams.item.id}") {id}}`));
+                                                        let newKanbanColumns = kanban.kanban_columns;
+                                                        newKanbanColumns[columnParams.index].kanban_items.splice(itemParams.index, 1);
+                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                    }}><Text>×</Text></TouchableOpacity>
+                                                }
+                                            </TouchableOpacity>
+                                            <TextInput multiline={true} textAlignVertical={'top'} style={[{ color: '#ffffff', fontSize: 18, width: '100%', padding: 5, height: '100%' }, root.desktopWeb && { outlineWidth: 0, height: '100%', fontSize: 12 }]} value={itemParams.item.name}
+                                                inputAccessoryViewID='main'
+                                                onChangeText={(value) => {
+                                                    let newKanbanColumns = kanban.kanban_columns;
+                                                    newKanbanColumns[columnParams.index].kanban_items[itemParams.index].name = value;
+                                                    setUpdate(false);
+                                                    setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                }}
+                                                onBlur={async () => {
+                                                    setUpdate(true);
+                                                    setKanban({ ...kanban });
+                                                }}
+                                            />
                                         </View>
                                     )
                                 }}
                                 keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
                                 activationDistance={10}
                                 dragItemOverflow={true}
-                                layoutInvalidationKey={state.layoutInvalidationKey}
                                 onDragEnd={({ data }) => {
-                                    let newKanbanColumns = state.kanban.kanban_columns;
+                                    let newKanbanColumns = kanban.kanban_columns;
                                     newKanbanColumns[columnParams.index].kanban_items = data;
-                                    setState({ ...state, kanban: { ...state.kanban, kanban_columns: newKanbanColumns }, layoutInvalidationKey: new Date().toISOString() })
+                                    setKanban({ ...kanban, kanban_columns: newKanbanColumns });
                                 }}
                             />
                         </View>
@@ -200,13 +220,13 @@ export default function KanbanScreen({ route, navigation }: any) {
                 keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
                 activationDistance={10}
                 dragItemOverflow={true}
-                layoutInvalidationKey={state.layoutInvalidationKey}
                 onDragEnd={({ data }) => {
-                    setState({ ...state, kanban: { ...state.kanban, kanban_columns: data }, layoutInvalidationKey: new Date().toISOString() })
+                    setKanban({ ...kanban, kanban_columns: data });
                 }}
             />
-            {state.loading && <LoadingComponent />}
-        </View>
+            {loading && <LoadingComponent />}
+            <InputAccessoryViewComponent />
+        </KeyboardAvoidingView>
     );
 }
 

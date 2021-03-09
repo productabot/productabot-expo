@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, View } from '../components/Themed';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { RefreshControl, ScrollView, TouchableOpacity, Alert } from 'react-native';
@@ -16,48 +16,46 @@ LocaleConfig.locales['en'] = {
 };
 LocaleConfig.defaultLocale = 'en';
 
-// somewhere in your app
-import {
-    Menu,
-    MenuOptions,
-    MenuOption,
-    MenuTrigger,
-} from 'react-native-popup-menu';
-import { State } from 'react-native-gesture-handler';
+import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 
 export default function CalendarScreen({ route, navigation }: any) {
-    const [rootState, setRootState] = useState({
-        timesheets: [],
-        markedDays: [],
-        loading: false
-    });
+    const [loading, setLoading] = useState(false);
+    const [timesheets, setTimesheets] = useState([]);
+    const [month, setMonth] = useState(new Date().toLocaleDateString('fr-CA'));
 
     useFocusEffect(
         React.useCallback(() => {
-            console.log("FOCUS!");
+            if (!route.params) { route.params = {}; }
             onRefresh();
         }, [])
     );
 
+    useEffect(() => { onRefresh(); }, [month]);
+
     let onRefresh = async () => {
-        setRootState({ ...rootState, loading: true });
+        setLoading(true);
+        let nextMonth = new Date(month);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
         let data = await API.graphql(graphqlOperation(`
         {
-            timesheets(order_by: {date: asc}) {
+            timesheets(order_by: {date: asc}, where: {date: {_gte: "${month.substr(0, 7)}-01", _lt: "${nextMonth.toLocaleDateString('fr-CA').substr(0, 7)}-01"}}) {
               project {
                 name
                 key
                 color
               }
               hours
+              category
               details
               date
               id
             }
         }          
         `));
-        setRootState({ ...rootState, loading: false, timesheets: data.data.timesheets });
+        setTimesheets(data.data.timesheets);
+        setLoading(false);
     }
+
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             {root.desktopWeb ?
@@ -67,11 +65,11 @@ export default function CalendarScreen({ route, navigation }: any) {
                     <Text>Timesheet</Text>
                 </View>}
             <ScrollView
-                style={{ maxWidth: 800, width: '100%', height: '100%', padding: 10 }}
+                style={{ maxWidth: root.desktopWidth, width: '100%', height: '100%', padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl
-                        refreshing={rootState.loading}
+                        refreshing={loading}
                         onRefresh={onRefresh}
                         colors={["#ffffff"]}
                         tintColor='#ffffff'
@@ -79,21 +77,24 @@ export default function CalendarScreen({ route, navigation }: any) {
                         title=""
                     />}
             >
-                {!rootState.loading && <CalendarCustom rootState={rootState} navigation={navigation} onRefresh={onRefresh} />}
-                {rootState.loading && <CalendarCustom rootState={rootState} navigation={navigation} onRefresh={onRefresh} />}
+                <CalendarCustom timesheets={timesheets} navigation={navigation} onRefresh={onRefresh} setMonth={setMonth} month={month} />
             </ScrollView>
-            {rootState.loading && <LoadingComponent />}
+            {loading && <LoadingComponent />}
         </View>
     );
 }
 
 function CalendarCustom(props: any) {
-    let rootState = props.rootState;
+    let timesheets = props.timesheets;
     let navigation = props.navigation;
     let onRefresh = props.onRefresh;
+    let setMonth = props.setMonth;
+    let month = props.month;
     return (
         <Calendar
+            enableSwipeMonths={true}
             style={{ width: root.desktopWeb ? 'unset' : root.windowWidth }}
+            current={month}
             theme={{
                 backgroundColor: '#ffffff00',
                 calendarBackground: '#ffffff00',
@@ -114,9 +115,9 @@ function CalendarCustom(props: any) {
                 textMonthFontSize: 18,
                 textDayHeaderFontSize: 14,
             }}
-            markedDates={rootState.markedDates}
+            markedDates={{}}
             hideExtraDays={true}
-            onMonthChange={(month) => { console.log('month changed', month) }}
+            onMonthChange={(date) => { setMonth(date.dateString); }}
             renderArrow={(direction) => (<Text>{direction === 'left' ? '←' : '→'}</Text>)}
             firstDay={0}
             onPressArrowLeft={subtractMonth => subtractMonth()}
@@ -128,13 +129,13 @@ function CalendarCustom(props: any) {
                         root.desktopWeb ? { width: 100, height: 100 } :
                             { width: root.windowWidth / 7, height: 100 }
                     ]}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? '#333333' : 'unset' }}>
                             <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : '#ffffff', fontSize: 12 }}>
                                 {date.day}
                             </Text>
-                            <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
                         </View>
-                        {rootState.timesheets.filter(timesheet => timesheet.date === date.dateString).map((obj, index) => {
+                        {timesheets.filter(timesheet => timesheet.date === date.dateString).map((obj, index) => {
                             if (index < 4) {
                                 return (
                                     <Menu key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderStyle: 'solid' } }} >
@@ -147,9 +148,11 @@ function CalendarCustom(props: any) {
                                         <MenuOptions customStyles={{
                                             optionsWrapper: { backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderStyle: 'solid', width: 200 }
                                         }}>
-                                            <Text style={{ margin: 5 }}>{obj.project.name} - {obj.hours} hrs</Text>
-                                            <Text style={{ margin: 5 }}>{obj.details}</Text>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 5, width: '100%' }}>
+                                            <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
+                                                <Text style={{ margin: 5 }}>{obj.project.name}{obj.category ? ' - ' + obj.category : ''} - {obj.hours} hrs</Text>
+                                                <Text style={{ margin: 5 }}>{obj.details}</Text>
+                                            </ScrollView>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                                                 <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }} onPress={async () => {
                                                     await API.graphql(graphqlOperation(`
                                                                 mutation {
@@ -160,7 +163,9 @@ function CalendarCustom(props: any) {
                                                                 `));
                                                     onRefresh();
                                                 }}><Text>Delete</Text></TouchableOpacity>
-                                                <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }} onPress={() => { navigation.navigate('entry', { id: obj.id }) }} ><Text>Edit</Text></TouchableOpacity>
+                                                <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }} onPress={() => {
+                                                    onRefresh(); navigation.navigate('entry', { id: obj.id, date: undefined })
+                                                }} ><Text>Edit</Text></TouchableOpacity>
                                             </View>
                                         </MenuOptions>
                                     </Menu>

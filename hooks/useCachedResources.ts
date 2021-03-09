@@ -12,7 +12,9 @@ export default function useCachedResources() {
         SplashScreen.preventAutoHideAsync();
 
         // Load fonts
-        await Font.loadAsync({});
+        await Font.loadAsync({
+          "droid": require('../assets/fonts/DroidSansMono.ttf')
+        });
       } catch (e) {
         // We might want to provide this error information to an error reporting service
         console.warn(e);

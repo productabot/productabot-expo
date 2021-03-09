@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, Image } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { API, graphqlOperation } from 'aws-amplify';
+import { API, graphqlOperation, navItem } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
+import AutoDragSortableView from '../components/AutoDragSortableViewComponent';
 
 export default function ProjectsScreen({ route, navigation }: any) {
-  const [state, setState] = useState({
-    projects: [],
-    loading: false
-  });
+  const [loading, setLoading] = useState(false);
+  const [projects, setProjects] = useState([]);
+
   useFocusEffect(
     React.useCallback(() => {
       if (!route.params) { route.params = {}; }
@@ -19,16 +19,17 @@ export default function ProjectsScreen({ route, navigation }: any) {
   );
 
   let onRefresh = async () => {
-    setState({ ...state, loading: true });
+    setLoading(true);
     let data = await API.graphql(graphqlOperation(`{
-      projects(order_by: {name: asc}) {
+      projects(order_by: {order: asc}) {
         id
         name
         image
       }
     }
     `));
-    setState({ ...state, loading: false, projects: data.data.projects.concat({ id: null }) });
+    setProjects(data.data.projects.concat({ id: null }));
+    setLoading(false);
   }
 
   return (
@@ -39,13 +40,52 @@ export default function ProjectsScreen({ route, navigation }: any) {
         <View style={{ paddingTop: 40, paddingBottom: 10 }}>
           <Text>Projects</Text>
         </View>}
-      <FlatList
-        style={{ width: '100%', height: '100%' }}
-        numColumns={root.desktopWeb ? 4 : 2}
-        data={state.projects}
-        contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
-        renderItem={({ item, index }) => (
-          item.id ? <TouchableOpacity onPress={() => { navigation.navigate('project', { id: item.id }) }} style={{ alignItems: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 120 }} key={item.id}>
+      <AutoDragSortableView
+        isDragFreely={true}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={onRefresh}
+            colors={["#ffffff"]}
+            tintColor='#ffffff'
+            titleColor="#ffffff"
+            title=""
+          />}
+        delayLongPress={200}
+        sortable={true}
+        dataSource={projects}
+        parentWidth={root.desktopWeb ? root.desktopWidth : root.windowWidth}
+        marginChildrenTop={20}
+        marginChildrenBottom={20}
+        marginChildrenLeft={root.desktopWeb ? (root.desktopWidth - (4 * 120)) / 10 : (root.windowWidth - (2 * 120)) / 6}
+        marginChildrenRight={root.desktopWeb ? (root.desktopWidth - (4 * 120)) / 10 : (root.windowWidth - (2 * 120)) / 6}
+        childrenWidth={120}
+        childrenHeight={140}
+        fixedItems={[projects.length - 1]}
+        keyExtractor={(item, index) => item.id}
+        onDataChange={async (data) => {
+          data.pop(); //removes the null "add project" item
+          await API.graphql(graphqlOperation(`mutation {
+              ${data.map((project, projectIndex) => `data${projectIndex}: update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {order: ${projectIndex}}) {id}`)}
+          }`));
+        }}
+        onClickItem={async (array, item) => {
+          if (item.id) {
+            navigation.navigate('project', { id: item.id })
+          }
+          else {
+            setLoading(true);
+            let data = await API.graphql(graphqlOperation(`mutation {
+              insert_projects_one(object: {name: "new project", key: "NP", description: "Add a description to your new project", color: "#ff0000"}) {
+                id
+              }
+            }`));
+            setLoading(false);
+            navigation.navigate('project', { id: data.data.insert_projects_one.id });
+          }
+        }}
+        renderItem={(item, index) => (
+          item.id ? <View onPress={() => { navigation.navigate('project', { id: item.id }) }} style={{ alignItems: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 120 }} key={item.id}>
             {item.image ?
               <Image
                 style={{ width: 120, height: 120, borderColor: '#ffffff', borderWidth: 1 }}
@@ -55,35 +95,23 @@ export default function ProjectsScreen({ route, navigation }: any) {
               <View style={{ width: 120, height: 120, borderColor: '#ffffff', borderWidth: 1 }} />
             }
             <Text numberOfLines={1} ellipsizeMode='tail'>{item.name}</Text>
-          </TouchableOpacity>
+          </View>
             :
-            <TouchableOpacity onPress={async () => {
-              setState({ ...state, loading: true });
+            <View onPress={async () => {
+              setLoading(true);
               let data = await API.graphql(graphqlOperation(`mutation {
-                insert_projects_one(object: {name: "new project", key: "NP", description: "Add a description to your new project", color: "#ff0000"}) {
+                insert_projects_one(object: {name: "new project", key: "NP", description: "Add a description to your new project", color: "#ff0000", order: ${projects.length}}) {
                   id
                 }
               }`));
-              setState({ ...state, loading: false });
+              setLoading(false);
               navigation.navigate('project', { id: data.data.insert_projects_one.id });
             }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 120, height: 140 }}>
               <Text style={{ fontSize: 30 }}>+</Text>
-            </TouchableOpacity>
+            </View>
         )}
-        keyExtractor={item => item.id}
-        refreshControl={
-          <RefreshControl
-            refreshing={state.loading}
-            onRefresh={onRefresh}
-            colors={["#ffffff"]}
-            tintColor='#ffffff'
-            titleColor="#ffffff"
-            title=""
-          />}
-        onEndReached={() => { }}
-        ListEmptyComponent={<View></View>}
       />
-      {state.loading && <LoadingComponent />}
+      {loading && <LoadingComponent />}
     </View>
   );
 }

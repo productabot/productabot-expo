@@ -33,9 +33,9 @@ export default function NotificationsComponent({ route, navigation }: any) {
                 optionsWrapper: { backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderStyle: 'solid', width: 200, zIndex: 100 }
             }}>
                 <FlatList
-                    style={{ width: '100%', height: 400 }}
+                    style={{ width: '100%', height: 200 }}
                     numColumns={1}
-                    data={Array(60).fill().map((item, i) => `Notification ${i + 1}`)}
+                    data={Array(20).fill().map((item, i) => `Notification ${i + 1}`)}
                     contentContainerStyle={{ width: '100%' }}
                     renderItem={({ item, index }) => (
                         <TouchableOpacity key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>

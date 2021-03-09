@@ -1,10 +1,67 @@
 import * as Linking from 'expo-linking';
-let screensObject = {};
-// ['Auth', 'Login', 'Signup', 'App', 'Projects', 'Timesheet', 'Calendar', 'Settings'].forEach(obj => screensObject[obj] = obj.toLowerCase());
 
 export default {
   prefixes: [Linking.makeUrl('/')],
   config: {
-    screens: screensObject,
+    screens: {
+      auth: {
+        screens: {
+          login: 'login',
+          signup: 'signup',
+          terms: 'terms',
+          privacy: 'privacy',
+        },
+      },
+      app: {
+        screens: {
+          projects: {
+            screens: {
+              projects: {
+                path: 'projects'
+              },
+              project: {
+                path: 'project'
+              },
+              kanban: {
+                path: 'kanban'
+              },
+              document: {
+                path: 'document'
+              },
+            }
+          },
+          calendar: {
+            screens: {
+              timesheet: {
+                path: 'calendar',
+              },
+              entry: {
+                path: 'entry'
+              },
+            }
+          },
+          notes: {
+            screens: {
+              notes: {
+                path: 'notes'
+              },
+              note: {
+                path: 'note'
+              },
+            }
+          },
+          settings: {
+            screens: {
+              settings: {
+                path: 'settings'
+              },
+              blank: {
+                path: 'blank'
+              },
+            }
+          }
+        },
+      },
+    },
   },
 };
