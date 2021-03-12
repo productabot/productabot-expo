@@ -7,7 +7,7 @@ import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 
-export default function NoteScreen({ route, navigation }: any) {
+export default function NoteScreen({ route, navigation, refresh }: any) {
     const [loading, setLoading] = useState(false);
     const [note, setNote] = useState({});
     const [update, setUpdate] = useState(true);
@@ -19,7 +19,7 @@ export default function NoteScreen({ route, navigation }: any) {
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
             onRefresh();
-        }, [])
+        }, [refresh])
     );
 
     let onRefresh = async () => {
@@ -71,7 +71,7 @@ export default function NoteScreen({ route, navigation }: any) {
                     <TouchableOpacity onPress={() => {
                         navigation.navigate('notes')
                     }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                    <TextInput inputAccessoryViewID='main' style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
+                    <TextInput spellCheck={false} inputAccessoryViewID='main' style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
                         setUpdate(false);
                         setNote({ ...note, title: value });
                     }} onBlur={() => {
@@ -113,7 +113,7 @@ export default function NoteScreen({ route, navigation }: any) {
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={{ width: '100%', height: root.windowHeight - 150 }}
             >
-                <TextInput
+                <TextInput spellCheck={false}
                     autoFocus={true}
                     ref={inputRef}
                     //dataDetectorTypes={'all'}

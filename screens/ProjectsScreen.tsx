@@ -7,7 +7,7 @@ import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import AutoDragSortableView from '../components/AutoDragSortableViewComponent';
 
-export default function ProjectsScreen({ route, navigation }: any) {
+export default function ProjectsScreen({ route, navigation, refresh }: any) {
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState([]);
 
@@ -15,7 +15,7 @@ export default function ProjectsScreen({ route, navigation }: any) {
     React.useCallback(() => {
       if (!route.params) { route.params = {}; }
       onRefresh();
-    }, [])
+    }, [refresh])
   );
 
   let onRefresh = async () => {
@@ -55,11 +55,11 @@ export default function ProjectsScreen({ route, navigation }: any) {
         sortable={true}
         dataSource={projects}
         parentWidth={root.desktopWeb ? root.desktopWidth : root.windowWidth}
-        marginChildrenTop={20}
-        marginChildrenBottom={20}
-        marginChildrenLeft={root.desktopWeb ? (root.desktopWidth - (4 * 120)) / 10 : (root.windowWidth - (2 * 120)) / 6}
-        marginChildrenRight={root.desktopWeb ? (root.desktopWidth - (4 * 120)) / 10 : (root.windowWidth - (2 * 120)) / 6}
-        childrenWidth={120}
+        marginChildrenTop={30}
+        marginChildrenBottom={30}
+        marginChildrenLeft={root.desktopWeb ? (root.desktopWidth - (4 * 140)) / 10 : (root.windowWidth - (2 * 140)) / 6}
+        marginChildrenRight={root.desktopWeb ? (root.desktopWidth - (4 * 140)) / 10 : (root.windowWidth - (2 * 140)) / 6}
+        childrenWidth={140}
         childrenHeight={140}
         fixedItems={[projects.length - 1]}
         keyExtractor={(item, index) => item.id}
@@ -85,14 +85,14 @@ export default function ProjectsScreen({ route, navigation }: any) {
           }
         }}
         renderItem={(item, index) => (
-          item.id ? <View onPress={() => { navigation.navigate('project', { id: item.id }) }} style={{ alignItems: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 120 }} key={item.id}>
+          item.id ? <View onPress={() => { navigation.navigate('project', { id: item.id }) }} style={{ alignItems: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 140 }} key={item.id}>
             {item.image ?
               <Image
-                style={{ width: 120, height: 120, borderColor: '#ffffff', borderWidth: 1 }}
+                style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1 }}
                 source={{ uri: `https://files.productabot.com/${item.image}` }}
               />
               :
-              <View style={{ width: 120, height: 120, borderColor: '#ffffff', borderWidth: 1 }} />
+              <View style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1 }} />
             }
             <Text numberOfLines={1} ellipsizeMode='tail'>{item.name}</Text>
           </View>
@@ -106,7 +106,7 @@ export default function ProjectsScreen({ route, navigation }: any) {
               }`));
               setLoading(false);
               navigation.navigate('project', { id: data.data.insert_projects_one.id });
-            }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 120, height: 140 }}>
+            }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 140, height: 140 }}>
               <Text style={{ fontSize: 30 }}>+</Text>
             </View>
         )}

@@ -21,6 +21,7 @@ import * as root from '../Root';
 import DocumentScreen from '../screens/DocumentScreen';
 import TermsScreen from '../screens/TermsScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
+import ResetScreen from '../screens/ResetScreen';
 
 export default function Navigation({ navigation }: any) {
   return (
@@ -38,12 +39,14 @@ const AppBottomTab = createBottomTabNavigator<any>();
 const AppStack = createStackNavigator<any>();
 
 function RootNavigator() {
+  const [refresh, setRefresh] = React.useState(false);
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="auth" options={{ animationEnabled: false }}>
         {props => <AuthStack.Navigator {...props} screenOptions={{ headerShown: false }}>
           <AuthStack.Screen name="login" component={LoginScreen} options={{ animationEnabled: false }} />
           <AuthStack.Screen name="signup" component={SignupScreen} options={{ animationEnabled: false }} />
+          <AuthStack.Screen name="reset" component={ResetScreen} options={{ animationEnabled: false }} />
           <AuthStack.Screen name="terms" component={TermsScreen} options={{ animationEnabled: false }} />
           <AuthStack.Screen name="privacy" component={PrivacyScreen} options={{ animationEnabled: false }} />
         </AuthStack.Navigator>}
@@ -57,7 +60,7 @@ function RootNavigator() {
                 options={{
                   tabBarButton: props =>
                     <TouchableOpacity {...props} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                      <LogoSvg width={25} height={25} style={{ marginRight: 5 }} />
+                      <LogoSvg width={25} height={25} style={{ marginRight: 5, marginLeft: 15 }} />
                       <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>
                     </TouchableOpacity>
                 }}
@@ -81,88 +84,106 @@ function RootNavigator() {
             }
             <AppBottomTab.Screen name="projects">
               {props => {
-                React.useEffect(() => {
-                  const unsubscribe = props.navigation.addListener('tabPress', (e) => {
-                    e.preventDefault();
-                    props.navigation.navigate('app', {
-                      screen: 'projects',
-                      params: {
-                        screen: 'projects',
-                      },
-                    });
-                  });
-                  return unsubscribe;
-                }, [props.navigation]);
+                // React.useEffect(() => {
+                //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
+                //     e.preventDefault();
+                //     props.navigation.navigate('app', {
+                //       screen: 'projects',
+                //       params: {
+                //         screen: 'projects',
+                //       },
+                //     });
+                //   });
+                //   return unsubscribe;
+                // }, [props.navigation]);
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="projects">
-                    <AppStack.Screen name="projects" component={ProjectsScreen} />
-                    <AppStack.Screen name="project" component={ProjectScreen} />
-                    <AppStack.Screen name="kanban" component={KanbanScreen} />
-                    <AppStack.Screen name="document" component={DocumentScreen} />
+                    <AppStack.Screen name="projects">
+                      {props => <ProjectsScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="project">
+                      {props => <ProjectScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="kanban">
+                      {props => <KanbanScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="document">
+                      {props => <DocumentScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
                   </AppStack.Navigator>
                 )
               }}
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="calendar">
               {props => {
-                React.useEffect(() => {
-                  const unsubscribe = props.navigation.addListener('tabPress', (e) => {
-                    e.preventDefault();
-                    props.navigation.navigate('app', {
-                      screen: 'calendar',
-                      params: {
-                        screen: 'timesheet',
-                      },
-                    });
-                  });
-                  return unsubscribe;
-                }, [props.navigation]);
+                // React.useEffect(() => {
+                //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
+                //     e.preventDefault();
+                //     props.navigation.navigate('app', {
+                //       screen: 'calendar',
+                //       params: {
+                //         screen: 'timesheet',
+                //       },
+                //     });
+                //   });
+                //   return unsubscribe;
+                // }, [props.navigation]);
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="timesheet">
-                    <AppStack.Screen name="timesheet" component={CalendarScreen} />
-                    <AppStack.Screen name="entry" component={EntryScreen} />
+                    <AppStack.Screen name="timesheet">
+                      {props => <CalendarScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="entry">
+                      {props => <EntryScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
                   </AppStack.Navigator>
                 )
               }}
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="notes">
               {props => {
-                React.useEffect(() => {
-                  const unsubscribe = props.navigation.addListener('tabPress', (e) => {
-                    e.preventDefault();
-                    props.navigation.navigate('app', {
-                      screen: 'notes',
-                      params: {
-                        screen: 'notes',
-                      },
-                    });
-                  });
-                  return unsubscribe;
-                }, [props.navigation]);
+                // React.useEffect(() => {
+                //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
+                //     e.preventDefault();
+                //     props.navigation.navigate('app', {
+                //       screen: 'notes',
+                //       params: {
+                //         screen: 'notes',
+                //       },
+                //     });
+                //   });
+                //   return unsubscribe;
+                // }, [props.navigation]);
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="notes">
-                    <AppStack.Screen name="notes" component={NotesScreen} />
-                    <AppStack.Screen name="note" component={NoteScreen} />
+                    <AppStack.Screen name="notes">
+                      {props => <NotesScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="note">
+                      {props => <NoteScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
                   </AppStack.Navigator>)
               }}
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="settings">
               {props => {
-                React.useEffect(() => {
-                  const unsubscribe = props.navigation.addListener('tabPress', (e) => {
-                    e.preventDefault();
-                    props.navigation.navigate('app', {
-                      screen: 'settings',
-                      params: {
-                        screen: 'settings',
-                      },
-                    });
-                  });
-                  return unsubscribe;
-                }, [props.navigation]);
+                // React.useEffect(() => {
+                //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
+                //     e.preventDefault();
+                //     props.navigation.navigate('app', {
+                //       screen: 'settings',
+                //       params: {
+                //         screen: 'settings',
+                //       },
+                //     });
+                //   });
+                //   return unsubscribe;
+                // }, [props.navigation]);
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="settings">
-                    <AppStack.Screen name="settings" component={SettingsScreen} />
+                    <AppStack.Screen name="settings">
+                      {props => <SettingsScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
                   </AppStack.Navigator>)
               }}
             </AppBottomTab.Screen>
@@ -171,8 +192,8 @@ function RootNavigator() {
                 component={BlankScreen}
                 options={{
                   tabBarButton: props =>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, width: 130 }}>
-                      <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 30 }} onPress={() => { }} >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, width: 130, marginRight: 20 }}>
+                      <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 30 }} onPress={() => { setRefresh(!refresh); }} >
                         <Text style={{ color: '#ffffff', fontSize: 14, transform: [{ rotate: '90deg' }] }}>↻</Text>
                       </TouchableOpacity>
                       <NotificationsComponent />

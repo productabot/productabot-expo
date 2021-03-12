@@ -8,7 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import RNPickerSelect from 'react-native-picker-select';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 
-export default function ProjectScreen({ route, navigation }: any) {
+export default function ProjectScreen({ route, navigation, refresh }: any) {
     const [loading, setLoading] = useState(false);
     const [project, setProject] = useState({ kanban_projects: [], documents: [] });
     const [colors, setColors] = useState([]);
@@ -18,7 +18,7 @@ export default function ProjectScreen({ route, navigation }: any) {
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
             onRefresh();
-        }, [])
+        }, [refresh])
     );
 
     let onRefresh = async () => {
@@ -74,7 +74,7 @@ export default function ProjectScreen({ route, navigation }: any) {
                     <Text>Project</Text>
                 </View>}
             <ScrollView
-                style={{ maxWidth: root.desktopWidth, width: '100%', height: '100%', padding: 10 }}
+                style={{ maxWidth: root.desktopWidth, width: '100%', height: 0, padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl
@@ -96,7 +96,7 @@ export default function ProjectScreen({ route, navigation }: any) {
                         <View style={{ width: 80, height: 80, marginRight: 10, borderColor: '#ffffff', borderWidth: 1 }} />
                     }
                     <View style={{ width: '75%' }}>
-                        <TextInput value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
+                        <TextInput spellCheck={false} value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
                             onChangeText={(value) => { setProject({ ...project, name: value }); }}
                             onBlur={async () => {
                                 await API.graphql(graphqlOperation(`mutation {
@@ -106,7 +106,7 @@ export default function ProjectScreen({ route, navigation }: any) {
                                   }`));
                             }}
                         />
-                        <TextInput value={project.description} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
+                        <TextInput spellCheck={false} value={project.description} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
                             onChangeText={(value) => { setProject({ ...project, description: value }); }}
                             onBlur={async () => {
                                 await API.graphql(graphqlOperation(`
@@ -120,7 +120,7 @@ export default function ProjectScreen({ route, navigation }: any) {
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '100%' }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
                                 <Text style={{ fontSize: 20, color: '#ffffff' }}>key: </Text>
-                                <TextInput value={project.key} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff', borderBottomColor: '#ffffff', borderBottomWidth: 1, width: 35 }, root.desktopWeb && { outlineWidth: 0 }]}
+                                <TextInput spellCheck={false} value={project.key} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff', borderBottomColor: '#ffffff', borderBottomWidth: 1, width: 35 }, root.desktopWeb && { outlineWidth: 0 }]}
                                     onChangeText={(value) => { setProject({ ...project, key: value }); }}
                                     onBlur={async () => {
                                         await API.graphql(graphqlOperation(`
@@ -231,7 +231,7 @@ export default function ProjectScreen({ route, navigation }: any) {
                                 <TouchableOpacity onPress={() => { navigation.navigate('kanban', { id: item.item.id }) }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
                                     <Text style={{ fontSize: 14, width: '75%' }}>{`${item.item.name}`}</Text>
                                     <Text style={{ fontSize: 14, width: '20%' }}>{`${item.item.kanban_columns[2].kanban_items_aggregate.aggregate.count}/${item.item.kanban_columns[0].kanban_items_aggregate.aggregate.count + item.item.kanban_columns[1].kanban_items_aggregate.aggregate.count + item.item.kanban_columns[2].kanban_items_aggregate.aggregate.count} done`}</Text>
-                                    <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={0} onLongPress={item.drag} style={{ width: '5%', cursor: 'grab' }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
+                                    <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={200} onLongPress={item.drag} style={{ width: '5%', cursor: 'grab' }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
                                 </TouchableOpacity>
                             )}
                             keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
@@ -279,7 +279,7 @@ export default function ProjectScreen({ route, navigation }: any) {
                             renderItem={(item) => (
                                 <TouchableOpacity onPress={() => { navigation.navigate('document', { id: item.item.id }) }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
                                     <Text style={{ fontSize: 14, width: '75%' }}>{`${item.item.title}`}</Text>
-                                    <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={0} onLongPress={item.drag} style={{ width: '5%', cursor: 'grab' }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
+                                    <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={200} onLongPress={item.drag} style={{ width: '5%', cursor: 'grab' }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
                                 </TouchableOpacity>
                             )}
                             keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
@@ -318,7 +318,7 @@ export default function ProjectScreen({ route, navigation }: any) {
                             renderItem={(item) => (
                                 <TouchableOpacity onPress={() => { navigation.navigate('document', { id: item.item.id }) }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 5 }}>
                                     <Text style={{ fontSize: 14, width: '75%' }}>{`${item.item.title}`}</Text>
-                                    <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={0} onLongPress={item.drag} style={{ width: '5%', cursor: 'grab' }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
+                                    <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={200} onLongPress={item.drag} style={{ width: '5%', cursor: 'grab' }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
                                 </TouchableOpacity>
                             )}
                             keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}

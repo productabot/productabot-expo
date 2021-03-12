@@ -6,7 +6,7 @@ import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import RNPickerSelect from 'react-native-picker-select';
 
-export default function EntryScreen({ route, navigation }: any) {
+export default function EntryScreen({ route, navigation, refresh }: any) {
     const [projects, setProjects] = useState([]);
     const [dates, setDates] = useState([]);
     const [timesheet, setTimesheet] = useState({
@@ -21,7 +21,7 @@ export default function EntryScreen({ route, navigation }: any) {
     useEffect(() => {
         if (!route.params) { route.params = {}; }
         onRefresh();
-    }, []);
+    }, [refresh]);
 
     let onRefresh = async () => {
         setLoading(true);
@@ -94,7 +94,7 @@ export default function EntryScreen({ route, navigation }: any) {
                 mutation($project_id: uuid, $date: date, $hours: numeric, $details: String, $category: String) {
                     insert_timesheets_one(object: {project_id: $project_id, date: $date, hours: $hours, details: $details, category: $category }) {id}
                 }
-              `, { project_id: timesheet.project, date: timesheet.date, hours: timesheet.hours, details: timesheet.details, category: timesheet.category }));
+              `, { project_id: timesheet.project, date: timesheet.date, hours: parseFloat(timesheet.hours).toFixed(2), details: timesheet.details, category: timesheet.category }));
             console.log(response);
             setTimesheet({ hours: null, details: null, category: null, date: dates[20].value, project: projects[0].value });
             setLoading(false);
@@ -149,9 +149,9 @@ export default function EntryScreen({ route, navigation }: any) {
                     onValueChange={(value) => setTimesheet({ ...timesheet, date: value })}
                     items={dates}
                 />
-                <TextInput value={timesheet.category} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, category: value }) }} placeholder='category' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
-                <TextInput value={timesheet.hours} keyboardType='numeric' onChangeText={value => { setTimesheet({ ...timesheet, hours: value.replace(/[^0-9]/g, '') }) }} placeholder='hours' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
-                <TextInput value={timesheet.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }, isWeb && { outlineWidth: 0 }]} />
+                <TextInput spellCheck={false} value={timesheet.category} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, category: value }) }} placeholder='category' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
+                <TextInput spellCheck={false} value={timesheet.hours} keyboardType='numeric' onChangeText={value => { setTimesheet({ ...timesheet, hours: value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1') }) }} placeholder='hours' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
+                <TextInput spellCheck={false} value={timesheet.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }, isWeb && { outlineWidth: 0 }]} />
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F0054' }]}
                     onPress={submit}
                 >

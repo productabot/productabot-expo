@@ -8,6 +8,7 @@ export default {
         screens: {
           login: 'login',
           signup: 'signup',
+          reset: 'reset',
           terms: 'terms',
           privacy: 'privacy',
         },

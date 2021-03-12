@@ -1,8 +1,8 @@
 import { Dimensions, Platform } from 'react-native';
 export let allWeb = Platform.OS === 'web' ? true : false;
-export let desktopWidth = 800;
-export let desktopWeb = allWeb ? Dimensions.get('window').width >= desktopWidth ? true : false : false;
-export let mobileWeb = allWeb ? Dimensions.get('window').width < desktopWidth ? true : false : false;
+export let desktopWidth = 960;
+export let desktopWeb = allWeb ? Dimensions.get('window').width >= desktopWidth-3 ? true : false : false;
+export let mobileWeb = allWeb ? Dimensions.get('window').width < desktopWidth-3 ? true : false : false;
 export let paddingTop = (Platform.OS === 'ios') ? 0 : 10;
 export let width = desktopWeb ? 1180 : 'auto';
 export let marginLeft = desktopWeb ? 'auto' : 10;

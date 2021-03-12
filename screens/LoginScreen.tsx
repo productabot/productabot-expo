@@ -6,16 +6,33 @@ import { LoadingComponent } from '../components/LoadingComponent';
 Platform.OS !== 'web' && LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 export default function LoginScreen({ route, navigation }: any) {
-    const [state, setState] = useState({ email: 'chris@heythisischris.com', password: 'productabot', errorMessage: '', successMessage: '', success: false, loading: false });
+    const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false, loading: false });
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
         if (route.params.success) { setState({ ...state, success: true, successMessage: 'Success! Confirm your email before logging in' }); }
+        if (route.params.reset) { setState({ ...state, success: true, successMessage: 'We sent you a link to reset your password' }); }
         if (route.params.username && route.params.code) {
             Auth.confirmSignUp(route.params.username, route.params.code).then((response) => {
                 setState({ ...state, success: true, successMessage: 'Email successfully confirmed! You may log in' });
             });
         }
+        if (route.params.demo) {
+            setState({ ...state, loading: true });
+            Auth.signIn({
+                username: 'demo@productabot.com',
+                password: 'password'
+            }).then(() => {
+                setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
+                navigation.navigate('app');
+            });
+        }
+
+        Auth.currentSession().then((response) => {
+            setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
+            navigation.navigate('app');
+        }).catch((error) => {
+        });
     }, [route.params]);
 
     const login = async () => {
@@ -43,8 +60,8 @@ export default function LoginScreen({ route, navigation }: any) {
             <View style={{ margin: 30 }}>
                 {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
                 {state.success && <Text style={[styles.baseText, { color: '#006600', textAlign: 'center', marginTop: -16 }]}>{state.successMessage}</Text>}
-                <TextInput inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]}></TextInput>
-                <TextInput inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
+                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]}></TextInput>
+                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                     onSubmitEditing={login}></TextInput>
             </View>
             <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F0054' }]}
@@ -57,6 +74,7 @@ export default function LoginScreen({ route, navigation }: any) {
                 onPress={() => { navigation.navigate('signup') }}>
                 <Text style={[styles.baseText, styles.buttonText]}>signup</Text>
             </TouchableOpacity>
+            <Text style={{ color: '#ffffff', textDecorationLine: 'underline' }} onPress={() => { navigation.navigate('reset') }}>forgot password?</Text>
             <Text style={[styles.baseText, { fontSize: 10, color: '#aaaaaa', marginTop: 30 }]}>© {new Date().getFullYear()} productabot</Text>
             {state.loading && <LoadingComponent />}
         </View>
