@@ -120,7 +120,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                                     <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
                                 </View>
                                 {timesheets.filter(timesheet => timesheet.date === date.dateString).map((obj, index) => {
-                                    if (index < 4) {
+                                    if (root.desktopWeb ? true : index < 4) {
                                         return (
                                             <Menu key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderStyle: 'solid' } }} >
                                                 <MenuTrigger>

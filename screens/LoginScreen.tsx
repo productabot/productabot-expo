@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View, TextInput, Platform, Keyboard
 import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo"
 import { LoadingComponent } from '../components/LoadingComponent';
+import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 Platform.OS !== 'web' && LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 export default function LoginScreen({ route, navigation }: any) {
@@ -60,7 +61,7 @@ export default function LoginScreen({ route, navigation }: any) {
             <View style={{ margin: 30 }}>
                 {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
                 {state.success && <Text style={[styles.baseText, { color: '#006600', textAlign: 'center', marginTop: -16 }]}>{state.successMessage}</Text>}
-                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]}></TextInput>
+                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address'></TextInput>
                 <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                     onSubmitEditing={login}></TextInput>
             </View>
@@ -77,6 +78,7 @@ export default function LoginScreen({ route, navigation }: any) {
             <Text style={{ color: '#ffffff', textDecorationLine: 'underline' }} onPress={() => { navigation.navigate('reset') }}>forgot password?</Text>
             <Text style={[styles.baseText, { fontSize: 10, color: '#aaaaaa', marginTop: 30 }]}>© {new Date().getFullYear()} productabot</Text>
             {state.loading && <LoadingComponent />}
+            <InputAccessoryViewComponent />
         </View>
     );
 }

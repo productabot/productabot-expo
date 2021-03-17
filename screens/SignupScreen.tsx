@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, K
 import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo";
 import { LoadingComponent } from '../components/LoadingComponent';
+import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import * as root from '../Root';
 
 export default function SignupScreen({ route, navigation }: any) {
@@ -52,7 +53,7 @@ export default function SignupScreen({ route, navigation }: any) {
             </TouchableOpacity>
             <View style={{ margin: 30 }}>
                 {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
-                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
+                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' />
                 <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, username: value }); }} placeholder='username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
                 <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }); }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send' />
                 <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, confirmPassword: value }); }} placeholder='confirm password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
@@ -71,6 +72,7 @@ export default function SignupScreen({ route, navigation }: any) {
                 <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
             </TouchableOpacity>
             {state.loading && <LoadingComponent />}
+            <InputAccessoryViewComponent />
         </View>
     );
 }

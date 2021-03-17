@@ -163,6 +163,36 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                     <View style={root.desktopWeb && { width: '49%' }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
                             <Text style={{ fontSize: 20 }}>timesheet entries</Text>
+                            {(project.id === '20bf19a8-56c9-4d7e-a997-2078fd6c097c') &&
+                                <TouchableOpacity
+                                    style={{ borderColor: '#ffffff', borderWidth: 1, borderRadius: 10, padding: 5 }}
+                                    onPress={async () => {
+                                        let dateStart = new Date()
+                                        dateStart.setDate(dateStart.getDate() - 7);
+                                        let dateStartString = await root.exportDate(new Date(dateStart.setDate((dateStart.getDate() + (1 - dateStart.getDay()) % 7))));
+                                        let dateEnd = new Date();
+                                        dateEnd.setDate(dateEnd.getDate() - 7);
+                                        let dateEndString = await root.exportDate(new Date(dateEnd.setDate((dateEnd.getDate() + (5 - dateEnd.getDay()) % 7))));
+
+                                        let data = await API.graphql(graphqlOperation(`{
+                                            timesheets(where: {project_id: {_eq: "${project.id}"}, date: {_gte: "${dateStartString}", _lte: "${dateEndString}"}}) {
+                                              date
+                                              category
+                                              hours
+                                              details
+                                            }
+                                          }`));
+
+                                        let response = await API.post('1', '/public/submitTimesheet', { body: { timesheets: data.data.timesheets } });
+                                        console.log(response);
+                                        if (response === 'success') {
+                                            alert("Successfully submitted entries");
+                                        }
+                                        else {
+                                            alert(`Error: ${JSON.stringify(response)}`);
+                                        }
+                                    }}
+                                ><Text style={{ fontSize: 12 }}>Submit last week</Text></TouchableOpacity>}
                             <TouchableOpacity
                                 onPress={() => {
                                     navigation.navigate('calendar', { screen: 'entry', params: { project_id: project.id } })
@@ -355,8 +385,8 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                     navigation.navigate('projects');
                 }}><Text style={{ color: '#ff0000' }}>delete project</Text></TouchableOpacity>
             </ScrollView>
-            {loading && <LoadingComponent />}
-        </View>
+            { loading && <LoadingComponent />}
+        </View >
     );
 }
 

@@ -22,7 +22,13 @@ Amplify.configure({
     graphql_endpoint: Environment.endpoint,
     graphql_headers: async () => ({
       Authorization: "Bearer " + (await Auth.currentSession()).idToken.jwtToken
-    })
+    }),
+    endpoints: [
+      {
+        name: "1",
+        endpoint: "https://lambda.productabot.com"
+      }
+    ]
   },
   Storage: {
     AWSS3: {
@@ -41,7 +47,7 @@ export default function App() {
     return null;
   } else {
     return (
-      <SafeAreaProvider>
+      <SafeAreaProvider style={{ backgroundColor: '#000000' }}>
         <MenuProvider>
           <Navigation />
           <StatusBar />
