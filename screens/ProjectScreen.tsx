@@ -167,11 +167,12 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                 <TouchableOpacity
                                     style={{ borderColor: '#ffffff', borderWidth: 1, borderRadius: 10, padding: 5 }}
                                     onPress={async () => {
+                                        setLoading(true);
                                         let dateStart = new Date()
-                                        dateStart.setDate(dateStart.getDate() - 7);
+                                        // dateStart.setDate(dateStart.getDate() - 7);
                                         let dateStartString = await root.exportDate(new Date(dateStart.setDate((dateStart.getDate() + (1 - dateStart.getDay()) % 7))));
                                         let dateEnd = new Date();
-                                        dateEnd.setDate(dateEnd.getDate() - 7);
+                                        // dateEnd.setDate(dateEnd.getDate() - 7);
                                         let dateEndString = await root.exportDate(new Date(dateEnd.setDate((dateEnd.getDate() + (5 - dateEnd.getDay()) % 7))));
 
                                         let data = await API.graphql(graphqlOperation(`{
@@ -185,6 +186,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
 
                                         let response = await API.post('1', '/public/submitTimesheet', { body: { timesheets: data.data.timesheets } });
                                         console.log(response);
+                                        setLoading(false);
                                         if (response === 'success') {
                                             alert("Successfully submitted entries");
                                         }

@@ -7,7 +7,7 @@ import { InputAccessoryViewComponent } from '../components/InputAccessoryViewCom
 Platform.OS !== 'web' && LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 export default function LoginScreen({ route, navigation }: any) {
-    const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false, loading: false });
+    const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false, loading: true });
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
@@ -33,6 +33,7 @@ export default function LoginScreen({ route, navigation }: any) {
             setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
             navigation.navigate('app');
         }).catch((error) => {
+            setState({ ...state, loading: false });
         });
     }, [route.params]);
 

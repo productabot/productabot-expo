@@ -64,7 +64,7 @@ export default function DocumentScreen({ route, navigation }: any) {
 
     return (
         <View style={styles.container}>
-            <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: root.desktopWeb ? root.desktopWidth : '100%' }}>
+            <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: root.desktopWeb ? root.desktopWidth : '100%' }}>
                 <TouchableOpacity onPress={() => {
                     navigation.goBack()
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
@@ -116,7 +116,7 @@ export default function DocumentScreen({ route, navigation }: any) {
                     }
                 }}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={[{ width: root.desktopWeb ? root.desktopWidth : '100%', height: root.windowHeight - 150 }, root.desktopWeb && { borderColor: '#ffffff', borderWidth: 1 }]}
+                style={[{ width: root.desktopWeb ? root.desktopWidth : '100%', height: root.windowHeight - 150 }]}
             >
                 <TextInput spellCheck={false}
                     autoFocus={true}

@@ -109,7 +109,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                     dayComponent={({ date, state }) => {
                         return (
                             <View style={[
-                                { borderWidth: 1, borderColor: '#ffffff', borderStyle: 'solid', marginBottom: -15, marginLeft: root.desktopWeb ? -1 : 0 },
+                                { borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', marginBottom: -15, marginLeft: root.desktopWeb ? -1 : 0 },
                                 root.desktopWeb ? { width: 130, height: 130 } :
                                     { width: root.windowWidth / 7, height: 100 }
                             ]}>

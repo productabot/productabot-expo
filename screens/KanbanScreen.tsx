@@ -69,14 +69,13 @@ export default function KanbanScreen({ route, navigation, refresh }: any) {
 
     return (
         <KeyboardAvoidingView
-            style={styles.container}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={[styles.container, { width: '100%', height: '100%' }]}
         >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 50, marginBottom: root.desktopWeb ? 0 : -20, zIndex: 10, position: 'relative', width: root.desktopWeb ? root.desktopWidth : '100%', paddingLeft: 30, paddingRight: 30 }}>
                 <TouchableOpacity hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} style={{ marginRight: 10 }} onPress={async () => {
                     navigation.navigate('project', { id: kanban.project.id })
-                }}><Text style={{fontSize: 30}}>←</Text></TouchableOpacity>
+                }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                 <View style={{ flexDirection: 'column', alignItems: 'center', width: '80%' }}>
                     <TextInput spellCheck={false}
                         value={kanban.name}
@@ -124,7 +123,7 @@ export default function KanbanScreen({ route, navigation, refresh }: any) {
                     return (
                         <View style={{ flexDirection: 'column', width: root.desktopWeb ? (root.desktopWidth / kanban.kanban_columns.length) : root.windowWidth - 10, height: root.desktopWeb ? root.windowHeight - 86 : '100%', padding: root.desktopWeb ? 2 : 10 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 10, paddingBottom: 0 }}>
-                                <TouchableOpacity delayLongPress={200} onLongPress={columnParams.drag} style={{ cursor: 'grab' }} >
+                                <TouchableOpacity delayLongPress={200} onPressIn={columnParams.drag} style={{ cursor: 'grab' }} >
                                     <Text>{columnParams.item.name}</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={async () => {
@@ -168,7 +167,7 @@ export default function KanbanScreen({ route, navigation, refresh }: any) {
                                                 paddingBottom: 1
                                             }}>
                                             <TouchableOpacity delayLongPress={200}
-                                                onLongPress={itemParams.drag} style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#444444', height: 22, cursor: 'grab', paddingLeft: 5, paddingRight: 5 }}>
+                                                onPressIn={itemParams.drag} style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#444444', height: 22, cursor: 'grab', paddingLeft: 5, paddingRight: 5 }}>
                                                 {columnParams.index !== 0 ?
                                                     <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={() => {
                                                         let newKanbanColumns = kanban.kanban_columns;
@@ -220,6 +219,7 @@ export default function KanbanScreen({ route, navigation, refresh }: any) {
                                     let newKanbanColumns = kanban.kanban_columns;
                                     newKanbanColumns[columnParams.index].kanban_items = data;
                                     setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                    setLayoutKey(new Date().toString());
                                 }}
                                 ref={dragRef2}
                                 onDragBegin={(index) => {
@@ -250,6 +250,7 @@ export default function KanbanScreen({ route, navigation, refresh }: any) {
                 }}
                 onDragEnd={({ data }) => {
                     setKanban({ ...kanban, kanban_columns: data });
+                    setLayoutKey(new Date().toString());
                 }}
                 ref={dragRef1}
             />

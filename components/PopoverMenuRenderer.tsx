@@ -2,8 +2,8 @@ import { I18nManager, Animated, Easing, StyleSheet, View, Platform } from 'react
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export const OPEN_ANIM_DURATION = 100;
-export const CLOSE_ANIM_DURATION = 100;
+export const OPEN_ANIM_DURATION = 5;
+export const CLOSE_ANIM_DURATION = 5;
 export const USE_NATIVE_DRIVER = (Platform.OS !== "web");
 
 const popoverPadding = 7;
@@ -241,7 +241,6 @@ export default class Popover extends React.Component {
         } = this.props;
         const isRTL = I18nManager.isRTL;
         const animation = {
-            transform: [{ scale: this.state.scaleAnim }],
             opacity: this.state.scaleAnim,
         };
         const { position, placement, offset } = computeProperties(
