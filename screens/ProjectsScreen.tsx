@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, RefreshControl, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, RefreshControl, Image, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, navItem } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -10,6 +10,7 @@ import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';
 
 export default function ProjectsScreen({ route, navigation, refresh }: any) {
+  const window = useWindowDimensions();
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState([]);
   const [hover, setHover] = useState({});
@@ -59,11 +60,11 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
         delayLongPress={200}
         sortable={true}
         dataSource={projects}
-        parentWidth={root.desktopWeb ? root.desktopWidth : root.windowWidth}
+        parentWidth={root.desktopWeb ? Math.min(window.width, root.desktopWidth) : window.width}
         marginChildrenTop={30}
         marginChildrenBottom={30}
-        marginChildrenLeft={root.desktopWeb ? (root.desktopWidth - (4 * 140)) / 10 : (root.windowWidth - (2 * 140)) / 6}
-        marginChildrenRight={root.desktopWeb ? (root.desktopWidth - (4 * 140)) / 10 : (root.windowWidth - (2 * 140)) / 6}
+        marginChildrenLeft={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - (5 * 140)) / 12 : (window.width - (2 * 140)) / 6}
+        marginChildrenRight={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - (5 * 140)) / 12 : (window.width - (2 * 140)) / 6}
         childrenWidth={140}
         childrenHeight={140}
         fixedItems={[projects.length - 1]}

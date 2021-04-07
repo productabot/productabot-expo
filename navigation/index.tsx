@@ -1,7 +1,7 @@
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
-import { View, Platform, Text, TouchableOpacity } from 'react-native';
+import { View, Platform, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -39,6 +39,7 @@ const AppBottomTab = createBottomTabNavigator<any>();
 const AppStack = createStackNavigator<any>();
 
 function RootNavigator() {
+  const window = useWindowDimensions();
   const [refresh, setRefresh] = React.useState(false);
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -54,7 +55,7 @@ function RootNavigator() {
       <RootStack.Screen name="app" options={{ animationEnabled: false }}>
         {props =>
           <AppBottomTab.Navigator {...props} initialRouteName="projects" backBehavior={'history'} lazy={false} detachInactiveScreens={false}
-            tabBarOptions={{ activeTintColor: '#ffffff', style: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: root.desktopWidth, marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, labelStyle: Platform.OS !== 'web' ? { top: -12, fontSize: 20 } : {} }}>
+            tabBarOptions={{ activeTintColor: '#ffffff', style: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: Math.min(window.width, root.desktopWidth), marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, labelStyle: Platform.OS !== 'web' ? { top: -12, fontSize: 20 } : {} }}>
             {Platform.OS === 'web' &&
               <AppBottomTab.Screen name="logo"
                 options={{
@@ -82,7 +83,7 @@ function RootNavigator() {
                 }}
               </AppBottomTab.Screen>
             }
-            <AppBottomTab.Screen name="projects">
+            <AppBottomTab.Screen name="projects" options={{ title: `${root.desktopWeb ? '◻' : '□'} projects` }}>
               {props => {
                 // React.useEffect(() => {
                 //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
@@ -114,7 +115,7 @@ function RootNavigator() {
                 )
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="calendar">
+            <AppBottomTab.Screen name="calendar" options={{ title: `▦ calendar` }}>
               {props => {
                 // React.useEffect(() => {
                 //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
@@ -140,7 +141,7 @@ function RootNavigator() {
                 )
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="notes">
+            <AppBottomTab.Screen name="notes" options={{ title: '≡ notes' }}>
               {props => {
                 // React.useEffect(() => {
                 //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
@@ -165,7 +166,7 @@ function RootNavigator() {
                   </AppStack.Navigator>)
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="settings">
+            <AppBottomTab.Screen name="settings" options={{ title: '☉ settings' }}>
               {props => {
                 // React.useEffect(() => {
                 //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
@@ -194,7 +195,7 @@ function RootNavigator() {
                   tabBarButton: props =>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, width: 130, marginRight: 20 }}>
                       <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 30 }} onPress={() => { setRefresh(!refresh); }} >
-                        <Text style={{ color: '#ffffff', fontSize: 14, transform: [{ rotate: '90deg' }] }}>↻</Text>
+                        <Text style={{ color: '#ffffff', fontSize: 14 }}>↻</Text>
                       </TouchableOpacity>
                       <NotificationsComponent />
                     </View>

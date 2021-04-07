@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -7,6 +7,7 @@ import * as root from '../Root';
 import RNPickerSelect from 'react-native-picker-select';
 
 export default function EntryScreen({ route, navigation, refresh }: any) {
+    const window = useWindowDimensions();
     const [projects, setProjects] = useState([]);
     const [dates, setDates] = useState([]);
     const [timesheet, setTimesheet] = useState({
@@ -116,7 +117,7 @@ export default function EntryScreen({ route, navigation, refresh }: any) {
                     <Text>{route.params.id ? 'Edit Entry' : 'Add Entry'}</Text>
                 </View>}
             <ScrollView
-                style={{ maxWidth: root.desktopWidth, width: '100%', height: '100%', padding: 10 }}
+                style={{ maxWidth: Math.min(window.width, root.desktopWidth), width: '100%', height: '100%', padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl

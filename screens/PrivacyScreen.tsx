@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Platform, ScrollView } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Platform, ScrollView, useWindowDimensions } from 'react-native';
 import LogoSvg from "../svgs/logo";
 import * as root from '../Root';
 
 export default function PrivacyScreen({ route, navigation }: any) {
+    const window = useWindowDimensions();
     return (
         <View style={styles.container}>
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
@@ -11,7 +12,7 @@ export default function PrivacyScreen({ route, navigation }: any) {
                 <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
             </TouchableOpacity>
             <ScrollView
-                style={{ margin: 30, width: root.desktopWeb ? root.desktopWidth : '100%', maxHeight: root.desktopWeb ? 800 : '60%' }}
+                style={{ margin: 30, width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%', maxHeight: root.desktopWeb ? 800 : '60%' }}
                 contentContainerStyle={{ padding: 10 }}
             >
                 <Text style={{ color: '#ffffff' }}>{`

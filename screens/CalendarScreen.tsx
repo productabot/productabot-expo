@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View } from '../components/Themed';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import { RefreshControl, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { RefreshControl, ScrollView, TouchableOpacity, Alert, useWindowDimensions } from 'react-native';
 import * as root from '../Root';
 import { API, graphqlOperation } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
@@ -19,6 +19,7 @@ LocaleConfig.defaultLocale = 'en';
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 
 export default function CalendarScreen({ route, navigation, refresh }: any) {
+    const window = useWindowDimensions();
     const [loading, setLoading] = useState(false);
     const [timesheets, setTimesheets] = useState([]);
     const [month, setMonth] = useState(new Date().toLocaleDateString('fr-CA'));
@@ -63,7 +64,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                     <Text>Timesheet</Text>
                 </View>}
             <ScrollView
-                style={{ maxWidth: root.desktopWidth, width: '100%', height: '100%', padding: 10 }}
+                style={{ maxWidth: Math.min(window.width, root.desktopWidth), width: '100%', height: '100%', padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl
@@ -77,7 +78,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
             >
                 <Calendar
                     enableSwipeMonths={true}
-                    style={{ width: root.desktopWeb ? '100%' : root.windowWidth }}
+                    style={{ width: root.desktopWeb ? '100%' : window.width }}
                     current={month}
                     theme={{
                         backgroundColor: '#ffffff00',
@@ -111,7 +112,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                             <View style={[
                                 { borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', marginBottom: -15, marginLeft: root.desktopWeb ? -1 : 0 },
                                 root.desktopWeb ? { width: 130, height: 130 } :
-                                    { width: root.windowWidth / 7, height: 100 }
+                                    { width: window.width / 7, height: 100 }
                             ]}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? '#333333' : 'unset' }}>
                                     <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : '#ffffff', fontSize: 12 }}>

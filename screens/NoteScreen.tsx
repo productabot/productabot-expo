@@ -111,7 +111,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                     }
                 }}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{ width: '100%', height: root.windowHeight - 150 }}
+                style={{ width: '100%', height: window.height - 150 }}
             >
                 <TextInput spellCheck={false}
                     autoFocus={true}

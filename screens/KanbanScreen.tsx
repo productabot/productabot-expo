@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -9,6 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 
 export default function KanbanScreen({ route, navigation, refresh }: any) {
+    const window = useWindowDimensions();
     const [loading, setLoading] = useState(false);
     const [update, setUpdate] = useState(true);
     const [kanban, setKanban] = useState({ kanban_columns: [] });
@@ -72,7 +73,7 @@ export default function KanbanScreen({ route, navigation, refresh }: any) {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={[styles.container, { width: '100%', height: '100%' }]}
         >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 50, marginBottom: root.desktopWeb ? 0 : -20, zIndex: 10, position: 'relative', width: root.desktopWeb ? root.desktopWidth : '100%', paddingLeft: 30, paddingRight: 30 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 50, marginBottom: root.desktopWeb ? 0 : -20, zIndex: 10, position: 'relative', width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%', paddingLeft: 30, paddingRight: 30 }}>
                 <TouchableOpacity hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} style={{ marginRight: 10 }} onPress={async () => {
                     navigation.navigate('project', { id: kanban.project.id })
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
@@ -117,11 +118,11 @@ export default function KanbanScreen({ route, navigation, refresh }: any) {
                 layoutInvalidationKey={layoutKey}
                 pagingEnabled={true}
                 horizontal={true}
-                containerStyle={[{ width: root.desktopWeb ? root.desktopWidth : root.windowWidth - 10, paddingTop: root.desktopWeb ? 0 : 10 }]}
+                containerStyle={[{ width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : window.width - 10, paddingTop: root.desktopWeb ? 0 : 10 }]}
                 data={kanban.kanban_columns}
                 renderItem={(columnParams) => {
                     return (
-                        <View style={{ flexDirection: 'column', width: root.desktopWeb ? (root.desktopWidth / kanban.kanban_columns.length) : root.windowWidth - 10, height: root.desktopWeb ? root.windowHeight - 86 : '100%', padding: root.desktopWeb ? 2 : 10 }}>
+                        <View style={{ flexDirection: 'column', width: root.desktopWeb ? (Math.min(window.width, root.desktopWidth) / kanban.kanban_columns.length) : window.width - 10, height: root.desktopWeb ? window.height - 86 : '100%', padding: root.desktopWeb ? 2 : 10 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 10, paddingBottom: 0 }}>
                                 <TouchableOpacity delayLongPress={200} onPressIn={columnParams.drag} style={{ cursor: 'grab' }} >
                                     <Text>{columnParams.item.name}</Text>

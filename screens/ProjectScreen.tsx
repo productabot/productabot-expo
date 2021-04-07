@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, Image, TextInput } from 'react-native';
+import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, Image, TextInput, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -9,6 +9,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 
 export default function ProjectScreen({ route, navigation, refresh }: any) {
+    const window = useWindowDimensions();
     const [loading, setLoading] = useState(false);
     const [project, setProject] = useState({ kanban_projects: [], documents: [] });
     const [colors, setColors] = useState([]);
@@ -74,7 +75,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                     <Text>Project</Text>
                 </View>}
             <ScrollView
-                style={{ maxWidth: root.desktopWidth, width: '100%', height: 0, padding: 10 }}
+                style={{ maxWidth: Math.min(window.width, root.desktopWidth), width: '100%', height: 0, padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl

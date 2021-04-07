@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput, RefreshControl } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, RefreshControl, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -9,6 +9,7 @@ import DraggableFlatList from 'react-native-draggable-flatlist';
 import RNPickerSelect from 'react-native-picker-select';
 
 export default function NotesScreen({ route, navigation, refresh }: any) {
+    const window = useWindowDimensions();
     const [loading, setLoading] = useState(false);
     const [tags, setTags] = useState([]);
     const [tag, setTag] = useState({});
@@ -181,7 +182,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
         root.desktopWeb ?
             <View style={styles.container}>
                 <View style={{ height: 50 }} />
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: root.desktopWidth + 2, height: root.windowHeight - 49, maxWidth: root.desktopWidth + 2 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: Math.min(window.width, root.desktopWidth) + 2, height: window.height - 49, maxWidth: Math.min(window.width, root.desktopWidth) + 2 }}>
                     <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '25%', borderWidth: 1, borderColor: '#444444', borderStyle: 'solid' }}>
                         <View style={{ height: 49, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
                             <TextInput spellCheck={false} placeholder="search" style={{ backgroundColor: '#000000', color: '#ffffff', borderColor: '#444444', borderWidth: 1, padding: 5, borderRadius: 5, width: '100%', outlineWidth: 0, marginLeft: 10 }}

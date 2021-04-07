@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput, Platform, ActionSheetIOS, KeyboardAvoidingView, Keyboard, Pressable } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, Platform, ActionSheetIOS, KeyboardAvoidingView, Keyboard, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -8,6 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 
 export default function DocumentScreen({ route, navigation }: any) {
+    const window = useWindowDimensions();
     const [loading, setLoading] = useState(false);
     const [document, setDocument] = useState({});
     const [update, setUpdate] = useState(true);
@@ -64,7 +65,7 @@ export default function DocumentScreen({ route, navigation }: any) {
 
     return (
         <View style={styles.container}>
-            <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: root.desktopWeb ? root.desktopWidth : '100%' }}>
+            <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%' }}>
                 <TouchableOpacity onPress={() => {
                     navigation.goBack()
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
@@ -116,7 +117,7 @@ export default function DocumentScreen({ route, navigation }: any) {
                     }
                 }}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={[{ width: root.desktopWeb ? root.desktopWidth : '100%', height: root.windowHeight - 150 }]}
+                style={[{ width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%', height: window.height - 150 }]}
             >
                 <TextInput spellCheck={false}
                     autoFocus={true}
