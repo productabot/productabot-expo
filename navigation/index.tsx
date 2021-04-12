@@ -83,7 +83,7 @@ function RootNavigator() {
                 }}
               </AppBottomTab.Screen>
             }
-            <AppBottomTab.Screen name="projects" options={{ title: `${root.desktopWeb ? '◻' : '□'} projects` }}>
+            <AppBottomTab.Screen name="projects" options={{ title: `⧉ projects` }}>
               {props => {
                 // React.useEffect(() => {
                 //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {

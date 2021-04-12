@@ -162,7 +162,7 @@ export default function KanbanScreen({ route, navigation, refresh }: any) {
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
                                                 justifyContent: 'flex-start',
-                                                borderColor: '#ffffff',
+                                                borderColor: '#444444',
                                                 borderWidth: 1,
                                                 backgroundColor: '#000000',
                                                 paddingBottom: 1

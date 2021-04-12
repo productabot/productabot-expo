@@ -4,9 +4,12 @@ import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo"
 import { LoadingComponent } from '../components/LoadingComponent';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
+import { useApolloClient } from "@apollo/client";
+import { WebSocketLink } from "@apollo/client/link/ws";
 Platform.OS !== 'web' && LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 export default function LoginScreen({ route, navigation }: any) {
+    const client = useApolloClient();
     const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false, loading: true });
 
     useEffect(() => {
@@ -24,12 +27,14 @@ export default function LoginScreen({ route, navigation }: any) {
                 username: 'demo@productabot.com',
                 password: 'password'
             }).then(() => {
+                connectWebsocket();
                 setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
                 navigation.navigate('app');
             });
         }
 
         Auth.currentSession().then((response) => {
+            connectWebsocket();
             setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
             navigation.navigate('app');
         }).catch((error) => {
@@ -45,6 +50,7 @@ export default function LoginScreen({ route, navigation }: any) {
                 username: state.email,
                 password: state.password
             });
+            connectWebsocket();
             setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
             navigation.navigate('app');
         }
@@ -53,6 +59,21 @@ export default function LoginScreen({ route, navigation }: any) {
             setState({ ...state, loading: false, success: false, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
         }
     }
+
+    const connectWebsocket = () => {
+        client.setLink(new WebSocketLink({
+            uri: "wss://api.productabot.com/v1/graphql",
+            options: {
+                reconnect: true,
+                connectionParams: async () => ({
+                    headers: {
+                        Authorization: "Bearer " + (await Auth.currentSession()).idToken.jwtToken
+                    }
+                })
+            }
+        }));
+    }
+
     return (
         <View style={styles.container}>
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>

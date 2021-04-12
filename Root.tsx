@@ -1,4 +1,4 @@
-import { Dimensions, Platform } from 'react-native';
+import { Platform } from 'react-native';
 export let desktopWidth = 1180;
 export let desktopWeb = Platform.OS === 'web';
 

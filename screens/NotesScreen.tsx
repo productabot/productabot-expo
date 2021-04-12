@@ -7,10 +7,11 @@ import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import RNPickerSelect from 'react-native-picker-select';
+import { useMutation, useSubscription, gql } from "@apollo/client";
 
 export default function NotesScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
-    const [loading, setLoading] = useState(false);
+    const [loading2, setLoading] = useState(false);
     const [tags, setTags] = useState([]);
     const [tag, setTag] = useState({});
     const [notes, setNotes] = useState([]);
@@ -19,6 +20,14 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     const [search, setSearch] = useState('');
     const [focused, setFocused] = useState(false);
     const [addingTag, setAddingTag] = useState(false);
+
+    // const { loading, error, data } = useSubscription(
+    //     gql`subscription {
+    //         tags(order_by: {order: asc}) {
+    //             id
+    //             title
+    //         }
+    //     }`);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -114,7 +123,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     }, [notes]);
 
     useEffect(() => {
-        if (!loading) {
+        if (!loading2) {
             updateTag();
             onRefresh(false, true);
         }
@@ -182,6 +191,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
         root.desktopWeb ?
             <View style={styles.container}>
                 <View style={{ height: 50 }} />
+                {/* {data && <Text style={{ color: '#ffffff' }}>{JSON.stringify(data)}</Text>} */}
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: Math.min(window.width, root.desktopWidth) + 2, height: window.height - 49, maxWidth: Math.min(window.width, root.desktopWidth) + 2 }}>
                     <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '25%', borderWidth: 1, borderColor: '#444444', borderStyle: 'solid' }}>
                         <View style={{ height: 49, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
@@ -271,7 +281,11 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                                     return (
                                         <TouchableOpacity
                                             onPress={() => { setNoteById(item.item.id); }} style={{ flexDirection: 'row', height: 50, padding: 10, width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderTopWidth: 1, borderColor: '#444444', marginBottom: -1, cursor: 'pointer' }}>
-                                            <Text style={[note.id === item.item.id && { fontWeight: 'bold' }]}>{item.item.title}</Text>
+                                            <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+                                                <Text style={[note.id === item.item.id && { fontWeight: 'bold' }]}>{item.item.title}</Text>
+                                                {new Date(item.item.title).toLocaleDateString('en-US', { weekday: 'long' }) !== 'Invalid Date' &&
+                                                    <Text style={[{ fontSize: 10 }, note.id === item.item.id && { fontWeight: 'bold' }]}>{new Date(item.item.title).toLocaleDateString('en-US', { weekday: 'long' })}</Text>}
+                                            </View>
                                             {search.length === 0 &&
                                                 <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={200} onLongPress={item.drag} style={{ cursor: 'grab', marginLeft: 10 }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>}
                                         </TouchableOpacity>
@@ -343,7 +357,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                         />
                     </View>
                 </View>
-                {loading && <LoadingComponent />}
+                {loading2 && <LoadingComponent />}
             </View>
             :
             <View style={styles.container}>
@@ -391,7 +405,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                     }}
                     refreshControl={
                         <RefreshControl
-                            refreshing={loading}
+                            refreshing={loading2}
                             onRefresh={onRefresh}
                             colors={["#ffffff"]}
                             tintColor='#ffffff'
@@ -399,7 +413,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                             title=""
                         />}
                 />
-                {loading && <LoadingComponent />}
+                {loading2 && <LoadingComponent />}
             </View>
     );
 }

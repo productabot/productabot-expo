@@ -32,7 +32,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
             description
             key
             color
-            timesheets(order_by: {date: desc}) {
+            timesheets(order_by: {date: desc}, limit: 50) {
               id
               date
               category
@@ -166,7 +166,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                             <Text style={{ fontSize: 20 }}>timesheet entries</Text>
                             {(project.id === '20bf19a8-56c9-4d7e-a997-2078fd6c097c') &&
                                 <TouchableOpacity
-                                    style={{ borderColor: '#ffffff', borderWidth: 1, borderRadius: 10, padding: 5 }}
+                                    style={{ borderColor: '#444444', borderWidth: 1, borderRadius: 10, padding: 5 }}
                                     onPress={async () => {
                                         setLoading(true);
                                         let dateStart = new Date()
@@ -203,7 +203,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                             ><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
                         </View>
                         <FlatList
-                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#ffffff' }}
+                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#444444' }}
                             numColumns={1}
                             data={project.timesheets}
                             contentContainerStyle={{ width: '100%' }}
@@ -257,7 +257,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                             ><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
                         </View>
                         <DraggableFlatList
-                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#ffffff' }}
+                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#444444' }}
                             data={project.kanban_projects}
                             contentContainerStyle={{ width: '100%' }}
                             renderItem={(item) => (
@@ -306,7 +306,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                             ><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
                         </View>
                         <DraggableFlatList
-                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#ffffff' }}
+                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#444444' }}
                             data={project.documents}
                             contentContainerStyle={{ width: '100%' }}
                             renderItem={(item) => (
@@ -345,7 +345,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                             ><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
                         </View>
                         <DraggableFlatList
-                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#ffffff' }}
+                            style={{ width: '100%', height: 250, borderWidth: 1, borderColor: '#444444' }}
                             data={[]}
                             contentContainerStyle={{ width: '100%' }}
                             renderItem={(item) => (
