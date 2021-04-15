@@ -115,10 +115,6 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     }
 
     useEffect(() => {
-        updateNote();
-    }, [note]);
-
-    useEffect(() => {
         updateNotes();
     }, [notes]);
 
@@ -132,21 +128,6 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     useEffect(() => {
         updateTags();
     }, [tags]);
-
-    let updateNote = async () => {
-        if (update && note.id) {
-            await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
-                updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
-            }`, { content: note.content, title: note.title }));
-            let newNotes = notes;
-            newNotes[newNotes.findIndex(obj => obj.id === note.id)] = note;
-            setUpdate(false);
-            setNotes(newNotes);
-        }
-        else {
-            setUpdate(true);
-        }
-    }
 
     let updateNotes = async () => {
         if (update && notes.length > 0 && search.length === 0) {
@@ -281,11 +262,14 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                                     return (
                                         <TouchableOpacity
                                             onPress={() => { setNoteById(item.item.id); }} style={{ flexDirection: 'row', height: 50, padding: 10, width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderTopWidth: 1, borderColor: '#444444', marginBottom: -1, cursor: 'pointer' }}>
-                                            <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+                                            {new RegExp(/^\d{2}\/\d{2}\/\d{4}$/).test(item.item.title) ?
+                                                <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+                                                    <Text style={[note.id === item.item.id && { fontWeight: 'bold' }]}>{item.item.title}</Text>
+                                                    <Text style={[{ fontSize: 10 }, note.id === item.item.id && { fontWeight: 'bold' }]}>{new Date(item.item.title).toLocaleDateString('en-US', { weekday: 'long' })}</Text>
+                                                </View>
+                                                :
                                                 <Text style={[note.id === item.item.id && { fontWeight: 'bold' }]}>{item.item.title}</Text>
-                                                {new Date(item.item.title).toLocaleDateString('en-US', { weekday: 'long' }) !== 'Invalid Date' &&
-                                                    <Text style={[{ fontSize: 10 }, note.id === item.item.id && { fontWeight: 'bold' }]}>{new Date(item.item.title).toLocaleDateString('en-US', { weekday: 'long' })}</Text>}
-                                            </View>
+                                            }
                                             {search.length === 0 &&
                                                 <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={200} onLongPress={item.drag} style={{ cursor: 'grab', marginLeft: 10 }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>}
                                         </TouchableOpacity>
@@ -350,8 +334,13 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                             }}
                             onBlur={async () => {
                                 if (note.id) {
-                                    setUpdate(true);
-                                    setNote({ ...note });
+                                    await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
+                                        updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
+                                    }`, { content: note.content, title: note.title }));
+                                    let newNotes = notes;
+                                    newNotes[newNotes.findIndex(obj => obj.id === note.id)] = note;
+                                    setUpdate(false);
+                                    setNotes(newNotes);
                                 }
                             }}
                         />
