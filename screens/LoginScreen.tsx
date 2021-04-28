@@ -6,11 +6,10 @@ import { LoadingComponent } from '../components/LoadingComponent';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { useApolloClient } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
-Platform.OS !== 'web' && LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 export default function LoginScreen({ route, navigation }: any) {
     const client = useApolloClient();
-    const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false, loading: true });
+    const [state, setState] = useState({ email: 'chris@heythisischris.com', password: 'productabot', errorMessage: '', successMessage: '', success: false, loading: true });
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }

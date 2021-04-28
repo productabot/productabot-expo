@@ -8,6 +8,8 @@ import Navigation from './navigation';
 
 import { Environment } from './Environment';
 import Amplify, { Auth } from "aws-amplify";
+import { Platform, LogBox } from 'react-native';
+Platform.OS !== 'web' && LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 Amplify.configure({
   Auth: {
     identityPoolId: Environment.identityPoolId,

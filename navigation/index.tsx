@@ -54,7 +54,7 @@ function RootNavigator() {
       </RootStack.Screen>
       <RootStack.Screen name="app" options={{ animationEnabled: false }}>
         {props =>
-          <AppBottomTab.Navigator {...props} initialRouteName="projects" backBehavior={'history'} lazy={false} detachInactiveScreens={false}
+          <AppBottomTab.Navigator {...props} initialRouteName="projects" backBehavior={'history'} lazy={true}
             tabBarOptions={{ activeTintColor: '#ffffff', style: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: Math.min(window.width, root.desktopWidth), marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, labelStyle: Platform.OS !== 'web' ? { top: -12, fontSize: 20 } : {} }}>
             {Platform.OS === 'web' &&
               <AppBottomTab.Screen name="logo"
@@ -85,18 +85,6 @@ function RootNavigator() {
             }
             <AppBottomTab.Screen name="projects" options={{ title: `⧉ projects` }}>
               {props => {
-                // React.useEffect(() => {
-                //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
-                //     e.preventDefault();
-                //     props.navigation.navigate('app', {
-                //       screen: 'projects',
-                //       params: {
-                //         screen: 'projects',
-                //       },
-                //     });
-                //   });
-                //   return unsubscribe;
-                // }, [props.navigation]);
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="projects">
                     <AppStack.Screen name="projects">
@@ -117,18 +105,6 @@ function RootNavigator() {
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="calendar" options={{ title: `▦ calendar` }}>
               {props => {
-                // React.useEffect(() => {
-                //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
-                //     e.preventDefault();
-                //     props.navigation.navigate('app', {
-                //       screen: 'calendar',
-                //       params: {
-                //         screen: 'timesheet',
-                //       },
-                //     });
-                //   });
-                //   return unsubscribe;
-                // }, [props.navigation]);
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="timesheet">
                     <AppStack.Screen name="timesheet">
@@ -143,18 +119,6 @@ function RootNavigator() {
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="notes" options={{ title: '≡ notes' }}>
               {props => {
-                // React.useEffect(() => {
-                //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
-                //     e.preventDefault();
-                //     props.navigation.navigate('app', {
-                //       screen: 'notes',
-                //       params: {
-                //         screen: 'notes',
-                //       },
-                //     });
-                //   });
-                //   return unsubscribe;
-                // }, [props.navigation]);
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="notes">
                     <AppStack.Screen name="notes">
@@ -168,18 +132,6 @@ function RootNavigator() {
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="settings" options={{ title: '☉ settings' }}>
               {props => {
-                // React.useEffect(() => {
-                //   const unsubscribe = props.navigation.addListener('tabPress', (e) => {
-                //     e.preventDefault();
-                //     props.navigation.navigate('app', {
-                //       screen: 'settings',
-                //       params: {
-                //         screen: 'settings',
-                //       },
-                //     });
-                //   });
-                //   return unsubscribe;
-                // }, [props.navigation]);
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="settings">
                     <AppStack.Screen name="settings">

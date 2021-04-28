@@ -107,7 +107,7 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
                 :
                 <View style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1 }} />
               }
-              <Text numberOfLines={1} ellipsizeMode='tail' style={{ textDecorationLine: hover[item.id] ? 'underline' : 'unset' }}>{item.name}</Text>
+              <Text numberOfLines={1} ellipsizeMode='tail'>{item.name}</Text>
             </View>
 
             :
@@ -125,7 +125,7 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
                 setLoading(false);
                 navigation.navigate('project', { id: data.data.insert_projects_one.id });
               }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 140, height: 140 }}>
-              <Text style={{ fontSize: 30, fontWeight: hover[item.id] ? 'bold' : 'unset' }}>+</Text>
+              <Text style={{ fontSize: 30 }}>+</Text>
             </View>
         )}
       />
