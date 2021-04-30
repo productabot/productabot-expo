@@ -6,6 +6,8 @@ import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
+import CryptoJS from "react-native-crypto-js";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function DocumentScreen({ route, navigation }: any) {
     const window = useWindowDimensions();
@@ -33,6 +35,12 @@ export default function DocumentScreen({ route, navigation }: any) {
             }
           }
           `));
+        try {
+            let e2eResult = await AsyncStorage.getItem('e2e');
+            let decrypted = CryptoJS.AES.decrypt(data.data.documents_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
+            data.data.documents_by_pk.content = decrypted;
+        }
+        catch (err) { console.log(err) }
         setDocument(data.data.documents_by_pk);
         setLoading(false);
     }
@@ -54,9 +62,11 @@ export default function DocumentScreen({ route, navigation }: any) {
 
     let updateDocument = async () => {
         if (update && document.id) {
+            let e2eResult = await AsyncStorage.getItem('e2e');
+            let encrypted = CryptoJS.AES.encrypt(document.content, e2eResult).toString();
             await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
                 updateDocument: update_documents_by_pk(pk_columns: {id: "${document.id}"}, _set: {content: $content, title: $title}) {id}
-            }`, { content: document.content, title: document.title }));
+            }`, { content: encrypted, title: document.title }));
         }
         else {
             setUpdate(true);

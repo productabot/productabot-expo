@@ -1,4 +1,4 @@
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { View, Platform, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
@@ -19,8 +19,6 @@ import NotesScreen from '../screens/NotesScreen';
 import NoteScreen from '../screens/NoteScreen';
 import * as root from '../Root';
 import DocumentScreen from '../screens/DocumentScreen';
-import TermsScreen from '../screens/TermsScreen';
-import PrivacyScreen from '../screens/PrivacyScreen';
 import ResetScreen from '../screens/ResetScreen';
 
 export default function Navigation({ navigation }: any) {
@@ -48,8 +46,6 @@ function RootNavigator() {
           <AuthStack.Screen name="login" component={LoginScreen} options={{ animationEnabled: false }} />
           <AuthStack.Screen name="signup" component={SignupScreen} options={{ animationEnabled: false }} />
           <AuthStack.Screen name="reset" component={ResetScreen} options={{ animationEnabled: false }} />
-          <AuthStack.Screen name="terms" component={TermsScreen} options={{ animationEnabled: false }} />
-          <AuthStack.Screen name="privacy" component={PrivacyScreen} options={{ animationEnabled: false }} />
         </AuthStack.Navigator>}
       </RootStack.Screen>
       <RootStack.Screen name="app" options={{ animationEnabled: false }}>
@@ -57,31 +53,21 @@ function RootNavigator() {
           <AppBottomTab.Navigator {...props} initialRouteName="projects" backBehavior={'history'} lazy={true}
             tabBarOptions={{ activeTintColor: '#ffffff', style: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: Math.min(window.width, root.desktopWidth), marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, labelStyle: Platform.OS !== 'web' ? { top: -12, fontSize: 20 } : {} }}>
             {Platform.OS === 'web' &&
-              <AppBottomTab.Screen name="logo"
+              <AppBottomTab.Screen name="logo" component={() => <View />}
                 options={{
-                  tabBarButton: props =>
-                    <TouchableOpacity {...props} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                      <LogoSvg width={25} height={25} style={{ marginRight: 5, marginLeft: 15 }} />
-                      <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>
-                    </TouchableOpacity>
+                  tabBarButton: props => {
+                    const navigation = useNavigation();
+                    return (
+                      <TouchableOpacity {...props}
+                        onPress={() => { navigation.navigate('app', { screen: 'projects', params: { screen: 'projects' } }); }}
+                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                        <LogoSvg width={25} height={25} style={{ marginRight: 5, marginLeft: 15 }} />
+                        <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>
+                      </TouchableOpacity>
+                    )
+                  }
                 }}
-              >
-                {props => {
-                  React.useEffect(() => {
-                    const unsubscribe = props.navigation.addListener('tabPress', (e) => {
-                      e.preventDefault();
-                      props.navigation.navigate('app', {
-                        screen: 'projects',
-                        params: {
-                          screen: 'projects',
-                        },
-                      });
-                    });
-                    return unsubscribe;
-                  }, [props.navigation]);
-                  return (<View />)
-                }}
-              </AppBottomTab.Screen>
+              />
             }
             <AppBottomTab.Screen name="projects" options={{ title: `⧉ projects` }}>
               {props => {

@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput, Platform, ActionSheetIOS, KeyboardAvoidingView, Keyboard, Pressable } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, Platform, ActionSheetIOS, KeyboardAvoidingView, Keyboard, Pressable, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
+import CryptoJS from "react-native-crypto-js";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function NoteScreen({ route, navigation, refresh }: any) {
+    const window = useWindowDimensions();
     const [loading, setLoading] = useState(false);
     const [note, setNote] = useState({});
     const [update, setUpdate] = useState(true);
@@ -32,6 +35,13 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
             }
           }
           `));
+
+        try {
+            let e2eResult = await AsyncStorage.getItem('e2e');
+            let decrypted = CryptoJS.AES.decrypt(data.data.notes_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
+            data.data.notes_by_pk.content = decrypted;
+        }
+        catch (err) { console.log(err) }
         setNote(data.data.notes_by_pk);
         setLoading(false);
     }
@@ -53,9 +63,11 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
 
     let updateNote = async () => {
         if (update && note.id) {
+            let e2eResult = await AsyncStorage.getItem('e2e');
+            let encrypted = CryptoJS.AES.encrypt(note.content, e2eResult).toString();
             await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
                 updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
-            }`, { content: note.content, title: note.title }));
+            }`, { content: encrypted, title: note.title }));
         }
         else {
             setUpdate(true);

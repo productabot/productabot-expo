@@ -1,6 +1,6 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, Keyboard } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, Keyboard, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo";
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -33,26 +33,36 @@ export default function ResetScreen({ route, navigation }: any) {
     }
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10 }} />
-                <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
-            </TouchableOpacity>
-            <View style={{ margin: 30 }}>
-                {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
-                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' onSubmitEditing={reset} />
-            </View>
-            <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]} onPress={reset}>
-                <Text style={[styles.baseText, styles.buttonText]}>reset password</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
-                onPress={() => { navigation.navigate('login') }}>
-                <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
-            </TouchableOpacity>
-            {state.loading && <LoadingComponent />}
+        <SafeAreaView style={styles.container}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={[styles.container, { width: '100%', height: '100%' }]}
+                keyboardVerticalOffset={-200}
+            >
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10 }} />
+                    <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
+                </TouchableOpacity>
+
+                <View style={{ margin: 30, marginBottom: 0, maxWidth: 280 }}>
+                    <Text style={[styles.baseText]}>{`NOTE: This app uses end-to-end encryption.\n\nIf you reset your password, you will lose access to all encrypted data (documents and notes).\n\nThere's no limit to password guesses. I highly encourage you to try remembering your password. Once inside the app, you can safely reset your password to something more memorable, and keep access to your encrypted data.\n\nIf you cannot remember your password, you can reset your password below and access unencrypted data (projects, kanbans, timesheets, etc).`}</Text>
+                </View>
+                <View style={{ margin: 30 }}>
+                    {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
+                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' onSubmitEditing={reset} />
+                </View>
+                <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]} onPress={reset}>
+                    <Text style={[styles.baseText, styles.buttonText]}>reset password</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
+                    onPress={() => { navigation.navigate('login') }}>
+                    <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
+                </TouchableOpacity>
+            </KeyboardAvoidingView>
             <InputAccessoryViewComponent />
-        </View>
+            {state.loading && <LoadingComponent />}
+        </SafeAreaView>
     );
 }
 const isWeb = Platform.OS === 'web';

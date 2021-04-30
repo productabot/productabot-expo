@@ -8,6 +8,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import RNPickerSelect from 'react-native-picker-select';
 import { useMutation, useSubscription, gql } from "@apollo/client";
+import CryptoJS from "react-native-crypto-js";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function NotesScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
@@ -98,7 +100,20 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                 content
             }
         }`));
-            setNote(noteData.data.notes.length > 0 ? noteData.data.notes[0] : { title: '', id: null, content: '' });
+            if (noteData.data.notes.length > 0) {
+                try {
+                    let e2eResult = await AsyncStorage.getItem('e2e');
+                    let decrypted = CryptoJS.AES.decrypt(noteData.data.notes[0].content, e2eResult).toString(CryptoJS.enc.Utf8);
+                    noteData.data.notes[0].content = decrypted;
+                    setNote(noteData.data.notes[0]);
+                }
+                catch (err) {
+                    setNote(noteData.data.notes[0]);
+                }
+            }
+            else {
+                setNote({ title: '', id: null, content: '' });
+            }
         }
         else {
             setNote({ title: '', id: null, content: '' });
@@ -334,9 +349,11 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                             }}
                             onBlur={async () => {
                                 if (note.id) {
+                                    let e2eResult = await AsyncStorage.getItem('e2e');
+                                    let encrypted = CryptoJS.AES.encrypt(note.content, e2eResult).toString();
                                     await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
                                         updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
-                                    }`, { content: note.content, title: note.title }));
+                                    }`, { content: encrypted, title: note.title }));
                                     let newNotes = notes;
                                     newNotes[newNotes.findIndex(obj => obj.id === note.id)] = note;
                                     setUpdate(false);

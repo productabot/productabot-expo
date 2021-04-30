@@ -1,11 +1,12 @@
 import { StackScreenProps } from '@react-navigation/stack';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, Keyboard } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, Keyboard, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo";
 import { LoadingComponent } from '../components/LoadingComponent';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import * as root from '../Root';
+import * as WebBrowser from 'expo-web-browser';
 
 export default function SignupScreen({ route, navigation }: any) {
     const [state, setState] = useState({
@@ -46,34 +47,42 @@ export default function SignupScreen({ route, navigation }: any) {
     }
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10 }} />
-                <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
-            </TouchableOpacity>
-            <View style={{ margin: 30 }}>
-                {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
-                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' />
-                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, username: value }); }} placeholder='username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
-                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }); }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send' />
-                <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, confirmPassword: value }); }} placeholder='confirm password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
-                    onSubmitEditing={signup} />
-                <View style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }}>
-                    <TouchableOpacity onPress={() => { setState({ ...state, checkbox: !state.checkbox }) }} style={{ borderWidth: 1, borderColor: '#ffffff', borderRadius: 2, height: 20, width: 20, marginRight: 10 }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{state.checkbox && '✔'}</Text></TouchableOpacity>
-                    <Text style={{ color: '#ffffff', fontSize: root.desktopWeb ? 11 : 12 }}>I agree to the <Text style={{ textDecorationLine: 'underline' }} onPress={() => { navigation.navigate('terms'); }} >Terms of Service</Text> & <Text style={{ textDecorationLine: 'underline' }} onPress={() => { navigation.navigate('privacy'); }}>Privacy Policy</Text></Text>
+        <SafeAreaView style={styles.container}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={[styles.container, { width: '100%', height: '100%' }]}
+            >
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10 }} />
+                    <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
+                </TouchableOpacity>
+                <View style={{ margin: 30, marginBottom: 0, maxWidth: 280 }}>
+                    <Text style={[styles.baseText]}>{`NOTE: This app uses end-to-end encryption.\n\nYour password will be the key used to encrypt your documents and notes.\n\n`}<Text style={{ fontWeight: 'bold', color: '#ff3333' }}>{`▲ DO NOT FORGET IT!`}</Text>{`\nWrite it down and keep it somewhere safe.`}</Text>
                 </View>
-            </View>
-            <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]} onPress={signup}>
-                <Text style={[styles.baseText, styles.buttonText]}>register</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
-                onPress={() => { navigation.navigate('login') }}>
-                <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
-            </TouchableOpacity>
+                <View style={{ margin: 30 }}>
+                    {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
+                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' />
+                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, username: value }); }} placeholder='username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
+                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }); }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send' />
+                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, confirmPassword: value }); }} placeholder='confirm password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
+                        onSubmitEditing={signup} />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }}>
+                        <TouchableOpacity onPress={() => { setState({ ...state, checkbox: !state.checkbox }) }} style={{ borderWidth: 1, borderColor: '#ffffff', borderRadius: 2, height: 20, width: 20, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontWeight: 'bold' }}>{state.checkbox && '✓'}</Text></TouchableOpacity>
+                        <Text style={{ color: '#ffffff', fontSize: root.desktopWeb ? 11 : 12 }}>I agree to the <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/terms'); }} >Terms of Service</Text> & <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/privacy'); }}>Privacy Policy</Text></Text>
+                    </View>
+                </View>
+                <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]} onPress={signup}>
+                    <Text style={[styles.baseText, styles.buttonText]}>register</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
+                    onPress={() => { navigation.navigate('login') }}>
+                    <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
+                </TouchableOpacity>
+                <InputAccessoryViewComponent />
+            </KeyboardAvoidingView>
             {state.loading && <LoadingComponent />}
-            <InputAccessoryViewComponent />
-        </View>
+        </SafeAreaView>
     );
 }
 const isWeb = Platform.OS === 'web';
@@ -99,10 +108,10 @@ const styles = StyleSheet.create({
         margin: s(10)
     },
     buttonText: {
-        fontSize: s(30)
+        fontSize: isWeb ? s(30) : 22
     },
     textInput: {
-        fontSize: s(30),
+        fontSize: isWeb ? s(30) : 22,
         width: 275,
         borderBottomColor: '#ffffff',
         borderBottomWidth: 1,
