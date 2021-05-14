@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { StyleSheet, TouchableOpacity, TextInput, RefreshControl, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
@@ -10,6 +10,9 @@ import RNPickerSelect from 'react-native-picker-select';
 import { useMutation, useSubscription, gql } from "@apollo/client";
 import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ContentEditable from 'react-contenteditable';
+import sanitizeHtml from "sanitize-html";
+let timeout: any;
 
 export default function NotesScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
@@ -22,6 +25,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     const [search, setSearch] = useState('');
     const [focused, setFocused] = useState(false);
     const [addingTag, setAddingTag] = useState(false);
+    const inputRef = useRef(null);
 
     // const { loading, error, data } = useSubscription(
     //     gql`subscription {
@@ -104,7 +108,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                 try {
                     let e2eResult = await AsyncStorage.getItem('e2e');
                     let decrypted = CryptoJS.AES.decrypt(noteData.data.notes[0].content, e2eResult).toString(CryptoJS.enc.Utf8);
-                    noteData.data.notes[0].content = decrypted;
+                    noteData.data.notes[0].content = decrypted.replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
                     setNote(noteData.data.notes[0]);
                 }
                 catch (err) {
@@ -180,6 +184,27 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
         }
         else {
             setUpdate(true);
+        }
+    }
+
+    const saveNote = async () => {
+        if (note.id) {
+            setNote({
+                ...note, content: sanitizeHtml(inputRef.current.innerHTML, {
+                    allowedTags: false,
+                    allowedAttributes: false,
+                    allowedSchemesByTag: { img: ['data'] }
+                })
+            });
+            let e2eResult = await AsyncStorage.getItem('e2e');
+            let encrypted = CryptoJS.AES.encrypt(inputRef.current.innerHTML, e2eResult).toString();
+            await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
+            updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
+        }`, { content: encrypted, title: note.title }));
+            let newNotes = notes;
+            newNotes[newNotes.findIndex(obj => obj.id === note.id)] = note;
+            setUpdate(false);
+            setNotes(newNotes);
         }
     }
 
@@ -332,32 +357,72 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
 
                             }} style={{ width: 20 }}><Text>×</Text></TouchableOpacity>
                         </View>
-                        <TextInput spellCheck={false}
-                            onKeyPress={(event) => {
-                                if (event.key === 'F2') {
-                                    enterTimestamp();
-                                }
-                            }}
-                            style={[{ width: '100%', height: '100%', borderTopWidth: 1, borderColor: '#444444', color: '#ffffff', padding: 10, fontSize: 12, fontFamily: 'droid' }, root.desktopWeb && { outlineWidth: 0 }]}
-                            multiline={true}
-                            value={note.content || ''}
-                            onChangeText={(value) => {
-                                if (note.id) {
-                                    setUpdate(false);
-                                    setNote({ ...note, content: value });
-                                }
+                        {/* <div
+                            ref={inputRef}
+                            spellCheck={false}
+                            contentEditable="true"
+                            dangerouslySetInnerHTML={inputRef.current ? { __html: note.content } : { __html: '' }}
+                            onInput={async () => {
+                                clearTimeout(timeout);
+                                timeout = setTimeout(() => { saveNote(); }, 5000);
                             }}
                             onBlur={async () => {
-                                if (note.id) {
-                                    let e2eResult = await AsyncStorage.getItem('e2e');
-                                    let encrypted = CryptoJS.AES.encrypt(note.content, e2eResult).toString();
-                                    await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
-                                        updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
-                                    }`, { content: encrypted, title: note.title }));
-                                    let newNotes = notes;
-                                    newNotes[newNotes.findIndex(obj => obj.id === note.id)] = note;
-                                    setUpdate(false);
-                                    setNotes(newNotes);
+                                clearTimeout(timeout);
+                                saveNote();
+                            }}
+                            style={{ width: 'calc(100% - 20px)', height: '100%', overflowY: 'scroll', color: '#ffffff', padding: 10, fontSize: 12, fontFamily: 'droid', outlineWidth: 0, borderTopWidth: 1, borderColor: '#444444', borderTopStyle: 'solid' }} /> */}
+                        <ContentEditable
+                            spellCheck={false}
+                            innerRef={inputRef}
+                            html={note.content || ''} // innerHTML of the editable div
+                            disabled={false}       // use true to disable editing
+                            style={{ width: 'calc(100% - 20px)', height: '100%', overflowY: 'scroll', color: '#ffffff', padding: 10, fontSize: 12, fontFamily: 'droid', outlineWidth: 0, borderTopWidth: 1, borderColor: '#444444', borderTopStyle: 'solid' }}
+                            onChange={(e) => {
+                                // if (note.id) {
+                                //     setUpdate(false);
+                                //     setNote({ ...note, content: e.target.value });
+                                // }
+                                clearTimeout(timeout);
+                                timeout = setTimeout(() => { saveNote(); }, 5000);
+                            }}
+                            onBlur={async () => {
+                                clearTimeout(timeout);
+                                saveNote();
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'r' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('enableObjectResizing', false, '');
+                                    document.execCommand('enableInlineTableEditing', false, '');
+                                }
+                                if (e.key === 'd' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('strikeThrough', false, '');
+                                }
+                                else if (e.key === 'q' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('outdent', false, '');
+                                }
+                                else if (e.key === 'e' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('indent', false, '');
+                                }
+                                else if (e.key === 'l' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('insertUnorderedList', false, '');
+                                }
+                                else if (e.key === 'o' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('insertOrderedList', false, '');
+                                }
+                                else if (e.key === 'h' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('insertHorizontalRule', false, '');
+                                }
+                                else if (e.key === 's' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    clearTimeout(timeout);
+                                    saveNote();
                                 }
                             }}
                         />

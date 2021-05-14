@@ -21,7 +21,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.productabot",
-      "usesIcloudStorage": true
+      "usesIcloudStorage": true,
+      "buildNumber": "2021.04.29"
     },
     "android": {
       "adaptiveIcon": {

@@ -13,6 +13,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
     const [loading, setLoading] = useState(false);
     const [project, setProject] = useState({ kanban_projects: [], documents: [] });
     const [colors, setColors] = useState([]);
+    const [hours, setHours] = useState(0);
 
 
     useFocusEffect(
@@ -60,9 +61,17 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
             label
             value
         }
+        timesheets_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+            aggregate {
+              sum {
+                hours
+              }
+            }
+          }
         }`));
         setProject(data.data.projects_by_pk);
         setColors(data.data.colors.map(obj => { return ({ label: obj.label, value: obj.value, color: obj.value }) }));
+        setHours(data.data.timesheets_aggregate.aggregate.sum.hours);
         setLoading(false);
     }
 
@@ -156,6 +165,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                     items={colors}
                                 />
                             </View>
+                            <Text style={{ fontSize: 20, color: '#ffffff' }}>{hours && `, ${hours} hours so far (or ${hours / 8} workdays)`}</Text>
                         </View>
                     </View>
                 </View>
