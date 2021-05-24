@@ -15,7 +15,8 @@ import CalendarScreen from '../screens/CalendarScreen';
 import EntryScreen from '../screens/EntryScreen';
 import KanbanScreen from '../screens/KanbanScreen';
 import NotificationsComponent from '../components/NotificationsComponent';
-import NotesScreen from '../screens/NotesScreen';
+import NotesDesktopScreen from '../screens/NotesDesktopScreen';
+import NotesMobileScreen from '../screens/NotesMobileScreen';
 import NoteScreen from '../screens/NoteScreen';
 import * as root from '../Root';
 import DocumentScreen from '../screens/DocumentScreen';
@@ -69,7 +70,7 @@ function RootNavigator() {
                 }}
               />
             }
-            <AppBottomTab.Screen name="projects" options={{ title: `⧉ projects` }}>
+            <AppBottomTab.Screen name="projects" options={{ title: `⧉${(root.desktopWeb && window.width < 800) ? `` : ` projects`}` }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="projects">
@@ -89,11 +90,11 @@ function RootNavigator() {
                 )
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="calendar" options={{ title: `▦ calendar` }}>
+            <AppBottomTab.Screen name="calendar" options={{ title: `▦${(root.desktopWeb && window.width < 800) ? `` : ` calendar`}` }}>
               {props => {
                 return (
-                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="timesheet">
-                    <AppStack.Screen name="timesheet">
+                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="calendar">
+                    <AppStack.Screen name="calendar">
                       {props => <CalendarScreen {...props} refresh={refresh} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="entry">
@@ -103,12 +104,17 @@ function RootNavigator() {
                 )
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="notes" options={{ title: '≡ notes' }}>
+            <AppBottomTab.Screen name="notes" options={{ title: `≡${(root.desktopWeb && window.width < 800) ? `` : ` notes`}` }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="notes">
                     <AppStack.Screen name="notes">
-                      {props => <NotesScreen {...props} refresh={refresh} />}
+                      {props =>
+                        Platform.OS === 'ios' ?
+                          <NotesMobileScreen {...props} refresh={refresh} />
+                          :
+                          <NotesDesktopScreen {...props} refresh={refresh} />
+                      }
                     </AppStack.Screen>
                     <AppStack.Screen name="note">
                       {props => <NoteScreen {...props} refresh={refresh} />}
@@ -116,7 +122,7 @@ function RootNavigator() {
                   </AppStack.Navigator>)
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="settings" options={{ title: '☉ settings' }}>
+            <AppBottomTab.Screen name="settings" options={{ title: `☉${(root.desktopWeb && window.width < 800) ? `` : ` settings`}` }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="settings">

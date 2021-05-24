@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, RefreshControl, Image, useWindowDimensions } from 'react-native';
+import { TouchableOpacity, RefreshControl, Image, useWindowDimensions, SafeAreaView } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, navItem } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -39,13 +39,13 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
   }
 
   return (
-    <View style={styles.container}>
-      {root.desktopWeb ?
-        <View style={{ height: 50 }} />
-        :
-        <View style={{ paddingTop: 40, paddingBottom: 10 }}>
-          <Text>Projects</Text>
-        </View>}
+    <SafeAreaView style={{
+      flex: 1,
+      backgroundColor: '#000000',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: root.desktopWeb ? 30 : 0
+    }}>
       <AutoDragSortableView
         isDragFreely={true}
         refreshControl={
@@ -143,15 +143,6 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
           </View>
         </MenuOptions>
       </Menu>
-    </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-});

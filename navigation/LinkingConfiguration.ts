@@ -33,7 +33,7 @@ export default {
           },
           calendar: {
             screens: {
-              timesheet: {
+              calendar: {
                 path: 'calendar',
               },
               entry: {

@@ -5,9 +5,13 @@ import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
-import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
+import { InputAccessoryViewWebViewComponent } from '../components/InputAccessoryViewWebViewComponent';
 import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { WebView } from 'react-native-webview';
+import sanitizeHtml from "sanitize-html";
+import { DroidWebViewStyle } from '../assets/fonts/DroidWebViewStyle';
+let timeout: any;
 
 export default function NoteScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
@@ -16,7 +20,17 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
     const [update, setUpdate] = useState(true);
     const [editable, setEditable] = useState(true);
     const [touch, setTouch] = useState({});
+    const [keyboardOpen, setKeyboardOpen] = useState(false);
     const inputRef = useRef(null);
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', () => { setKeyboardOpen(true); });
+        const keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', () => { setKeyboardOpen(false); });
+        return () => {
+            keyboardDidHideListener.remove();
+            keyboardDidShowListener.remove();
+        };
+    }, []);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -39,6 +53,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         try {
             let e2eResult = await AsyncStorage.getItem('e2e');
             let decrypted = CryptoJS.AES.decrypt(data.data.notes_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
+            if (decrypted.length === 0) { decrypted = '<div></div>' }
             data.data.notes_by_pk.content = decrypted;
         }
         catch (err) { console.log(err) }
@@ -47,13 +62,22 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
     }
 
 
-    let enterTimestamp = async () => {
-        let timestamp = new Date().toLocaleTimeString('en-US', {
-            hour12: true,
-            hour: "numeric",
-            minute: "numeric"
-        });
-        setNote({ ...note, content: note.content + '\n\n' + timestamp + '\n' });
+    const injectJavascript = async (javascript: string, content = null) => {
+        if (content) {
+            setNote({ ...note, content: `${note.content}<p></p>${content}<br/><br/>` });
+            inputRef.current.injectJavaScript(`(function() {
+                const div = document.querySelector('div');
+                div.innerHTML +=  \`<p></p>${content}<br/><br/>\`;
+                document.execCommand('selectAll', false, null);
+                document.getSelection().collapseToEnd();})();
+            `);
+        }
+        else {
+            inputRef.current.injectJavaScript(`(function() {
+                document.execCommand('${javascript}', false, '');
+                window.ReactNativeWebView.postMessage(document.querySelector('div').innerHTML);
+            })();`);
+        }
     }
 
     useEffect(() => {
@@ -83,7 +107,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                     <TouchableOpacity onPress={() => {
                         navigation.navigate('notes')
                     }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                    <TextInput spellCheck={false} inputAccessoryViewID='main' style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
+                    <TextInput spellCheck={false} style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
                         setUpdate(false);
                         setNote({ ...note, title: value });
                     }} onBlur={() => {
@@ -113,40 +137,61 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                     }}><Text style={{ fontSize: 30 }}>...</Text></TouchableOpacity>
                 </View>}
             <KeyboardAvoidingView
-                onTouchStart={(event) => {
-                    setTouch(event.nativeEvent);
-                }}
-                onTouchEnd={(event) => {
-                    if (touch.locationY <= event.nativeEvent.locationY + 20 && touch.locationY >= event.nativeEvent.locationY - 20) {
-                        setEditable(true);
-                        setTimeout(() => { inputRef.current.focus(); }, 0);
-                    }
-                }}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{ width: '100%', height: window.height - 150 }}
+                style={{ width: '100%', height: window.height - 160 }}
             >
-                <TextInput spellCheck={false}
-                    autoFocus={true}
-                    ref={inputRef}
-                    //dataDetectorTypes={'all'}
-                    editable={editable}
-                    inputAccessoryViewID='main'
-                    style={{ width: '100%', height: '100%', color: '#ffffff', padding: 10, fontSize: 16, paddingTop: 10, fontFamily: 'droid' }}
-                    multiline={true}
-                    value={note.content}
-                    onChangeText={(value) => {
-                        setUpdate(false);
-                        setNote({ ...note, content: value });
-                    }}
-                    onBlur={async () => {
-                        setUpdate(true);
-                        setNote({ ...note });
-                        setEditable(false);
-                    }}
-                />
+                {note.content &&
+                    <WebView
+                        ref={inputRef}
+                        hideKeyboardAccessoryView={true}
+                        inputAccessoryViewID='main'
+                        originWhitelist={['*']}
+                        source={{
+                            baseUrl: '',
+                            html: `
+                                <head>
+                                <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
+                                <style>
+                                ${DroidWebViewStyle}
+                                </style>
+                                </head>
+                                <body style="background-color:#000000;">
+                                <div id="editor" contenteditable="true" style="outline:none;height:100%;font-family:droid;color:#ffffff;font-size:12"/>
+                                </body>
+                            `}}
+                        keyboardDisplayRequiresUserAction={false}
+                        showsHorizontalScrollIndicator={false}
+                        style={{ flex: 1 }}
+                        scalesPageToFit={false}
+                        scrollEnabled={true}
+                        javaScriptEnabled={true}
+                        automaticallyAdjustContentInsets={false}
+                        decelerationRate={0.998}
+                        injectedJavaScript={`(function() {
+                            window.document.querySelector("body").style.backgroundColor = "#000000";
+                            window.addEventListener('load', function() {
+                                document.querySelector('div').innerHTML =  \`${note.content}\`;
+                                document.querySelector('div').addEventListener('input', (e) => {
+                                    e.preventDefault();
+                                    window.ReactNativeWebView.postMessage(e.target.innerHTML);
+                                });
+                            });
+                        })();`}
+                        onMessage={(e) => {
+                            setUpdate(false);
+                            setNote({ ...note, content: e.nativeEvent.data });
+                            clearTimeout(timeout);
+                            timeout = setTimeout(() => {
+                                setUpdate(true);
+                                setNote(note);
+                            }, 1000);
+                        }}
+                        startInLoadingState={true}
+                        renderLoading={() => <View style={{ height: '100%', width: '100%', backgroundColor: '#000000' }} />}
+                    />}
+                {keyboardOpen && <InputAccessoryViewWebViewComponent injectJavascript={injectJavascript} />}
             </KeyboardAvoidingView>
             { loading && <LoadingComponent />}
-            <InputAccessoryViewComponent enterTimestamp={enterTimestamp} />
         </View >
     );
 }

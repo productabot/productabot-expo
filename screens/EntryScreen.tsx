@@ -99,7 +99,7 @@ export default function EntryScreen({ route, navigation, refresh }: any) {
             console.log(response);
             setTimesheet({ hours: null, details: null, category: null, date: dates[20].value, project: projects[0].value });
             setLoading(false);
-            navigation.navigate('timesheet');
+            navigation.navigate('calendar');
         }
         catch (err) {
             setTimesheet({ hours: null, details: null, date: dates[20].value, project: projects[0].value });
