@@ -1,6 +1,7 @@
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import * as React from 'react';
+import * as Updates from 'expo-updates';
 
 export default function useCachedResources() {
   const [isLoadingComplete, setLoadingComplete] = React.useState(false);
@@ -19,7 +20,18 @@ export default function useCachedResources() {
         // We might want to provide this error information to an error reporting service
         console.warn(e);
       } finally {
-        setLoadingComplete(true);
+        try {
+          const update = await Updates.checkForUpdateAsync();
+          if (update.isAvailable) {
+            setTimeout(() => SplashScreen.hideAsync(), 100);
+            await Updates.fetchUpdateAsync();
+            await Updates.reloadAsync();
+          } else {
+            setLoadingComplete(true);
+          }
+        } catch (e) {
+          setLoadingComplete(true);
+        }
         SplashScreen.hideAsync();
       }
     }

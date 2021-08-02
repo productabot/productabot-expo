@@ -40,7 +40,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
         nextMonth.setMonth(nextMonth.getMonth() + 2);
         let data = await API.graphql(graphqlOperation(`
         {
-            timesheets(order_by: {date: asc, project: {name: asc}}, where: {date: {_gte: "${lastMonth.toLocaleDateString('fr-CA').substr(0, 7)}-23", _lt: "${nextMonth.toLocaleDateString('fr-CA').substr(0, 7)}-07"}}) {
+            timesheets(order_by: {date: asc, project: {name: asc}, hours: desc}, where: {date: {_gte: "${lastMonth.toLocaleDateString('fr-CA').substr(0, 7)}-23", _lt: "${nextMonth.toLocaleDateString('fr-CA').substr(0, 7)}-07"}}) {
               project {
                 name
                 key

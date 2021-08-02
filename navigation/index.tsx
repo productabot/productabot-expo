@@ -22,12 +22,12 @@ import * as root from '../Root';
 import DocumentScreen from '../screens/DocumentScreen';
 import ResetScreen from '../screens/ResetScreen';
 
-export default function Navigation({ navigation }: any) {
+export default function Navigation({ navigation, authenticated }: any) {
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
       theme={DarkTheme}>
-      <RootNavigator />
+      <RootNavigator authenticated={authenticated} />
     </NavigationContainer>
   );
 }
@@ -37,11 +37,11 @@ const AuthStack = createStackNavigator<any>();
 const AppBottomTab = createBottomTabNavigator<any>();
 const AppStack = createStackNavigator<any>();
 
-function RootNavigator() {
+function RootNavigator({ authenticated }: any) {
   const window = useWindowDimensions();
   const [refresh, setRefresh] = React.useState(false);
   return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+    <RootStack.Navigator initialRouteName={authenticated ? 'app' : 'auth'} screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="auth" options={{ animationEnabled: false }}>
         {props => <AuthStack.Navigator {...props} screenOptions={{ headerShown: false }}>
           <AuthStack.Screen name="login" component={LoginScreen} options={{ animationEnabled: false }} />

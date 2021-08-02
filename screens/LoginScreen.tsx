@@ -10,7 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ route, navigation }: any) {
     const client = useApolloClient();
-    const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false, loading: true });
+    const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false, loading: false });
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
@@ -35,14 +35,6 @@ export default function LoginScreen({ route, navigation }: any) {
                 });
             });
         }
-
-        Auth.currentSession().then((response) => {
-            connectWebsocket();
-            setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
-            navigation.navigate('app');
-        }).catch((error) => {
-            setState({ ...state, loading: false });
-        });
     }, [route.params]);
 
     const login = async () => {
