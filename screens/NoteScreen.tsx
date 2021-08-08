@@ -4,17 +4,18 @@ import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
-import { useFocusEffect } from '@react-navigation/native';
 import { InputAccessoryViewWebViewComponent } from '../components/InputAccessoryViewWebViewComponent';
 import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import sanitizeHtml from "sanitize-html";
 import { DroidWebViewStyle } from '../assets/fonts/DroidWebViewStyle';
+import { useMutation, useSubscription, gql } from "@apollo/client";
 let timeout: any;
 
 export default function NoteScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
+    const [key, setKey] = useState('');
     const [loading, setLoading] = useState(false);
     const [note, setNote] = useState({});
     const [update, setUpdate] = useState(true);
@@ -26,47 +27,43 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', () => { setKeyboardOpen(true); });
         const keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', () => { setKeyboardOpen(false); });
+        const async = async () => {
+            let e2eResult = await AsyncStorage.getItem('e2e');
+            setKey(e2eResult);
+        }
+        async();
         return () => {
             keyboardDidHideListener.remove();
             keyboardDidShowListener.remove();
         };
     }, []);
 
-    useFocusEffect(
-        React.useCallback(() => {
-            if (!route.params) { route.params = {}; }
-            onRefresh();
-        }, [refresh])
-    );
-
-    let onRefresh = async () => {
-        setLoading(true);
-        let data = await API.graphql(graphqlOperation(`{
-            notes_by_pk(id: "${route.params.id}") {
-              id
-              content
-              title
+    useSubscription(
+        gql`subscription ($id: uuid!) {
+            notes_by_pk(id: $id) {
+                id
+                title
+                content
             }
-          }
-          `));
-
-        try {
-            let e2eResult = await AsyncStorage.getItem('e2e');
-            let decrypted = CryptoJS.AES.decrypt(data.data.notes_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
-            if (decrypted.length === 0) { decrypted = '<div></div>' }
-            data.data.notes_by_pk.content = decrypted;
-        }
-        catch (err) { console.log(err) }
-        setNote(data.data.notes_by_pk);
-        setLoading(false);
-    }
+        }`,
+        {
+            variables: { id: route.params.id },
+            onSubscriptionData: async ({ subscriptionData: { data, error, loading } }) => {
+                data.notes_by_pk.content = CryptoJS.AES.decrypt(data.notes_by_pk.content, key).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
+                setNote(data.notes_by_pk);
+                inputRef.current.injectJavaScript(`(function() {
+                    const div = document.querySelector('#editor');
+                    div.innerHTML =  \`${data.notes_by_pk.content}\`;
+                })();`);
+            }
+        });
 
 
     const injectJavascript = async (javascript: string, content = null) => {
         if (content) {
             setNote({ ...note, content: `${note.content}<p></p>${content}<br/><br/>` });
             inputRef.current.injectJavaScript(`(function() {
-                const div = document.querySelector('div');
+                const div = document.querySelector('#editor');
                 div.innerHTML +=  \`<p></p>${content}<br/><br/>\`;
                 document.execCommand('selectAll', false, null);
                 document.getSelection().collapseToEnd();})();
@@ -75,28 +72,33 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         else {
             inputRef.current.injectJavaScript(`(function() {
                 document.execCommand('${javascript}', false, '');
-                window.ReactNativeWebView.postMessage(document.querySelector('div').innerHTML);
+                window.ReactNativeWebView.postMessage(document.querySelector('#editor').innerHTML);
             })();`);
         }
     }
 
-    useEffect(() => {
-        updateNote();
-    }, [note]);
-
-
     let updateNote = async () => {
-        if (update && note.id) {
+        if (note.title) {
             let e2eResult = await AsyncStorage.getItem('e2e');
             let encrypted = CryptoJS.AES.encrypt(note.content, e2eResult).toString();
             await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
-                updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
-            }`, { content: encrypted, title: note.title }));
-        }
-        else {
-            setUpdate(true);
+            updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
+        }`, { content: encrypted, title: note.title }));
         }
     }
+
+    useEffect(() => {
+        // clearTimeout(timeout); timeout = setTimeout(() => { updateNote() }, 5000);
+        if (!keyboardOpen) {
+            updateNote();
+        }
+        else {
+            inputRef.current.injectJavaScript(`(function() {
+                document.execCommand('selectAll', false, null);
+                document.getSelection().collapseToEnd();})();
+            `);
+        }
+    }, [keyboardOpen]);
 
     return (
         <View style={styles.container}>
@@ -143,6 +145,8 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                 {note.content &&
                     <WebView
                         ref={inputRef}
+                        style={{ backgroundColor: '#000000' }}
+                        containerStyle={{ backgroundColor: '#000000' }}
                         hideKeyboardAccessoryView={true}
                         inputAccessoryViewID='main'
                         originWhitelist={['*']}
@@ -170,28 +174,22 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                         injectedJavaScript={`(function() {
                             window.document.querySelector("body").style.backgroundColor = "#000000";
                             window.addEventListener('load', function() {
-                                document.querySelector('div').innerHTML =  \`${note.content}\`;
-                                document.querySelector('div').addEventListener('input', (e) => {
+                                document.querySelector('#editor').innerHTML =  \`${note.content}\`;
+                                document.querySelector('#editor').addEventListener('input', (e) => {
                                     e.preventDefault();
                                     window.ReactNativeWebView.postMessage(e.target.innerHTML);
                                 });
                             });
                         })();`}
                         onMessage={(e) => {
-                            setUpdate(false);
                             setNote({ ...note, content: e.nativeEvent.data });
-                            clearTimeout(timeout);
-                            timeout = setTimeout(() => {
-                                setUpdate(true);
-                                setNote(note);
-                            }, 1000);
                         }}
                         startInLoadingState={true}
                         renderLoading={() => <View style={{ height: '100%', width: '100%', backgroundColor: '#000000' }} />}
                     />}
                 {keyboardOpen && <InputAccessoryViewWebViewComponent injectJavascript={injectJavascript} />}
             </KeyboardAvoidingView>
-            { loading && <LoadingComponent />}
+            {loading && <LoadingComponent />}
         </View >
     );
 }

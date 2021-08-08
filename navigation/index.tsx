@@ -43,7 +43,7 @@ function RootNavigator({ authenticated }: any) {
   return (
     <RootStack.Navigator initialRouteName={authenticated ? 'app' : 'auth'} screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="auth" options={{ animationEnabled: false }}>
-        {props => <AuthStack.Navigator {...props} screenOptions={{ headerShown: false }}>
+        {props => <AuthStack.Navigator {...props} initialRouteName="login" screenOptions={{ headerShown: false }} >
           <AuthStack.Screen name="login" component={LoginScreen} options={{ animationEnabled: false }} />
           <AuthStack.Screen name="signup" component={SignupScreen} options={{ animationEnabled: false }} />
           <AuthStack.Screen name="reset" component={ResetScreen} options={{ animationEnabled: false }} />
@@ -139,7 +139,7 @@ function RootNavigator({ authenticated }: any) {
                   tabBarButton: props =>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, width: 130, marginRight: 20 }}>
                       <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 30 }} onPress={() => { setRefresh(!refresh); }} >
-                        <Text style={{ color: '#ffffff', fontSize: 14 }}>↻</Text>
+                        <Text style={{ color: '#ffffff', fontSize: 14 }}>🔎</Text>
                       </TouchableOpacity>
                       <NotificationsComponent />
                     </View>
