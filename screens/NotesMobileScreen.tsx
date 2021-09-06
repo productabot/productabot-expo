@@ -23,7 +23,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     );
 
     useEffect(() => {
-        onRefresh();
+        onRefresh(false);
     }, [refresh]);
 
     let onRefresh = async (showLoader = true) => {
@@ -60,6 +60,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
           }`));
         setNotes(notesData.data.notes);
         showLoader && setLoading(false);
+        setTimeout(() => { setLoading(false) }, 10);
     }
 
     useEffect(() => {

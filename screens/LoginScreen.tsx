@@ -58,7 +58,7 @@ export default function LoginScreen({ route, navigation }: any) {
 
     const connectWebsocket = () => {
         client.setLink(new WebSocketLink({
-            uri: "wss://api.productabot.com/v1/graphql",
+            uri: "wss://api.pbot.it/v1/graphql",
             options: {
                 reconnect: true,
                 connectionParams: async () => ({

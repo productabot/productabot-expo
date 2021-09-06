@@ -7,40 +7,63 @@ import { LoadingComponent } from '../components/LoadingComponent';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import * as root from '../Root';
 import * as WebBrowser from 'expo-web-browser';
+import { useApolloClient } from "@apollo/client";
+import { WebSocketLink } from "@apollo/client/link/ws";
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignupScreen({ route, navigation }: any) {
-    const [state, setState] = useState({
-        email: '', username: '', password: '', confirmPassword: '', errorMessage: '', checkbox: false, loading: false
-    });
+    const client = useApolloClient();
+    const defaultState = { email: '', username: '', password: '', confirmPassword: '', errorMessage: '', successMessage: '', checkbox: false, loading: false };
+    const [state, setState] = useState(defaultState);
+    const connectWebsocket = () => {
+        client.setLink(new WebSocketLink({
+            uri: "wss://api.pbot.it/v1/graphql",
+            options: {
+                reconnect: true,
+                connectionParams: async () => ({
+                    headers: {
+                        Authorization: "Bearer " + (await Auth.currentSession()).idToken.jwtToken
+                    }
+                })
+            }
+        }));
+    }
     const signup = async () => {
         Keyboard.dismiss();
+        setState({ ...state, loading: true });
         if (!state.email || !state.username || !state.password || !state.confirmPassword) {
-            setState({ ...state, errorMessage: "You're missing some information" });
-        }
-        else if (state.password !== state.confirmPassword) {
-            setState({ ...state, errorMessage: "Make sure your passwords match!" });
+            setState({ ...state, loading: false, errorMessage: "You're missing some information" });
         }
         else if (!state.checkbox) {
-            setState({ ...state, errorMessage: "You must agree to the\nTerms of Service & Privacy Policy" });
+            setState({ ...state, loading: false, errorMessage: "You must agree to the Terms and Privacy Policy" });
+        }
+        else if (state.password !== state.confirmPassword) {
+            setState({ ...state, loading: false, errorMessage: "Make sure your passwords match!" });
+        }
+        else if (state.password.length < 6) {
+            setState({ ...state, loading: false, errorMessage: "Your password must be at least 6 characters long" });
         }
         else {
-            setState({ ...state, loading: true });
             try {
-                let response = await Auth.signUp({ username: state.email, password: state.password, attributes: { 'custom:username': state.username, 'custom:userType': 'user' } });
-                //console.log(response);
-                setState({ ...state, loading: false, errorMessage: '', email: '', username: '', password: '', confirmPassword: '' });
-                navigation.navigate('login', { success: true });
+                await Auth.signUp({ username: uuidv4(), password: state.password, attributes: { 'custom:username': state.username, email: state.email, 'custom:userType': 'user' } });
+                await Auth.signIn({ username: state.username, password: state.password });
+                await AsyncStorage.setItem('e2e', state.password);
+                connectWebsocket();
+                setState(defaultState);
+                navigation.navigate('app');
             }
             catch (err) {
                 console.log(err);
-                if (err.message === "1 validation error detected: Value at 'password' failed to satisfy constraint: Member must have length greater than or equal to 6") {
-                    setState({ ...state, loading: false, errorMessage: "Your password must be at least 6 characters" });
-                }
-                else if (err.message === "Username should be an email.") {
+                if (err.message === "Invalid email address format.") {
                     setState({ ...state, loading: false, errorMessage: "Please enter a valid email address" });
                 }
                 else if (err.message === "An account with the given email already exists.") {
                     setState({ ...state, loading: false, errorMessage: "An account with this email already exists" });
+                }
+                else {
+                    setState({ ...state, loading: false, errorMessage: "An account with this username already exists" });
                 }
             }
         }

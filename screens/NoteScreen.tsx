@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput, Platform, ActionSheetIOS, KeyboardAvoidingView, Keyboard, Pressable, useWindowDimensions } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, Platform, ActionSheetIOS, KeyboardAvoidingView, Keyboard, Pressable, useWindowDimensions, Animated } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -13,16 +13,14 @@ import { DroidWebViewStyle } from '../assets/fonts/DroidWebViewStyle';
 import { useMutation, useSubscription, gql } from "@apollo/client";
 let timeout: any;
 
+
 export default function NoteScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
     const [key, setKey] = useState('');
-    const [loading, setLoading] = useState(false);
     const [note, setNote] = useState({});
-    const [update, setUpdate] = useState(true);
-    const [editable, setEditable] = useState(true);
-    const [touch, setTouch] = useState({});
     const [keyboardOpen, setKeyboardOpen] = useState(false);
     const inputRef = useRef(null);
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', () => { setKeyboardOpen(true); });
@@ -38,6 +36,23 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         };
     }, []);
 
+    const firstLoad = () => {
+        let noteExists = note.content ? true : false;
+        setTimeout(() => {
+            if (noteExists) {
+                firstLoad();
+            }
+            else {
+                inputRef.current.injectJavaScript(`(function() {
+                    document.querySelector('#editor').focus();
+                    document.execCommand('selectAll', false, null);
+                    document.getSelection().collapseToEnd();
+                })();`);
+                Animated.timing(fadeAnim, { toValue: 1, duration: 150, useNativeDriver: false }).start();
+            }
+        }, 150);
+    }
+
     useSubscription(
         gql`subscription ($id: uuid!) {
             notes_by_pk(id: $id) {
@@ -49,11 +64,13 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         {
             variables: { id: route.params.id },
             onSubscriptionData: async ({ subscriptionData: { data, error, loading } }) => {
+                if (!note.content) {
+                    firstLoad();
+                }
                 data.notes_by_pk.content = CryptoJS.AES.decrypt(data.notes_by_pk.content, key).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
                 setNote(data.notes_by_pk);
                 inputRef.current.injectJavaScript(`(function() {
-                    const div = document.querySelector('#editor');
-                    div.innerHTML =  \`${data.notes_by_pk.content}\`;
+                    document.querySelector('#editor').innerHTML =  \`${data.notes_by_pk.content}\`;
                 })();`);
             }
         });
@@ -63,11 +80,10 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         if (content) {
             setNote({ ...note, content: `${note.content}<p></p>${content}<br/><br/>` });
             inputRef.current.injectJavaScript(`(function() {
-                const div = document.querySelector('#editor');
-                div.innerHTML +=  \`<p></p>${content}<br/><br/>\`;
+                document.querySelector('#editor').innerHTML +=  \`<p></p>${content}<br/><br/>\`;
                 document.execCommand('selectAll', false, null);
-                document.getSelection().collapseToEnd();})();
-            `);
+                document.getSelection().collapseToEnd();
+            })();`);
         }
         else {
             inputRef.current.injectJavaScript(`(function() {
@@ -88,71 +104,72 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
     }
 
     useEffect(() => {
-        // clearTimeout(timeout); timeout = setTimeout(() => { updateNote() }, 5000);
         if (!keyboardOpen) {
             updateNote();
         }
         else {
             inputRef.current.injectJavaScript(`(function() {
-                document.execCommand('selectAll', false, null);
-                document.getSelection().collapseToEnd();})();
-            `);
+                    document.execCommand('selectAll', false, null);
+                    document.getSelection().collapseToEnd();
+                })();`);
+            setTimeout(() => {
+                inputRef.current.injectJavaScript(`(function() {
+                    document.querySelector('#editor').scrollIntoView({ behavior: "smooth", block: "end" });
+                })();`);
+            }, 50);
         }
     }, [keyboardOpen]);
 
     return (
-        <View style={styles.container}>
-            {root.desktopWeb ?
-                <View style={{ height: 50 }} />
-                :
-                <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <TouchableOpacity onPress={() => {
-                        navigation.navigate('notes')
-                    }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                    <TextInput spellCheck={false} style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
-                        setUpdate(false);
-                        setNote({ ...note, title: value });
-                    }} onBlur={() => {
-                        setUpdate(true);
-                        setNote({ ...note });
-                    }} />
-                    <TouchableOpacity onPress={async () => {
-                        Platform.OS === 'ios' &&
-                            ActionSheetIOS.showActionSheetWithOptions(
-                                {
-                                    options: ['Cancel', 'Delete'],
-                                    cancelButtonIndex: 0,
-                                    destructiveButtonIndex: 1
-                                },
-                                buttonIndex => {
-                                    if (buttonIndex !== 0) {
-                                        API.graphql(graphqlOperation(`mutation {
+        <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+            {
+                root.desktopWeb ?
+                    <View style={{ height: 50 }} />
+                    :
+                    <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <TouchableOpacity onPress={() => {
+                            navigation.navigate('notes')
+                        }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
+                        <TextInput spellCheck={false} style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
+                            setNote({ ...note, title: value });
+                        }} onBlur={() => {
+                            setNote({ ...note });
+                        }} />
+                        <TouchableOpacity onPress={async () => {
+                            Platform.OS === 'ios' &&
+                                ActionSheetIOS.showActionSheetWithOptions(
+                                    {
+                                        options: ['Cancel', 'Delete'],
+                                        cancelButtonIndex: 0,
+                                        destructiveButtonIndex: 1
+                                    },
+                                    buttonIndex => {
+                                        if (buttonIndex !== 0) {
+                                            API.graphql(graphqlOperation(`mutation {
                                             delete_notes_by_pk(id: "${note.id}") {
                                                 id
                                             }
                                         }`)).then((response) => {
-                                            navigation.navigate('notes');
-                                        });
+                                                navigation.navigate('notes');
+                                            });
+                                        }
                                     }
-                                }
-                            )
-                    }}><Text style={{ fontSize: 30 }}>...</Text></TouchableOpacity>
-                </View>}
+                                )
+                        }}><Text style={{ fontSize: 30 }}>...</Text></TouchableOpacity>
+                    </View>
+            }
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={{ width: '100%', height: window.height - 160 }}
             >
-                {note.content &&
-                    <WebView
-                        ref={inputRef}
-                        style={{ backgroundColor: '#000000' }}
-                        containerStyle={{ backgroundColor: '#000000' }}
-                        hideKeyboardAccessoryView={true}
-                        inputAccessoryViewID='main'
-                        originWhitelist={['*']}
-                        source={{
-                            baseUrl: '',
-                            html: `
+                <WebView
+                    ref={inputRef}
+                    hideKeyboardAccessoryView={true}
+                    inputAccessoryViewID='main'
+                    originWhitelist={['*']}
+                    source={{
+                        baseUrl: '',
+                        html: `
                                 <head>
                                 <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
                                 <style>
@@ -160,37 +177,31 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                                 </style>
                                 </head>
                                 <body style="background-color:#000000;">
-                                <div id="editor" contenteditable="true" style="outline:none;height:100%;font-family:droid;color:#ffffff;font-size:12"/>
+                                <div id="editor" contenteditable="true" style="outline:none;font-family:droid;color:#ffffff;font-size:12;"/>
                                 </body>
                             `}}
-                        keyboardDisplayRequiresUserAction={false}
-                        showsHorizontalScrollIndicator={false}
-                        style={{ flex: 1 }}
-                        scalesPageToFit={false}
-                        scrollEnabled={true}
-                        javaScriptEnabled={true}
-                        automaticallyAdjustContentInsets={false}
-                        decelerationRate={0.998}
-                        injectedJavaScript={`(function() {
-                            window.document.querySelector("body").style.backgroundColor = "#000000";
+                    keyboardDisplayRequiresUserAction={false}
+                    showsHorizontalScrollIndicator={false}
+                    scalesPageToFit={false}
+                    scrollEnabled={true}
+                    javaScriptEnabled={true}
+                    automaticallyAdjustContentInsets={false}
+                    decelerationRate={0.998}
+                    injectedJavaScript={`(function() {
                             window.addEventListener('load', function() {
-                                document.querySelector('#editor').innerHTML =  \`${note.content}\`;
                                 document.querySelector('#editor').addEventListener('input', (e) => {
                                     e.preventDefault();
                                     window.ReactNativeWebView.postMessage(e.target.innerHTML);
                                 });
                             });
                         })();`}
-                        onMessage={(e) => {
-                            setNote({ ...note, content: e.nativeEvent.data });
-                        }}
-                        startInLoadingState={true}
-                        renderLoading={() => <View style={{ height: '100%', width: '100%', backgroundColor: '#000000' }} />}
-                    />}
+                    onMessage={(e) => {
+                        setNote({ ...note, content: e.nativeEvent.data });
+                    }}
+                />
                 {keyboardOpen && <InputAccessoryViewWebViewComponent injectJavascript={injectJavascript} />}
-            </KeyboardAvoidingView>
-            {loading && <LoadingComponent />}
-        </View >
+            </KeyboardAvoidingView >
+        </Animated.View >
     );
 }
 

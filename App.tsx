@@ -9,10 +9,12 @@ import useCachedResources from './hooks/useCachedResources';
 import Navigation from './navigation';
 
 import { Environment } from './Environment';
-import Amplify, { Auth } from "aws-amplify";
+import Amplify, { Auth, API, graphqlOperation } from "aws-amplify";
 import { Platform, LogBox } from 'react-native';
 import { WebSocketLink } from "@apollo/client/link/ws";
-Platform.OS !== 'web' && LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
+
 Amplify.configure({
   Auth: {
     identityPoolId: Environment.identityPoolId,
@@ -54,28 +56,37 @@ export default function App() {
   const [authenticated, setAuthenticated] = React.useState(null);
   React.useEffect(() => {
     const async = async () => {
-      let user = await Auth.currentSession();
-      if (user) {
-        client.setLink(new WebSocketLink({
-          uri: "wss://api.productabot.com/v1/graphql",
-          options: {
-            reconnect: true,
-            connectionParams: async () => ({
-              headers: {
-                Authorization: "Bearer " + (await Auth.currentSession()).idToken.jwtToken
-              }
-            })
-          }
-        }));
-        setAuthenticated(true);
+      Platform.OS !== 'web' && LogBox.ignoreLogs([
+        'ReactNativeFiberHostComponent: Calling getNode() on the ref of an Animated component is no longer necessary. You can now directly use the ref instead. This method will be removed in a future release.',
+      ]);
+      try {
+        let user = await Auth.currentSession();
+        if (user) {
+          registerForPushNotificationsAsync();
+          client.setLink(new WebSocketLink({
+            uri: "wss://api.pbot.it/v1/graphql",
+            options: {
+              reconnect: true,
+              connectionParams: async () => ({
+                headers: {
+                  Authorization: "Bearer " + (await Auth.currentSession()).idToken.jwtToken
+                }
+              })
+            }
+          }));
+          setAuthenticated(true);
+        }
+        else {
+          setAuthenticated(false);
+        }
       }
-      else {
+      catch (err) {
         setAuthenticated(false);
       }
     }
     async();
   })
-  if (!isLoadingComplete && authenticated === null) {
+  if (!isLoadingComplete || authenticated === null) {
     return (
       <View style={{ backgroundColor: '#000000', flex: 1 }}>
         <LoadingComponent />
@@ -92,5 +103,35 @@ export default function App() {
         </SafeAreaProvider>
       </ApolloProvider>
     );
+  }
+}
+
+
+async function registerForPushNotificationsAsync() {
+  let token;
+  const pushExists = (await API.graphql(graphqlOperation(`{users {push_token}}`))).data.users[0].push_token;
+  if (!pushExists) {
+    if (Constants.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+      await API.graphql(graphqlOperation(`mutation {update_users(where: {id: {_is_null: false}}, _set: {push_token: "${token}"}) {affected_rows}}`));
+    }
+
+    if (Platform.OS === 'android') {
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
   }
 }

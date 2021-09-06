@@ -5,6 +5,7 @@ import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import RNPickerSelect from 'react-native-picker-select';
+import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 
 export default function EntryScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
@@ -150,9 +151,9 @@ export default function EntryScreen({ route, navigation, refresh }: any) {
                     onValueChange={(value) => setTimesheet({ ...timesheet, date: value })}
                     items={dates}
                 />
-                <TextInput spellCheck={false} value={timesheet.category} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, category: value }) }} placeholder='category' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
-                <TextInput spellCheck={false} value={timesheet.hours} keyboardType='numeric' onChangeText={value => { setTimesheet({ ...timesheet, hours: value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1') }) }} placeholder='hours' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
-                <TextInput spellCheck={false} value={timesheet.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }, isWeb && { outlineWidth: 0 }]} />
+                <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.category} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, category: value }) }} placeholder='category' style={[styles.textInput]} />
+                <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.hours} keyboardType='numeric' onChangeText={value => { setTimesheet({ ...timesheet, hours: value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1') }) }} placeholder='hours' style={[styles.textInput]} />
+                <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F0054' }]}
                     onPress={submit}
                 >
@@ -167,6 +168,7 @@ export default function EntryScreen({ route, navigation, refresh }: any) {
                 </TouchableOpacity>
             </ScrollView>
             {loading && <LoadingComponent />}
+            <InputAccessoryViewComponent />
         </View>
     );
 }
