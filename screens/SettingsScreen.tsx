@@ -15,7 +15,7 @@ export default function SettingsScreen({ navigation }: any) {
         navigation.navigate('auth');
     }
     return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' }}>
             <TouchableOpacity onPress={logout}>
                 <Text>Log Out</Text>
             </TouchableOpacity>

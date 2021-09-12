@@ -59,7 +59,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: root.desktopWeb ? 30 : 0 }}>
+        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: root.desktopWeb ? 30 : 0, backgroundColor: '#000000' }}>
             <ScrollView
                 style={{ maxWidth: Math.min(root.desktopWidth, window.width), height: '100%', padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}

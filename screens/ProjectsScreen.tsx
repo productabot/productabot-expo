@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { TouchableOpacity, RefreshControl, Image, useWindowDimensions, SafeAreaView } from 'react-native';
+import { TouchableOpacity, RefreshControl, Image, useWindowDimensions, SafeAreaView, Platform } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, navItem } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -8,6 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AutoDragSortableView from '../components/AutoDragSortableViewComponent';
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';
+import * as Haptics from 'expo-haptics';
 
 export default function ProjectsScreen({ route, navigation, refresh }: any) {
   const window = useWindowDimensions();
@@ -58,6 +59,8 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
             title=""
           />}
         delayLongPress={200}
+        onDragStart={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
+        onDragEnd={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
         sortable={true}
         dataSource={projects}
         parentWidth={root.desktopWeb ? Math.min(window.width, root.desktopWidth) : window.width}
@@ -102,7 +105,7 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
               {item.image ?
                 <Image
                   style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1 }}
-                  source={{ uri: `https://files.productabot.com/${item.image}` }}
+                  source={{ uri: `https://files.productabot.com/public/${item.image}` }}
                 />
                 :
                 <View style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1 }} />

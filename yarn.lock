@@ -3564,6 +3564,11 @@
   resolved "https://registry.yarnpkg.com/@react-native-picker/picker/-/picker-1.16.7.tgz#2c943572efcd21c218ee03f23ba1475544b24cf1"
   integrity sha512-/QJxL4JniloFvdPDufQTiMQQbpucCQ0w7wvGhZQt0x3KVxvI1f/vzDO+669r/1yipcFZbSLcYIiQSMSpZtkqiQ==
 
+"@react-native-segmented-control/segmented-control@2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@react-native-segmented-control/segmented-control/-/segmented-control-2.3.0.tgz#f3ec8bf40a7e7df8c9ed15cc97513eb343e6f89c"
+  integrity sha512-CWa6G/j0SyVkavrf4riyuKWrSJmALOCn9F+PNtDPhlQMVKlZyYL11BOFl+plLqYqNu6Hm2+xkHVx6eZI63c/Tw==
+
 "@react-navigation/bottom-tabs@5.11.2":
   version "5.11.2"
   resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-5.11.2.tgz#5b541612fcecdea2a5024a4028da35e4a727bde6"
@@ -6974,6 +6979,15 @@ expo-constants@~11.0.1:
     expo-modules-core "~0.2.0"
     uuid "^3.3.2"
 
+expo-document-picker@~9.2.4:
+  version "9.2.4"
+  resolved "https://registry.yarnpkg.com/expo-document-picker/-/expo-document-picker-9.2.4.tgz#8323ba2fcc62039ba2b31d0314aefd42ad48b7e7"
+  integrity sha512-j8hmk1LqGVRpYbjMVsg26DOcBo8B1r5/SpLfNNb9X8AiPx7ceQ5HC3kC0BFwk+Ad2/NHHRQ4jFQFnkvMuDkhEg==
+  dependencies:
+    "@expo/config-plugins" "^3.0.0"
+    expo-modules-core "~0.2.0"
+    uuid "^3.3.2"
+
 expo-error-recovery@~2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/expo-error-recovery/-/expo-error-recovery-2.2.0.tgz#89e5494d97347530dd53cd817d7ac63f07bf8de0"
@@ -6995,6 +7009,27 @@ expo-font@~9.2.1:
   dependencies:
     expo-modules-core "~0.2.0"
     fontfaceobserver "^2.1.0"
+
+expo-haptics@~10.1.0:
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/expo-haptics/-/expo-haptics-10.1.0.tgz#2ef5f0c3442f57844f7a7a961d922872e4ea9a71"
+  integrity sha512-2rpixkP3LSCwaJAmbbs0CSqbY7lSk7Ytay4UAYWg3YiJ05My7+MGMPbQJARyAMI5JQNuzcdsZN74btSusBvgYQ==
+
+expo-image-manipulator@~9.2.2:
+  version "9.2.2"
+  resolved "https://registry.yarnpkg.com/expo-image-manipulator/-/expo-image-manipulator-9.2.2.tgz#0fc7d2032972961c0a5fb49511d230fe0788fa6f"
+  integrity sha512-rnwUpLmySEhclES+632/vl4cBQyjWE16PdR003WxvN/YBynTlYIi7If2FZRFt5lktX0Rz988XVE89EavHPn2ug==
+  dependencies:
+    expo-modules-core "~0.2.0"
+
+expo-image-picker@~10.2.2:
+  version "10.2.3"
+  resolved "https://registry.yarnpkg.com/expo-image-picker/-/expo-image-picker-10.2.3.tgz#204c83ba0731f2ccdbc42e13f9bf6e37be21c354"
+  integrity sha512-8VXLYjclXoQJHbdNLI21rdbnxFisBpZ6TgIifHf9kZ/momFBegUNqEKCjosvxVGVM8f7qaQxJV/znNtW0rDM/w==
+  dependencies:
+    "@expo/config-plugins" "^3.0.0"
+    expo-modules-core "~0.2.0"
+    uuid "7.0.2"
 
 expo-keep-awake@~9.2.0:
   version "9.2.0"
@@ -7054,6 +7089,13 @@ expo-pwa@0.0.88:
     chalk "^4.0.0"
     commander "2.20.0"
     update-check "1.5.3"
+
+expo-sharing@~9.2.1:
+  version "9.2.1"
+  resolved "https://registry.yarnpkg.com/expo-sharing/-/expo-sharing-9.2.1.tgz#50267cd66f54d29f0ab3f185a05d92b197e5b60c"
+  integrity sha512-L0OR7qq8GJRKEFDMPrStc9UxVdOr3XRGMuK3vO2qgQgU3CCSb5QE5lHRdp4DFyJd22ILZqwL+3ghiUtFQD0eig==
+  dependencies:
+    expo-modules-core "~0.2.0"
 
 expo-splash-screen@~0.11.2:
   version "0.11.4"
@@ -13686,6 +13728,11 @@ uuid@3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
+
+uuid@7.0.2:
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-7.0.2.tgz#7ff5c203467e91f5e0d85cfcbaaf7d2ebbca9be6"
+  integrity sha512-vy9V/+pKG+5ZTYKf+VcphF5Oc6EFiu3W8Nv3P3zIh0EqVI80ZxOzuPfe9EHjkFNvf8+xuTHVeei4Drydlx4zjw==
 
 uuid@^3.0.0, uuid@^3.2.1, uuid@^3.3.2, uuid@^3.4.0:
   version "3.4.0"

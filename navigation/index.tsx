@@ -26,7 +26,11 @@ export default function Navigation({ navigation, authenticated }: any) {
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
-      theme={DarkTheme}>
+      documentTitle={{
+        formatter: (options, route) =>
+          `productabot • ${options?.title ?? route?.name.replace('_', ' ')}`,
+      }}
+    >
       <RootNavigator authenticated={authenticated} />
     </NavigationContainer>
   );
