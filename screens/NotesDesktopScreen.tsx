@@ -180,14 +180,14 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
             <View style={{ height: 50 }} />
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: Math.min(windowDimensions.width, root.desktopWidth) + 2, height: windowDimensions.height - 49, maxWidth: Math.min(windowDimensions.width, root.desktopWidth) + 2 }}>
                 <SplitPane split="vertical" pane1Style={hidePane && { display: 'none' }} defaultSize={'26%'} resizerStyle={{ width: 4, backgroundColor: '#444444', cursor: 'col-resize' }} onResizerDoubleClick={(e) => { setHidePane(!hidePane) }} onChange={(size) => { setPaneSize(size) }} >
-                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: `100%`, borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', borderRightWidth: 0 }}>
+                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: `100%`, borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', borderRightWidth: 0, borderTopLeftRadius: 10 }}>
                         <View style={{ height: 49, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
                             <TextInput spellCheck={false} placeholder="search" style={{ backgroundColor: '#000000', color: '#ffffff', borderColor: '#444444', borderWidth: 1, padding: 5, borderRadius: 5, width: '100%', outlineWidth: 0, marginLeft: 10 }}
                                 value={search || ''}
                                 onChangeText={(value) => { setSearch(value); }}
                             />
                             <TouchableOpacity
-                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
+                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 10, marginRight: 10 }}
                                 onPress={async () => {
                                     let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
                                     await API.graphql(graphqlOperation(`mutation {
@@ -195,11 +195,11 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                                   id
                                 }
                               }`));
-                                }} style={{ width: 40 }}><Text style={{ textAlign: 'center' }}>+</Text></TouchableOpacity>
+                                }}><Text style={{ textAlign: 'center' }}>add note +</Text></TouchableOpacity>
                         </View>
                         <View style={{ flexDirection: 'row', width: '100%', height: '100%', marginBottom: -49, borderTopColor: '#444444', borderTopWidth: 1, borderStyle: 'solid', flexGrow: 1 }}>
                             {paneSize >= 220 &&
-                                <View style={{ maxWidth: 260 }}>
+                                <View style={{ width: '50%', maxWidth: 150 }}>
                                     <CustomDraggableFlatList
                                         renderItemStyle={{ marginLeft: 5, marginRight: 5, paddingLeft: 7.5, paddingRight: 7.5 }}
                                         noBorder={true}
@@ -272,7 +272,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                             />
                         </View>
                     </View>
-                    <View style={[{ width: `100%`, height: '100%', borderWidth: 1, borderColor: '#444444', borderLeftWidth: 0 }]}>
+                    <View style={[{ width: `100%`, height: '100%', borderWidth: 1, borderColor: '#444444', borderLeftWidth: 0, borderTopRightRadius: 10 }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                             <TextInput spellCheck={false}
                                 style={[{ width: '100%', height: 49, color: '#ffffff', padding: 10 }, root.desktopWeb && { outlineWidth: 0 }]}
