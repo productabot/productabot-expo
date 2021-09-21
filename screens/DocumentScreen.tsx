@@ -75,7 +75,7 @@ export default function DocumentScreen({ route, navigation }: any) {
 
     return (
         <View style={styles.container}>
-            <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%' }}>
+            <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: root.desktopWeb ? 0 : 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%' }}>
                 <TouchableOpacity onPress={() => {
                     navigation.goBack()
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
@@ -135,7 +135,7 @@ export default function DocumentScreen({ route, navigation }: any) {
                     //dataDetectorTypes={'all'}
                     editable={editable}
                     inputAccessoryViewID='main'
-                    style={[{ width: '100%', height: '100%', color: '#ffffff', padding: 10, fontSize: root.desktopWeb ? 12 : 16, paddingTop: 10, fontFamily: 'droid' }, root.desktopWeb && { outlineWidth: 0 }]}
+                    style={[{ width: '100%', height: '100%', color: '#ffffff', padding: 10, fontSize: root.desktopWeb ? 12 : 16, paddingTop: 10, fontFamily: 'droid' }, root.desktopWeb && { outlineWidth: 0, borderColor: '#333333', borderWidth: 1, borderStyle: 'solid' }]}
                     multiline={true}
                     value={document.content}
                     onChangeText={(value) => {
@@ -149,7 +149,7 @@ export default function DocumentScreen({ route, navigation }: any) {
                     }}
                 />
             </KeyboardAvoidingView>
-            { loading && <LoadingComponent />}
+            {loading && <LoadingComponent />}
             <InputAccessoryViewComponent enterTimestamp={enterTimestamp} />
         </View >
     );

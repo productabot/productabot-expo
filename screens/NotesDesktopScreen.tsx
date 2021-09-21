@@ -13,6 +13,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ContentEditable from 'react-contenteditable';
 import sanitizeHtml from "sanitize-html";
 import CaretPositioning from './EditCaretPositioning'
+import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
+import SplitPane, { Pane } from 'react-split-pane';
+
 let timeout: any;
 let timeout2: any;
 let caret = { start: 0, end: 0 };
@@ -27,6 +30,8 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     const [tagId, setTagId] = useState('');
     const [search, setSearch] = useState('');
     const inputRef = useRef(null);
+    const [hidePane, setHidePane] = useState(false);
+    const [paneSize, setPaneSize] = useState(1000);
 
     const [noteId, setNoteId] = useState('');
     const [noteContent, setNoteContent] = useState('');
@@ -85,7 +90,10 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                 if (!caret.start) {
                     document.execCommand('selectAll', false, null);
                     document.getSelection().collapseToEnd();
-                    caret = CaretPositioning.saveSelection(inputRef.current);
+                    try {
+                        caret = CaretPositioning.saveSelection(inputRef.current);
+                    }
+                    catch (err) { console.log(err); }
                 }
                 else if (document.activeElement === inputRef.current) {
                     CaretPositioning.restoreSelection(inputRef.current, caret);
@@ -129,7 +137,10 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     }, [tags]);
 
     const saveNoteContentImmediately = async () => {
-        caret = CaretPositioning.saveSelection(inputRef.current);
+        try {
+            caret = CaretPositioning.saveSelection(inputRef.current);
+        }
+        catch (err) { console.log(err); }
         setNoteContent(inputRef.current.innerHTML);
         try {
             await API.graphql(graphqlOperation(`mutation($content: String) {
@@ -168,175 +179,178 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
         <View style={styles.container}>
             <View style={{ height: 50 }} />
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: Math.min(windowDimensions.width, root.desktopWidth) + 2, height: windowDimensions.height - 49, maxWidth: Math.min(windowDimensions.width, root.desktopWidth) + 2 }}>
-                <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '25%', borderWidth: 1, borderColor: '#444444', borderStyle: 'solid' }}>
-                    <View style={{ height: 49, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
-                        <TextInput spellCheck={false} placeholder="search" style={{ backgroundColor: '#000000', color: '#ffffff', borderColor: '#444444', borderWidth: 1, padding: 5, borderRadius: 5, width: '100%', outlineWidth: 0, marginLeft: 10 }}
-                            value={search || ''}
-                            onChangeText={(value) => { setSearch(value); }}
-                        />
-                        <TouchableOpacity
-                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
-                            onPress={async () => {
-                                let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                                await API.graphql(graphqlOperation(`mutation {
+                <SplitPane split="vertical" pane1Style={hidePane && { display: 'none' }} defaultSize={'26%'} resizerStyle={{ width: 4, backgroundColor: '#444444', cursor: 'col-resize' }} onResizerDoubleClick={(e) => { setHidePane(!hidePane) }} onChange={(size) => { setPaneSize(size) }} >
+                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: `100%`, borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', borderRightWidth: 0 }}>
+                        <View style={{ height: 49, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
+                            <TextInput spellCheck={false} placeholder="search" style={{ backgroundColor: '#000000', color: '#ffffff', borderColor: '#444444', borderWidth: 1, padding: 5, borderRadius: 5, width: '100%', outlineWidth: 0, marginLeft: 10 }}
+                                value={search || ''}
+                                onChangeText={(value) => { setSearch(value); }}
+                            />
+                            <TouchableOpacity
+                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
+                                onPress={async () => {
+                                    let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                                    await API.graphql(graphqlOperation(`mutation {
                                 insert_notes_one(object: {tag_id: "${tag.id}", title: "${dateString}", content: "", order: ${notes.length}}) {
                                   id
                                 }
                               }`));
-                            }} style={{ width: 40 }}><Text style={{ textAlign: 'center' }}>+</Text></TouchableOpacity>
-                    </View>
-                    <View style={{ flexDirection: 'row', width: '100%', height: '100%', marginBottom: -49 }}>
-                        <DraggableFlatList
-                            containerStyle={{ height: '100%', width: '50%', borderColor: '#444444', borderRightWidth: 1 }}
-                            data={tags}
-                            renderItem={(item) => {
-                                return (
-                                    <TouchableOpacity
-                                        onLongPress={async () => {
-                                            let title = prompt('Change Tag');
-                                            if (title.length === 0) {
-                                                let result = confirm('Are you sure you want to delete this tag?');
-                                                if (result) {
-                                                    await API.graphql(graphqlOperation(`mutation {delete_tags_by_pk(id: "${item.item.id}") {id}}`));
-                                                }
-                                            }
-                                            else {
-                                                setTag({ ...tag, title: title });
-                                            }
+                                }} style={{ width: 40 }}><Text style={{ textAlign: 'center' }}>+</Text></TouchableOpacity>
+                        </View>
+                        <View style={{ flexDirection: 'row', width: '100%', height: '100%', marginBottom: -49, borderTopColor: '#444444', borderTopWidth: 1, borderStyle: 'solid', flexGrow: 1 }}>
+                            {paneSize >= 220 &&
+                                <View style={{ maxWidth: 260 }}>
+                                    <CustomDraggableFlatList
+                                        renderItemStyle={{ marginLeft: 5, marginRight: 5, paddingLeft: 7.5, paddingRight: 7.5 }}
+                                        noBorder={true}
+                                        data={tags}
+                                        renderItem={(item) => {
+                                            return (
+                                                <View
+                                                    onLongPress={async () => {
+                                                        let title = prompt('Change Tag');
+                                                        if (title.length === 0) {
+                                                            let result = confirm('Are you sure you want to delete this tag?');
+                                                            if (result) {
+                                                                await API.graphql(graphqlOperation(`mutation {delete_tags_by_pk(id: "${item.item.id}") {id}}`));
+                                                            }
+                                                        }
+                                                        else {
+                                                            setTag({ ...tag, title: title });
+                                                        }
+                                                    }}
+                                                    style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    {(tag) && <Text numberOfLines={1} style={[tag.id === item.item.id && { fontWeight: 'bold' }]}>📁 {item.item.title}</Text>}
+                                                </View>
+                                            )
                                         }}
-                                        onPress={() => {
+                                        onPress={(item) => {
                                             setTag(item.item);
                                             setTagId(item.item.id);
                                             setNotes(tags.filter(obj => obj.id === item.item.id)[0].notes);
                                             updateNotes();
-                                        }} style={{ flexDirection: 'row', height: 50, padding: 10, width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderTopWidth: 1, borderColor: '#444444', marginBottom: -1, cursor: 'pointer' }}>
-                                        {(tag) && <Text style={[tag.id === item.item.id && { fontWeight: 'bold' }]}>{item.item.title}</Text>}
-                                        {search.length === 0 &&
-                                            <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={200} onLongPress={item.drag} style={{ cursor: 'grab', marginLeft: 10 }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>}
-                                    </TouchableOpacity>
-                                )
-                            }}
-                            keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
-                            activationDistance={10}
-                            dragItemOverflow={true}
-                            onDragEnd={({ data }) => {
-                                setTags(data);
-                            }}
-                            ListFooterComponent={() => (
-                                <TouchableOpacity
-                                    style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}
-                                    onPress={async () => {
-                                        let title = prompt('Tag title?');
-                                        let data = await API.graphql(graphqlOperation(`mutation {
+                                        }}
+                                        onDragEnd={({ data }) => {
+                                            setTags(data);
+                                        }}
+                                        ListFooterComponent={() => (
+                                            <TouchableOpacity
+                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}
+                                                onPress={async () => {
+                                                    let title = prompt('Tag title?');
+                                                    let data = await API.graphql(graphqlOperation(`mutation {
                                                 insert_tags_one(object: {title: "${title}", order: ${tags.length}}) {
                                                 id
                                                 }
                                             }`));
-                                        let newTags = tags;
-                                        newTags.push({ id: data.data.insert_tags_one.id, title: title });
-                                        setTags(newTags);
-                                        setTag(newTags[newTags.length - 1]);
-                                    }}><Text style={{ textAlign: 'center', color: '#aaaaaa' }}>add new tag +</Text>
-                                </TouchableOpacity>
-                            )}
-                        />
-                        <DraggableFlatList
-                            containerStyle={{ height: '100%', width: '50%' }}
-                            data={notes}
-                            renderItem={(item) => {
-                                return (
-                                    <TouchableOpacity
-                                        onPress={() => { setNoteId(item.item.id); }} style={{ flexDirection: 'row', height: 50, padding: 10, width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderTopWidth: 1, borderColor: '#444444', marginBottom: -1, cursor: 'pointer' }}>
-                                        {new RegExp(/^\d{2}\/\d{2}\/\d{4}$/).test(item.item.title) ?
-                                            <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
-                                                <Text style={[noteId === item.item.id && { fontWeight: 'bold' }]}>{item.item.title}</Text>
-                                                <Text style={[{ fontSize: 10 }, noteId === item.item.id && { fontWeight: 'bold' }]}>{new Date(item.item.title).toLocaleDateString('en-US', { weekday: 'long' })}</Text>
-                                            </View>
-                                            :
-                                            <Text style={[noteId === item.item.id && { fontWeight: 'bold' }]}>{item.item.title}</Text>
-                                        }
-                                        {search.length === 0 &&
-                                            <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={200} onLongPress={item.drag} style={{ cursor: 'grab', marginLeft: 10 }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>}
-                                    </TouchableOpacity>
-                                )
-                            }}
-                            keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
-                            activationDistance={10}
-                            dragItemOverflow={true}
-                            onDragEnd={({ data }) => {
-                                setNotes(data);
-                                updateNotes();
-                            }}
-                        />
+                                                    let newTags = tags;
+                                                    newTags.push({ id: data.data.insert_tags_one.id, title: title });
+                                                    setTags(newTags);
+                                                    setTag(newTags[newTags.length - 1]);
+                                                }}><Text numberOfLines={1} style={{ textAlign: 'center', color: '#aaaaaa' }}>add new tag +</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    /></View>}
+                            <CustomDraggableFlatList
+                                renderItemStyle={{ marginLeft: 5, marginRight: 5, paddingLeft: 7.5, paddingRight: 7.5 }}
+                                noBorder={true}
+                                data={notes}
+                                renderItem={(item) => {
+                                    return (
+                                        <View
+                                            style={{ flexDirection: 'column', width: '100%', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                                            <Text numberOfLines={1} style={[noteId === item.item.id && { fontWeight: 'bold' }]}>📄 {item.item.title}</Text>
+                                            {new RegExp(/^\d{2}\/\d{2}\/\d{4}$/).test(item.item.title) && <Text numberOfLines={1} style={[{ fontSize: 10, marginLeft: 20 }, noteId === item.item.id && { fontWeight: 'bold' }]}>{new Date(item.item.title).toLocaleDateString('en-US', { weekday: 'long' })}</Text>}
+                                        </View>
+                                    )
+                                }}
+                                onPress={(item) => { setNoteId(item.item.id); }}
+                                onDragEnd={({ data }) => {
+                                    setNotes(data);
+                                    updateNotes();
+                                }}
+                            />
+                        </View>
                     </View>
-                </View>
-                <View style={[{ width: '75%', height: '100%', borderWidth: 1, borderColor: '#444444', borderLeftWidth: 0 }]}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <TextInput spellCheck={false}
-                            style={[{ width: '100%', height: 49, color: '#ffffff', padding: 10 }, root.desktopWeb && { outlineWidth: 0 }]}
-                            numberOfLines={1}
-                            value={noteTitle || ''}
-                            onChangeText={async (value) => { setNoteTitle(value) }}
-                            onBlur={() => { saveNoteTitleImmediately(); }}
-                        />
-                        <TouchableOpacity onPress={async () => { await API.graphql(graphqlOperation(`mutation {delete_notes_by_pk(id: "${noteId}") {id}}`)) }} style={{ width: 20 }}><Text>×</Text></TouchableOpacity>
-                    </View>
-                    <ContentEditable
-                        id="editable"
-                        spellCheck={false}
-                        innerRef={inputRef}
-                        html={noteContent || ''} // innerHTML of the editable div
-                        disabled={false}       // use true to disable editing
-                        style={{ width: 'calc(100% - 20px)', height: '100%', overflowY: 'scroll', color: '#ffffff', padding: 10, fontSize: 12, fontFamily: 'droid', outlineWidth: 0, borderTopWidth: 1, borderColor: '#444444', borderTopStyle: 'solid' }}
-                        onChange={async () => { }}
-                        onBlur={async () => { saveNoteContentImmediately(); clearTimeout(timeout); }}
-                        onClick={() => {
-                            caret = CaretPositioning.saveSelection(inputRef.current);
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'r' && e.ctrlKey) {
-                                e.preventDefault();
-                                document.execCommand('enableObjectResizing', false, '');
-                                document.execCommand('enableInlineTableEditing', false, '');
-                            }
-                            if (e.key === 'd' && e.ctrlKey) {
-                                e.preventDefault();
-                                document.execCommand('strikeThrough', false, '');
-                            }
-                            else if (e.key === 'q' && e.ctrlKey) {
-                                e.preventDefault();
-                                document.execCommand('outdent', false, '');
-                            }
-                            else if (e.key === 'e' && e.ctrlKey) {
-                                e.preventDefault();
-                                document.execCommand('indent', false, '');
-                            }
-                            else if (e.key === 'l' && e.ctrlKey) {
-                                e.preventDefault();
-                                document.execCommand('insertUnorderedList', false, '');
-                            }
-                            else if (e.key === 'o' && e.ctrlKey) {
-                                e.preventDefault();
-                                document.execCommand('insertOrderedList', false, '');
-                            }
-                            else if (e.key === 'h' && e.ctrlKey) {
-                                e.preventDefault();
-                                document.execCommand('insertHorizontalRule', false, '');
-                            }
-                            else if (e.key === 's' && e.ctrlKey) {
-                                e.preventDefault();
+                    <View style={[{ width: `100%`, height: '100%', borderWidth: 1, borderColor: '#444444', borderLeftWidth: 0 }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <TextInput spellCheck={false}
+                                style={[{ width: '100%', height: 49, color: '#ffffff', padding: 10 }, root.desktopWeb && { outlineWidth: 0 }]}
+                                numberOfLines={1}
+                                value={noteTitle || ''}
+                                onChangeText={async (value) => { setNoteTitle(value) }}
+                                onBlur={() => { saveNoteTitleImmediately(); }}
+                            />
+                            <TouchableOpacity onPress={async () => { await API.graphql(graphqlOperation(`mutation {delete_notes_by_pk(id: "${noteId}") {id}}`)) }} style={{ width: 20 }}><Text>×</Text></TouchableOpacity>
+                        </View>
+                        {/* <View style={{ borderTopWidth: 1, borderColor: '#444444', borderTopStyle: 'solid', color: '#ffffff', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', padding: 10, paddingBottom: 0 }}>
+                            <TouchableOpacity onPress={() => { inputRef.current.focus(); document.execCommand('bold', false, ''); }} style={{ backgroundColor: '#222222', width: 20, height: 20, borderRadius: 5 }}><Text style={{ textAlign: 'center' }}>B</Text></TouchableOpacity>
+                        </View> */}
+                        <ContentEditable
+                            id="editable"
+                            spellCheck={false}
+                            innerRef={inputRef}
+                            html={noteContent || ''} // innerHTML of the editable div
+                            disabled={false}       // use true to disable editing
+                            style={{ width: 'calc(100% - 20px)', height: '100%', overflowY: 'scroll', color: '#ffffff', padding: 10, fontSize: 12, fontFamily: 'droid', outlineWidth: 0, borderTopWidth: 1, borderColor: '#444444', borderTopStyle: 'solid' }}
+                            onChange={async () => { }}
+                            onBlur={async () => { saveNoteContentImmediately(); clearTimeout(timeout); }}
+                            onClick={() => {
+                                try {
+                                    caret = CaretPositioning.saveSelection(inputRef.current);
+                                }
+                                catch (err) { console.log(err); }
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'r' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('enableObjectResizing', false, '');
+                                    document.execCommand('enableInlineTableEditing', false, '');
+                                }
+                                if (e.key === 'd' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('strikeThrough', false, '');
+                                }
+                                else if (e.key === 'q' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('outdent', false, '');
+                                }
+                                else if (e.key === 'e' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('indent', false, '');
+                                }
+                                else if (e.key === 'l' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('insertUnorderedList', false, '');
+                                }
+                                else if (e.key === 'o' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('insertOrderedList', false, '');
+                                }
+                                else if (e.key === 'h' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('insertHorizontalRule', false, '');
+                                }
+                                else if (e.key === 'F1') {
+                                    e.preventDefault();
+                                    let timestamp = new Date().toLocaleTimeString('en-US', { hour12: true, hour: "numeric", minute: "numeric" });
+                                    setNoteContent(noteContent + `<div><br/></div><div>${timestamp}</div><div><br/></div>`);
+                                }
+                                else if (e.key === 's' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    clearTimeout(timeout);
+                                    setLoading(true);
+                                    saveNoteContentImmediately();
+                                    return;
+                                }
                                 clearTimeout(timeout);
-                                setLoading(true);
-                                saveNoteContentImmediately();
-                                return;
-                            }
-                            clearTimeout(timeout);
-                            saveNoteContent();
-                        }}
-                    />
-                </View>
+                                saveNoteContent();
+                            }}
+                        />
+                    </View>
+                </SplitPane>
+                {loading && <LoadingComponent />}
             </View>
-            {loading && <LoadingComponent />}
         </View>
     );
 }

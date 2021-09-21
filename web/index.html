@@ -80,11 +80,50 @@
     }
 
     div[aria-selected=false]:hover {
-      text-decoration-color: #666666;
+      text-decoration-color: #ffffff;
     }
 
     div[role="slider"]:hover {
       text-decoration: unset;
+    }
+
+    input[type="date"] {
+      position: relative;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: auto;
+      height: auto;
+      color: transparent;
+      background: transparent;
+    }
+
+    input[type="date"]::-webkit-inner-spin-button {
+      z-index: 1;
+    }
+
+    input[type="date"]::-webkit-clear-button {
+      z-index: 1;
+    }
+
+    input,
+    textarea {
+      outline: none !important;
+    }
+
+    .Resizer.vertical:hover {
+      background-color: #ffffff !important;
+    }
+
+    a[data-focusable=true]:hover>span {
+      text-decoration: underline;
+      text-decoration-color: #ffffff;
+      color: #ffffff !important;
     }
   </style>
 </head>

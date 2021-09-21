@@ -5,8 +5,8 @@ import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
-import DraggableFlatList from 'react-native-draggable-flatlist';
 import RNPickerSelect from 'react-native-picker-select';
+import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 
 export default function NotesScreen({ route, navigation, refresh }: any) {
     const [loading2, setLoading] = useState(false);
@@ -60,7 +60,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
           }`));
         setNotes(notesData.data.notes);
         showLoader && setLoading(false);
-        setTimeout(() => { setLoading(false) }, 10);
+        setTimeout(() => { setLoading(false) }, 8);
     }
 
     useEffect(() => {
@@ -125,11 +125,11 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                 <RNPickerSelect
                     placeholder={{}}
                     style={{
-                        inputIOS: { backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20 }
+                        inputIOS: { backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10 }
                     }}
                     value={tag.id}
                     onValueChange={(value) => setTag({ title: tags.filter(obj => obj.id === value).length > 0 ? tags.filter(obj => obj.id === value)[0].title : 'null', id: value })}
-                    items={tags.map(obj => { return ({ label: obj.title, value: obj.id }) })}
+                    items={tags.map(obj => { return ({ label: '📁 '+obj.title, value: obj.id }) })}
                 />
                 <TouchableOpacity onPress={async () => {
                     let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -141,22 +141,15 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                     navigation.navigate('note', { id: data.data.insert_notes_one.id });
                 }}><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
             </View>
-            <DraggableFlatList
-                containerStyle={{ height: '100%', width: '100%' }}
+            <CustomDraggableFlatList
                 data={notes}
-                renderItem={(item) => {
-                    return (
-                        <TouchableOpacity
-                            onPress={() => { navigation.navigate('note', { id: item.item.id }) }}
-                            style={{ flexDirection: 'row', height: 50, padding: 10, width: '100%', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderTopWidth: 1, borderColor: '#444444', marginBottom: -1 }}>
-                            <Text>{item.item.title}</Text>
-                            <TouchableOpacity hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }} delayLongPress={200} onLongPress={item.drag} style={{ cursor: 'grab', marginLeft: 10 }}><Text style={{ fontSize: 14 }}>☰</Text></TouchableOpacity>
-                        </TouchableOpacity>
-                    )
-                }}
-                keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
-                activationDistance={10}
-                dragItemOverflow={true}
+                renderItem={(item) =>
+                    <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text>📄 {item.item.title}</Text>
+                        <Text style={{ fontSize: 14 }}>☰</Text>
+                    </View>
+                }
+                onPress={async (item) => { navigation.navigate('note', { id: item.item.id }) }}
                 onDragEnd={({ data }) => {
                     setUpdate(true);
                     setNotes(data);

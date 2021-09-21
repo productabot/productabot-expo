@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-export let desktopWidth = 1180;
+export let desktopWidth = 1280;
 export let desktopWeb = Platform.OS === 'web';
 
 export let exportDate = async (date: Date, days: number = 0) => {

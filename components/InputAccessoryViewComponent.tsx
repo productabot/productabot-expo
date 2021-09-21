@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { InputAccessoryView, View, TouchableOpacity, Text, Keyboard, Platform } from 'react-native';
 
-export function InputAccessoryViewComponent({ enterTimestamp }) {
+export function InputAccessoryViewComponent({ enterTimestamp = null }) {
     return (
         Platform.OS === 'ios' ?
             <InputAccessoryView nativeID='main'>

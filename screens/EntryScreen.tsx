@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
@@ -6,6 +6,7 @@ import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import RNPickerSelect from 'react-native-picker-select';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
+import { WebView } from 'react-native-webview';
 
 export default function EntryScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
@@ -19,10 +20,13 @@ export default function EntryScreen({ route, navigation, refresh }: any) {
         details: null
     });
     const [loading, setLoading] = useState(false);
+    const [webViewLag, setWebViewLag] = useState('none');
+    const inputRef = useRef(null);
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
         onRefresh();
+        setTimeout(() => { setWebViewLag('relative') }, 100);
     }, [refresh]);
 
     let onRefresh = async () => {
@@ -141,16 +145,37 @@ export default function EntryScreen({ route, navigation, refresh }: any) {
                     onValueChange={(value) => setTimesheet({ ...timesheet, project: value })}
                     items={projects}
                 />
-                <RNPickerSelect
-                    placeholder={{}}
-                    style={{
-                        inputWeb: styles.picker,
-                        inputIOS: styles.picker
-                    }}
-                    value={timesheet.date}
-                    onValueChange={(value) => setTimesheet({ ...timesheet, date: value })}
-                    items={dates}
-                />
+                {Platform.OS === 'web' ?
+                    <input id="date" type="date" value={timesheet.date} onChange={(e) => { setTimesheet({ ...timesheet, date: e.target.value }) }}
+                        style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: '99%', fontFamily: 'arial', borderRadius: 10 }}
+                    />
+                    :
+                    <View style={{ backgroundColor: '#000000', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 0, marginTop: 5, marginBottom: 5, height: 30, width: '100%', borderRadius: 10 }}>
+                        <WebView
+                            style={{ display: webViewLag, borderRadius: 10 }}
+                            ref={inputRef}
+                            source={{
+                                html: `
+                                <head>
+                                <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
+                                </head>
+                                <body style="background-color:#000000;margin:0px;padding:5px;">
+                                <input style="all:unset;width:100%;height:100%;background-color:#000000;color:#ffffff;font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${timesheet.date}"/>
+                                </body>
+                            `}}
+                            keyboardDisplayRequiresUserAction={false}
+                            showsHorizontalScrollIndicator={false}
+                            scrollEnabled={false}
+                            scalesPageToFit={false}
+                            javaScriptEnabled={true}
+                            automaticallyAdjustContentInsets={false}
+                            onMessage={async (e) => {
+                                let value = e.nativeEvent.data;
+                                setTimesheet({ ...timesheet, date: value });
+                            }}
+                        />
+                    </View>
+                }
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.category} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, category: value }) }} placeholder='category' style={[styles.textInput]} />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.hours} keyboardType='numeric' onChangeText={value => { setTimesheet({ ...timesheet, hours: value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1') }) }} placeholder='hours' style={[styles.textInput]} />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
@@ -198,6 +223,6 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: s(30)
     },
-    textInput: { backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#ffffff', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: '100%' },
-    picker: { backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#ffffff', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20 }
+    textInput: { backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: '100%', borderRadius: 10 },
+    picker: { backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10 }
 });

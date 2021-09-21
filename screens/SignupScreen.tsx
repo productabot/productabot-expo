@@ -76,7 +76,7 @@ export default function SignupScreen({ route, navigation }: any) {
                 style={[styles.container, { width: '100%', height: '100%' }]}
             >
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                    <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10 }} />
+                    <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10, borderWidth: 1, borderColor: '#ffffff', borderRadius: 10, borderStyle: 'solid' }} />
                     <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
                 </TouchableOpacity>
                 <View style={{ margin: 30, marginBottom: 0, maxWidth: 280 }}>

@@ -27,11 +27,30 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
 
   let onRefresh = async () => {
     setLoading(true);
+
+    let dateFrom = new Date();
+    dateFrom.setDate(1);
+    let dateFromString = dateFrom.toISOString().split('T')[0];
+    let dateTo = new Date();
+    dateTo.setMonth(dateTo.getMonth() + 1);
+    dateTo.setDate(0);
+    let dateToString = dateTo.toISOString().split('T')[0];
+
     let data = await API.graphql(graphqlOperation(`{
       projects(order_by: {order: asc}) {
         id
         name
         image
+        goal
+        color
+        public
+        timesheets_aggregate(where: {date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
+          aggregate {
+            sum {
+              hours
+            }
+          }
+        }
       }
     }
     `));
@@ -47,6 +66,9 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
       justifyContent: 'center',
       paddingTop: root.desktopWeb ? 30 : 0
     }}>
+      {/* <View style={{ marginTop: root.desktopWeb ? 40 : 20, width: '100%', paddingLeft: 40, paddingRight: 40, maxWidth: root.desktopWidth }}>
+        <Text style={{ color: '#ffffff', fontSize: 30 }}>Hi there, Chris</Text>
+      </View> */}
       <AutoDragSortableView
         isDragFreely={true}
         refreshControl={
@@ -58,7 +80,9 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
             titleColor="#ffffff"
             title=""
           />}
-        delayLongPress={200}
+        minOpacity={100}
+        maxScale={1.1}
+        delayLongPress={100}
         onDragStart={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
         onDragEnd={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
         sortable={true}
@@ -104,13 +128,17 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
               key={item.id}>
               {item.image ?
                 <Image
-                  style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1 }}
+                  style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1, borderRadius: 20 }}
                   source={{ uri: `https://files.productabot.com/public/${item.image}` }}
                 />
                 :
-                <View style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1 }} />
+                <View style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1, borderRadius: 20 }} />
               }
-              <Text numberOfLines={1} ellipsizeMode='tail'>{item.name}</Text>
+              {item.goal &&
+                <View style={{ position: 'absolute', flexDirection: 'row', width: '80%', height: 5, bottom: -8, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
+                  <View style={{ height: '100%', backgroundColor: item.color === '#000000' ? '#ffffff' : item.color, width: `${((item.timesheets_aggregate.aggregate.sum.hours / item.goal) * 100).toFixed(0)}%`, borderRadius: 5 }} />
+                </View>}
+              <Text numberOfLines={1} ellipsizeMode='tail'>{item.public ? '' : '🔒'}{item.name}</Text>
             </View>
 
             :
@@ -135,12 +163,12 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
       {loading && <LoadingComponent />}
       <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
         <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y, left: contextPosition.x } }} />
-        <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
+        <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
           <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
             <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={() => {
             }} ><Text>Rename</Text></TouchableOpacity>
             <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
-            }}><Text>Delete</Text></TouchableOpacity>
+            }}><Text>Archive</Text></TouchableOpacity>
             <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
               onPress={() => { menuRef.current.close(); }}><Text>Cancel</Text></TouchableOpacity>
           </View>

@@ -75,7 +75,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
             >
                 <Calendar
                     enableSwipeMonths={!root.desktopWeb}
-                    style={{ width: (Math.min(root.desktopWidth, window.width) - (root.desktopWeb ? 12 : 0)) }}
+                    style={{ width: (Math.min(root.desktopWidth, window.width) - (root.desktopWeb ? 12 : 0)), borderRadius: 10 }}
                     current={month}
                     theme={{
                         backgroundColor: '#ffffff00',
@@ -118,7 +118,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                                     <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
                                 </View>
                                 {timesheets.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
-                                    <Menu key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderStyle: 'solid' } }} >
+                                    <Menu key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                         <MenuTrigger>
                                             <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Text numberOfLines={1} style={{ fontSize: 12 }}>{root.desktopWeb ? obj.project.name : obj.project.key}</Text>
@@ -126,7 +126,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                                             </View>
                                         </MenuTrigger>
                                         <MenuOptions customStyles={{
-                                            optionsWrapper: { backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderStyle: 'solid', width: 200 }
+                                            optionsWrapper: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 200 }
                                         }}>
                                             <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
                                                 <Text style={{ margin: 5 }}>{obj.project.name}{obj.category ? ' - ' + obj.category : ''} - {obj.hours} hrs</Text>

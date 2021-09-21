@@ -1,4 +1,4 @@
-import { NavigationContainer, DarkTheme, useNavigation } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, useNavigation, useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
 import { View, Platform, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
@@ -13,7 +13,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import LogoSvg from "../svgs/logo"
 import CalendarScreen from '../screens/CalendarScreen';
 import EntryScreen from '../screens/EntryScreen';
-import KanbanScreen from '../screens/KanbanScreen';
+import BoardScreen from '../screens/BoardScreen';
 import NotificationsComponent from '../components/NotificationsComponent';
 import NotesDesktopScreen from '../screens/NotesDesktopScreen';
 import NotesMobileScreen from '../screens/NotesMobileScreen';
@@ -21,10 +21,12 @@ import NoteScreen from '../screens/NoteScreen';
 import * as root from '../Root';
 import DocumentScreen from '../screens/DocumentScreen';
 import ResetScreen from '../screens/ResetScreen';
+import * as Linking from 'expo-linking';
 
 export default function Navigation({ navigation, authenticated }: any) {
   return (
     <NavigationContainer
+      theme={DarkTheme}
       linking={LinkingConfiguration}
       documentTitle={{
         formatter: (options, route) =>
@@ -62,13 +64,23 @@ function RootNavigator({ authenticated }: any) {
                 options={{
                   tabBarButton: props => {
                     const navigation = useNavigation();
+                    // const URL = Linking.useURL();
                     return (
-                      <TouchableOpacity {...props}
-                        onPress={() => { navigation.navigate('app', { screen: 'projects', params: { screen: 'projects' } }); }}
-                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                        <LogoSvg width={25} height={25} style={{ marginRight: 5, marginLeft: 15 }} />
-                        <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>
-                      </TouchableOpacity>
+                      // ['projects', 'calendar', 'notes', 'settings'].includes(URL ? URL.split('/').reverse()[0] : '') ?
+                      true ?
+                        <TouchableOpacity {...props}
+                          onPress={() => { navigation.navigate('app', { screen: 'projects', params: { screen: 'projects' } }); }}
+                          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: 160 }}>
+                          <LogoSvg width={25} height={25} style={{ marginRight: 5, marginLeft: 15, borderWidth: 1, borderColor: '#ffffff', borderRadius: 5, borderStyle: 'solid' }} />
+                          <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>
+                        </TouchableOpacity>
+                        :
+                        <TouchableOpacity {...props}
+                          onPress={() => { navigation.navigate('app', { screen: 'projects', params: { screen: 'projects' } }); }}
+                          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: 160 }}>
+                          <Text style={{ marginRight: 5, marginLeft: 15, width: 25, color: '#ffffff', textAlign: 'center' }}>←</Text>
+                          <Text style={{ color: '#ffffff', fontSize: 20 }}>go back</Text>
+                        </TouchableOpacity>
                     )
                   }
                 }}
@@ -84,8 +96,8 @@ function RootNavigator({ authenticated }: any) {
                     <AppStack.Screen name="project">
                       {props => <ProjectScreen {...props} refresh={refresh} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="kanban">
-                      {props => <KanbanScreen {...props} refresh={refresh} />}
+                    <AppStack.Screen name="board">
+                      {props => <BoardScreen {...props} refresh={refresh} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="document">
                       {props => <DocumentScreen {...props} refresh={refresh} />}

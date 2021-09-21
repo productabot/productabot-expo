@@ -121,9 +121,6 @@ ContextMenu.fitPositionIntoSafeArea = fitPositionIntoSafeArea;
 export const styles = StyleSheet.create({
     options: {
         position: 'absolute',
-        shadowColor: 'black',
-        shadowOpacity: 0.5,
-        shadowOffset: { width: 5, height: 5 },
         elevation: 5,
     },
 });

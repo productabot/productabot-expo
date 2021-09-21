@@ -23,8 +23,8 @@ export default {
               project: {
                 path: 'project'
               },
-              kanban: {
-                path: 'kanban'
+              board: {
+                path: 'board'
               },
               document: {
                 path: 'document'

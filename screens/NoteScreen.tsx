@@ -48,9 +48,9 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                     document.execCommand('selectAll', false, null);
                     document.getSelection().collapseToEnd();
                 })();`);
-                Animated.timing(fadeAnim, { toValue: 1, duration: 150, useNativeDriver: false }).start();
+                Animated.timing(fadeAnim, { toValue: 1, duration: 50, useNativeDriver: false }).start();
             }
-        }, 150);
+        }, 50);
     }
 
     useSubscription(
@@ -163,6 +163,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                 style={{ width: '100%', height: window.height - 160 }}
             >
                 <WebView
+                    style={{ backgroundColor: 'transparent' }}
                     ref={inputRef}
                     hideKeyboardAccessoryView={true}
                     inputAccessoryViewID='main'

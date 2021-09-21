@@ -22,7 +22,7 @@ export function LoadingComponent() {
     const height3 = heightValue3.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 35, 0] });
     return (
         <View style={{ position: 'absolute', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <View style={{ width: 75, height: 75, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderRadius: 0, padding: 5 }}>
+            <View style={{ width: 75, height: 75, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderRadius: 10, padding: 5 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-around', width: '100%' }}>
                     <Animated.View style={{ borderRadius: 10, height: height1, width: 10, backgroundColor: '#ffffff' }} />
                     <Animated.View style={{ borderRadius: 10, height: height2, width: 10, backgroundColor: '#ffffff' }} />
