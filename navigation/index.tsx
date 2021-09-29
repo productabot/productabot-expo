@@ -1,7 +1,8 @@
 import { NavigationContainer, DarkTheme, useNavigation, useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import * as React from 'react';
-import { View, Platform, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Platform, Text, TouchableOpacity, useWindowDimensions, Pressable } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -14,6 +15,7 @@ import LogoSvg from "../svgs/logo"
 import CalendarScreen from '../screens/CalendarScreen';
 import EntryScreen from '../screens/EntryScreen';
 import BoardScreen from '../screens/BoardScreen';
+import ItemScreen from '../screens/ItemScreen';
 import NotificationsComponent from '../components/NotificationsComponent';
 import NotesDesktopScreen from '../screens/NotesDesktopScreen';
 import NotesMobileScreen from '../screens/NotesMobileScreen';
@@ -22,6 +24,7 @@ import * as root from '../Root';
 import DocumentScreen from '../screens/DocumentScreen';
 import ResetScreen from '../screens/ResetScreen';
 import * as Linking from 'expo-linking';
+import TestScreen from '../screens/TestScreen';
 
 export default function Navigation({ navigation, authenticated }: any) {
   return (
@@ -42,6 +45,7 @@ const RootStack = createStackNavigator<any>();
 const AuthStack = createStackNavigator<any>();
 const AppBottomTab = createBottomTabNavigator<any>();
 const AppStack = createStackNavigator<any>();
+const MobileNotesStack = createDrawerNavigator<any>();
 
 function RootNavigator({ authenticated }: any) {
   const window = useWindowDimensions();
@@ -57,7 +61,7 @@ function RootNavigator({ authenticated }: any) {
       </RootStack.Screen>
       <RootStack.Screen name="app" options={{ animationEnabled: false }}>
         {props =>
-          <AppBottomTab.Navigator {...props} initialRouteName="projects" backBehavior={'history'} lazy={true}
+          <AppBottomTab.Navigator {...props} initialRouteName="projects" backBehavior={'history'} lazy={false}
             tabBarOptions={{ activeTintColor: '#ffffff', style: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: Math.min(window.width, root.desktopWidth), marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, labelStyle: Platform.OS !== 'web' ? { top: -12, fontSize: 20 } : {} }}>
             {Platform.OS === 'web' &&
               <AppBottomTab.Screen name="logo" component={() => <View />}
@@ -70,9 +74,9 @@ function RootNavigator({ authenticated }: any) {
                       true ?
                         <TouchableOpacity {...props}
                           onPress={() => { navigation.navigate('app', { screen: 'projects', params: { screen: 'projects' } }); }}
-                          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: 160 }}>
+                          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: window.width > 800 ? 160 : 30 }}>
                           <LogoSvg width={25} height={25} style={{ marginRight: 5, marginLeft: 15, borderWidth: 1, borderColor: '#ffffff', borderRadius: 5, borderStyle: 'solid' }} />
-                          <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>
+                          {(window.width > 800) && <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>}
                         </TouchableOpacity>
                         :
                         <TouchableOpacity {...props}
@@ -86,10 +90,13 @@ function RootNavigator({ authenticated }: any) {
                 }}
               />
             }
-            <AppBottomTab.Screen name="projects" options={{ title: `⧉${(root.desktopWeb && window.width < 800) ? `` : ` projects`}` }}>
+            <AppBottomTab.Screen name="projects" options={{
+              title: `⧉${(root.desktopWeb && window.width < 800) ? `` : ` projects`}`,
+              ...((root.desktopWeb && window.width < 800) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>⧉</Text></Pressable> })
+            }}>
               {props => {
                 return (
-                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="projects">
+                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="projects" >
                     <AppStack.Screen name="projects">
                       {props => <ProjectsScreen {...props} refresh={refresh} />}
                     </AppStack.Screen>
@@ -102,11 +109,17 @@ function RootNavigator({ authenticated }: any) {
                     <AppStack.Screen name="document">
                       {props => <DocumentScreen {...props} refresh={refresh} />}
                     </AppStack.Screen>
+                    <AppStack.Screen name="item">
+                      {props => <ItemScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
                   </AppStack.Navigator>
                 )
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="calendar" options={{ title: `▦${(root.desktopWeb && window.width < 800) ? `` : ` calendar`}` }}>
+            <AppBottomTab.Screen name="calendar" options={{
+              title: `▦ calendar`,
+              ...((root.desktopWeb && window.width < 800) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>▦</Text></Pressable> })
+            }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="calendar">
@@ -120,14 +133,23 @@ function RootNavigator({ authenticated }: any) {
                 )
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="notes" options={{ title: `≡${(root.desktopWeb && window.width < 800) ? `` : ` notes`}` }}>
+            <AppBottomTab.Screen name="notes" options={{
+              title: `≡ notes`,
+              ...((root.desktopWeb && window.width < 800) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>≡</Text></Pressable> })
+            }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="notes">
                     <AppStack.Screen name="notes">
                       {props =>
                         Platform.OS === 'ios' ?
-                          <NotesMobileScreen {...props} refresh={refresh} />
+                          <MobileNotesStack.Navigator initialRouteName="innerNotes"
+                            drawerStyle={{ width: 300 }} swipeEdgeWidth={400} screenOptions={{ headerShown: false, swipeEnabled: true, }}>
+                            <MobileNotesStack.Screen name="innerNotes">
+                              {props => <NotesMobileScreen {...props} refresh={refresh} />}
+                            </MobileNotesStack.Screen>
+                          </MobileNotesStack.Navigator>
+
                           :
                           <NotesDesktopScreen {...props} refresh={refresh} />
                       }
@@ -138,12 +160,18 @@ function RootNavigator({ authenticated }: any) {
                   </AppStack.Navigator>)
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="settings" options={{ title: `☉${(root.desktopWeb && window.width < 800) ? `` : ` settings`}` }}>
+            <AppBottomTab.Screen name="settings" options={{
+              title: `☉ settings`,
+              ...((root.desktopWeb && window.width < 800) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>☉</Text></Pressable> })
+            }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="settings">
                     <AppStack.Screen name="settings">
                       {props => <SettingsScreen {...props} refresh={refresh} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="test">
+                      {props => <TestScreen {...props} refresh={refresh} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>)
               }}
@@ -155,7 +183,7 @@ function RootNavigator({ authenticated }: any) {
                   tabBarButton: props =>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, width: 130, marginRight: 20 }}>
                       <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 30 }} onPress={() => { setRefresh(!refresh); }} >
-                        <Text style={{ color: '#ffffff', fontSize: 14 }}>🔎</Text>
+                        <Text style={{ color: '#ffffff', fontSize: 14 }}>↻</Text>
                       </TouchableOpacity>
                       <NotificationsComponent />
                     </View>

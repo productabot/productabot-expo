@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, Image, TextInput, useWindowDimensions, SafeAreaView, Platform, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, FlatList, Image, TextInput, useWindowDimensions, SafeAreaView, Platform, Alert, ActionSheetIOS } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { Auth, API, graphqlOperation, Storage } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -17,6 +17,18 @@ import ContextMenuRenderer from '../components/ContextMenuRenderer';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { WebView } from 'react-native-webview';
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
+import Popover from '../components/PopoverMenuRenderer';
+import { PieChart } from "react-native-chart-kit";
+const chartColors = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6',
+    '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
+    '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A',
+    '#FF99E6', '#CCFF1A', '#FF1A66', '#E6331A', '#33FFCC',
+    '#66994D', '#B366CC', '#4D8000', '#B33300', '#CC80CC',
+    '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399',
+    '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680',
+    '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933',
+    '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3',
+    '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'];
 
 function formatBytes(bytes, decimals = 2) {
     if (bytes === 0) return '0 Bytes';
@@ -31,14 +43,25 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 let timeout: any;
-let dragRefTimeout: any;
+let goalTimeout: any;
+
+
+let dateFrom = new Date();
+dateFrom.setDate(1);
+const dateFromString = dateFrom.toISOString().split('T')[0];
+let dateTo = new Date();
+dateTo.setMonth(dateTo.getMonth() + 1);
+dateTo.setDate(0);
+const dateToString = dateTo.toISOString().split('T')[0];
+
 export default function ProjectScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
     const [loading, setLoading] = useState(false);
-    const [project, setProject] = useState({ kanban_projects: [], documents: [] });
+    const [project, setProject] = useState({ kanban_projects: [], documents: [], timesheets: [], files: [] });
     const [index, setIndex] = useState(0);
-    const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, delete: () => { } });
+    const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
     const menuRef = useRef(null);
+    const goalRef = useRef(null);
     const inputRef = useRef(null);
     const [settings, setSettings] = useState(false);
     const [count, setCount] = useState({});
@@ -52,14 +75,6 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
 
     let onRefresh = async () => {
         setLoading(true);
-
-        let dateFrom = new Date();
-        dateFrom.setDate(1);
-        let dateFromString = dateFrom.toISOString().split('T')[0];
-        let dateTo = new Date();
-        dateTo.setMonth(dateTo.getMonth() + 1);
-        dateTo.setDate(0);
-        let dateToString = dateTo.toISOString().split('T')[0];
 
         let data = await API.graphql(graphqlOperation(`{
         projects_by_pk(id: "${route.params.id}") {
@@ -133,7 +148,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
         }
         }`));
         setProject(data.data.projects_by_pk);
-        setCount({ timesheets: data.data.timesheets_aggregate.aggregate.count, kanban_projects: data.data.kanban_projects_aggregate.aggregate.count, documents: data.data.documents_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.timesheets_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0) });
+        setCount({ timesheets: data.data.timesheets_aggregate.aggregate.count, kanban_projects: data.data.kanban_projects_aggregate.aggregate.count, documents: data.data.documents_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.timesheets_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
         setLoading(false);
     }
 
@@ -274,23 +289,16 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                     {Platform.OS === 'web' && <TouchableOpacity onPress={() => { setSettings(!settings); }} ><Text style={{ fontSize: 30 }}>⚙️</Text></TouchableOpacity>}
                 </View>
                 {settings ?
-                    <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', marginBottom: 20 }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff' }}>key: </Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.key} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff', borderBottomColor: '#ffffff', borderBottomWidth: 1, width: 60 }, root.desktopWeb && { outlineWidth: 0 }]}
+                    <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: 10, width: root.desktopWeb ? 600 : '100%', alignSelf: 'center' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
+                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>key: </Text>
+                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.key} numberOfLines={2} style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 80 }}
                                 onChangeText={(value) => { setProject({ ...project, key: value }); }}
-                                onBlur={async () => {
-                                    await API.graphql(graphqlOperation(`
-                        mutation {
-                            update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {key: "${project.key}"}) {
-                                id
-                            }
-                        }`));
-                                }}
+                                onBlur={async () => { await API.graphql(graphqlOperation(`mutation {update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {key: "${project.key}"}) {id} }`)); }}
                             />
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', marginBottom: 20 }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff' }}>color: </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
+                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>color: </Text>
                             {Platform.OS === 'web' ?
                                 <input style={{ border: 'none' }} type="color" value={project.color} onChange={(e) => {
                                     let value = e.target.value;
@@ -306,7 +314,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                     }, 1000);
                                 }} />
                                 :
-                                <View style={{ width: 100, height: 35 }}>
+                                <View style={{ width: 100, height: 35, marginLeft: -5 }}>
                                     <WebView
                                         style={{ backgroundColor: 'transparent' }}
                                         ref={inputRef}
@@ -339,9 +347,9 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                 </View>
                             }
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', marginBottom: 20 }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff' }}>monthly goal: </Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={`${project.goal}`} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff', borderBottomColor: '#ffffff', borderBottomWidth: 1, width: 40 }, root.desktopWeb && { outlineWidth: 0 }]}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
+                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>goal:</Text>
+                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={`${project.goal}`} numberOfLines={2} style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 50 }}
                                 onChangeText={(value) => { setProject({ ...project, goal: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`
@@ -352,11 +360,11 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                         }`));
                                 }}
                             />
-                            <Text style={{ fontSize: 20, color: '#ffffff' }}> hours</Text>
+                            <Text style={{ fontSize: 20, color: '#ffffff', width: '40%', textAlign: 'left', marginLeft: 10 }}>hours per month</Text>
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', marginBottom: 20 }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff' }}>website: </Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.website} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff', borderBottomColor: '#ffffff', borderBottomWidth: 1, width: 300 }, root.desktopWeb && { outlineWidth: 0 }]}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
+                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>website: </Text>
+                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.website} numberOfLines={2} style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: '78%' }}
                                 onChangeText={(value) => { setProject({ ...project, website: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`
@@ -368,17 +376,61 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                 }}
                             />
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', marginBottom: 20 }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff' }}>public: </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
+                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>public: </Text>
                             <TouchableOpacity onPress={async () => {
                                 setProject({ ...project, public: !project.public });
-                                await API.graphql(graphqlOperation(`
-                            mutation {
-                                update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {public: ${!project.public ? 'true' : 'false'}}) {
-                                id
-                            }
-                        }`));
-                            }} style={{ borderWidth: 1, borderColor: '#ffffff', borderRadius: 2, height: 20, width: 20, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontWeight: 'bold' }}>{project.public && '✓'}</Text></TouchableOpacity>
+                                await API.graphql(graphqlOperation(`mutation {update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {public: ${project.public ? 'false' : 'true'}}) {id}}`));
+                            }} style={{ flexDirection: 'row' }}>
+                                <View style={{ borderWidth: 1, borderColor: '#ffffff', borderRadius: 5, height: 20, width: 20, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontWeight: 'bold' }}>{project.public ? '✓' : ''}</Text></View>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
+                            <Text onPress={async () => {
+                                const archiveFunction = async () => {
+                                    setLoading(true);
+                                    // await API.graphql(graphqlOperation(`mutation {delete_projects_by_pk(id: "${project.id}") {id}}`));
+                                    setLoading(false);
+                                    navigation.navigate('projects');
+                                }
+                                if (Platform.OS === 'ios') {
+                                    Alert.alert('Warning', 'Are you sure you want to archive this project?', [{ style: 'cancel', text: 'no' }, {
+                                        style: 'destructive', text: 'archive', onPress: archiveFunction
+                                    }])
+                                }
+                                else {
+                                    if (confirm('Are you sure you want to archive this project?')) {
+                                        await archiveFunction();
+                                    }
+                                }
+
+                            }} style={{ textAlign: 'center', color: '#ffffff' }}>
+                                archive project
+                            </Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
+                            <Text onPress={async () => {
+                                console.log('ahhh!');
+                                const deleteFunction = async () => {
+                                    setLoading(true);
+                                    await API.graphql(graphqlOperation(`mutation {delete_projects_by_pk(id: "${project.id}") {id}}`));
+                                    setLoading(false);
+                                    navigation.navigate('projects');
+                                }
+                                if (Platform.OS === 'ios') {
+                                    Alert.alert('Warning', 'Are you sure you want to delete this project?', [{ style: 'cancel', text: 'no' }, {
+                                        style: 'destructive', text: 'delete', onPress: deleteFunction
+                                    }])
+                                }
+                                else {
+                                    if (confirm('Are you sure you want to delete this project?')) {
+                                        await deleteFunction();
+                                    }
+                                }
+
+                            }} style={{ textAlign: 'center', color: '#ff0000' }}>
+                                delete project
+                            </Text>
                         </View>
                     </View>
                     :
@@ -390,15 +442,49 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                             selectedIndex={index}
                             onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex) }}
                         />
-                        <View style={{ width: '100%', height: window.height - (Platform.OS === 'web' ? 280 : 300) }}>
+                        <View style={{ width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 300) }}>
                             {(index === 0 && count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}
                             {(index === 0 && project.goal && root.desktopWeb) &&
-                                <View style={{ flexDirection: 'row', width: 320, alignSelf:'center', alignItems:'center', marginBottom: -15, marginRight: -40 }}>
-                                    <View style={{ flexDirection: 'row', width: 200, height: 15, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center' }}>
-                                        <View style={{ height: '100%', backgroundColor: project.color === '#000000' ? '#ffffff' : project.color, width: `${count.weeklyGoal}%`, borderRadius: 5 }} />
-                                    </View>
-                                    <Text style={{ alignSelf: 'center', marginLeft: 5 }}>{`${count.weeklyGoal}% of goal`}</Text>
-                                </View>
+                                <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
+                                    <MenuTrigger onPress={() => { goalRef.current.open(); }} onMouseEnter={(e) => { clearTimeout(goalTimeout); goalTimeout = setTimeout(() => { goalRef.current.open(); }, 750); }} onMouseLeave={(e) => { clearTimeout(goalTimeout) }} style={{ flexDirection: 'row', width: 320, alignSelf: 'center', alignItems: 'center', marginBottom: -15, marginRight: -40 }}>
+                                        <View style={{ flexDirection: 'row', width: 200, height: 15, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center' }}>
+                                            <View style={{ height: '100%', backgroundColor: project.color === '#000000' ? '#ffffff' : project.color, width: `${Math.min(count.weeklyGoal, 100)}%`, borderRadius: 3 }} />
+                                        </View>
+                                        <Text style={{ alignSelf: 'center', marginLeft: 5 }}>{`${count.weeklyGoal}% of goal`}</Text>
+                                    </MenuTrigger>
+                                    <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: 'transparent', width: 600, height: 300 }, optionsContainer: { backgroundColor: 'transparent' } }}>
+                                        <View style={{ backgroundColor: '#000000', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderColor: '#444444', borderWidth: 1, borderRadius: 10, borderStyle: 'solid', }}>
+                                            <Text>{`You worked ${count.weeklyGoalHours} out of ${project.goal} hours this month`}</Text>
+                                            <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%', height: 200 }}>
+                                                {/* {project.timesheets.map(obj => <View style={{ backgroundColor: project.color, height: `${(obj.hours/8) * 100}%`, width: 5 }} />)} */}
+                                                <PieChart
+                                                    chartConfig={{
+                                                        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`
+                                                    }}
+                                                    data={Object.entries(project.timesheets.filter(obj => obj.date >= dateFromString && obj.date <= dateToString).reduce((acc, obj) => {
+                                                        !acc ? acc = {} : null;
+                                                        !acc[obj.category] ? acc[obj.category] = 0 : null;
+                                                        acc[obj.category] += obj.hours;
+                                                        return acc;
+                                                    }
+                                                        , {})).map((obj, index) => {
+                                                            return ({
+                                                                name: obj[0],
+                                                                hours: obj[1],
+                                                                color: chartColors[index],
+                                                                legendFontColor: '#ffffff',
+                                                                legendFontFamily: 'arial'
+                                                            })
+                                                        })}
+                                                    width={400}
+                                                    height={200}
+                                                    accessor={"hours"}
+                                                    backgroundColor={"transparent"}
+                                                />
+                                            </View>
+                                        </View>
+                                    </MenuOptions>
+                                </Menu>
                             }
                             {(index === 0 && project.goal && !root.desktopWeb) && <Text style={{ alignSelf: 'center', marginBottom: -20, marginLeft: 5 }}>{`${count.weeklyGoal}%`}</Text>}
                             {(index === 3 && count.fileSize) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>storage used: {formatBytes(count.fileSize)}</Text>}
@@ -406,33 +492,46 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                 onPress={async () => { addAction(); }}
                             ><Text>{index === 0 ? 'add time entry' : index === 1 ? 'add kanban board' : index === 2 ? 'add project doc' : index === 3 ? 'upload a file' : ''} +</Text></TouchableOpacity>
                             {index === 0 &&
-                                <FlatList
-                                    style={[{ height: '100%' }, Platform.OS === 'web' && { borderColor: '#333333', borderWidth: 1, borderStyle: 'solid', borderRadius: 10, padding: Platform.OS === 'web' ? 10 : 0 }]}
-                                    numColumns={1}
+                                <CustomDraggableFlatList
                                     data={project.timesheets}
-                                    renderItem={({ item, index }) => {
-                                        let date = new Date(item.date);
-                                        date.setDate(date.getDate() + 1)
+                                    draggable={false}
+                                    renderItem={(item) => {
+                                        let date = new Date(item.item.date);
+                                        date.setDate(date.getDate() + 1);
                                         return (
-                                            <TouchableOpacity onPress={() => {
-                                                navigation.navigate('calendar', { screen: 'entry', params: { id: item.id } })
-                                            }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 5, borderRadius: 10, backgroundColor: '#161616' }}>
+                                            <>
                                                 <View style={{ width: '30%', flexDirection: 'column', justifyContent: 'flex-start' }}>
                                                     <Text style={{ fontSize: 14 }}>{`⏱️ ${date.toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
                                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                                         <View style={{ backgroundColor: '#444444', borderRadius: 10, paddingLeft: 7.5, paddingRight: 7.5, paddingTop: 2.5, paddingBottom: 2.5, marginTop: 5, marginLeft: root.desktopWeb ? 15 : 0 }}>
-                                                            <Text style={{ fontSize: 14 }}>{item.category ? item.category : ''}</Text>
+                                                            <Text style={{ fontSize: 14 }}>{item.item.category ? item.item.category : ''}</Text>
                                                         </View>
                                                         <View />
                                                     </View>
                                                 </View>
-                                                <Text style={{ fontSize: 14, width: '50%' }}>{`${item.details}`}</Text>
-                                                <Text style={{ fontSize: 14, width: '20%', textAlign: 'right' }}>{`${item.hours} hours`}</Text>
-                                            </TouchableOpacity>
-                                        )
+                                                <Text style={{ fontSize: 14, width: '50%' }}>{`${item.item.details}`}</Text>
+                                                <Text style={{ fontSize: 14, width: '20%', textAlign: 'right' }}>{`${item.item.hours} hours`}</Text>
+                                            </>
+                                        );
                                     }}
-                                    keyExtractor={item => item.id}
-                                    onEndReached={() => { }}
+                                    onPress={(item) => {
+                                        navigation.navigate('calendar', { screen: 'entry', params: { id: item.item.id } })
+                                    }}
+                                    onDelete={async (item) => {
+                                        const deleteFunction = async () => {
+                                            setLoading(true);
+                                            await API.graphql(graphqlOperation(`mutation {delete_timesheets_by_pk(id: "${item.item.id}") {id}}`));
+                                            await onRefresh();
+                                            setLoading(false);
+                                        }
+                                        if (Platform.OS !== 'web') {
+                                            Alert.alert('Warning', 'Are you sure you want to delete this time entry?',
+                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                        }
+                                        else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
+                                    }}
+                                    setContextPosition={setContextPosition}
+                                    menuRef={menuRef}
                                     ListEmptyComponent={
                                         <TouchableOpacity
                                             onPress={async () => { addAction(); }}
@@ -452,10 +551,44 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                         </>
                                     }
                                     onPress={async (item) => { navigation.navigate('board', { id: item.item.id }) }}
+                                    onRename={async (item) => {
+                                        const renameFunction = async (rename) => {
+                                            setLoading(true);
+                                            if (rename) {
+                                                await API.graphql(graphqlOperation(`mutation{update_kanban_projects_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {name: "${rename}"}) {id}}`));
+                                            }
+                                            await onRefresh();
+                                            setLoading(false);
+                                        }
+                                        if (Platform.OS !== 'web') {
+                                            Alert.prompt('Rename', '', async (text) => {
+                                                await renameFunction(text);
+                                            }, 'plain-text', item.item.name);
+                                        }
+                                        else {
+                                            let rename = prompt('Rename', item.item.name);
+                                            await renameFunction(rename);
+                                        }
+                                    }}
+                                    onDelete={async (item) => {
+                                        const deleteFunction = async () => {
+                                            setLoading(true);
+                                            await API.graphql(graphqlOperation(`mutation {delete_kanban_projects_by_pk(id: "${item.item.id}") {id}}`));
+                                            await onRefresh();
+                                            setLoading(false);
+                                        }
+                                        if (Platform.OS !== 'web') {
+                                            Alert.alert('Warning', 'Are you sure you want to delete this kanban board?',
+                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                        }
+                                        else if (confirm('Are you sure you want to delete this kanban board?')) { await deleteFunction() }
+                                    }}
+                                    setContextPosition={setContextPosition}
+                                    menuRef={menuRef}
                                     ListEmptyComponent={
                                         <TouchableOpacity
                                             onPress={async () => { addAction(); }}
-                                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, borderRadius: 10, backgroundColor: '#161616' }}>
+                                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: '#161616' }}>
                                             <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add a board +`}</Text>
                                         </TouchableOpacity>}
                                     onDragEnd={async ({ data }) => {
@@ -479,10 +612,44 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                     onPress={async (item) => {
                                         navigation.navigate('document', { id: item.item.id })
                                     }}
+                                    onRename={async (item) => {
+                                        const renameFunction = async (rename) => {
+                                            setLoading(true);
+                                            if (rename) {
+                                                await API.graphql(graphqlOperation(`mutation{update_documents_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${rename}"}) {id}}`));
+                                            }
+                                            await onRefresh();
+                                            setLoading(false);
+                                        }
+                                        if (Platform.OS !== 'web') {
+                                            Alert.prompt('Rename', '', async (text) => {
+                                                await renameFunction(text);
+                                            }, 'plain-text', item.item.title);
+                                        }
+                                        else {
+                                            let rename = prompt('Rename', item.item.title);
+                                            await renameFunction(rename);
+                                        }
+                                    }}
+                                    onDelete={async (item) => {
+                                        const deleteFunction = async () => {
+                                            setLoading(true);
+                                            await API.graphql(graphqlOperation(`mutation {delete_documents_by_pk(id: "${item.item.id}") {id}}`));
+                                            await onRefresh();
+                                            setLoading(false);
+                                        }
+                                        if (Platform.OS !== 'web') {
+                                            Alert.alert('Warning', 'Are you sure you want to delete this document?',
+                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                        }
+                                        else if (confirm('Are you sure you want to delete this document?')) { await deleteFunction() }
+                                    }}
+                                    setContextPosition={setContextPosition}
+                                    menuRef={menuRef}
                                     ListEmptyComponent={
                                         <TouchableOpacity
                                             onPress={async () => { addAction(); }}
-                                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, marginBottom: 10, borderRadius: 10, backgroundColor: '#161616' }}>
+                                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: '#161616' }}>
                                             <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add a document +`}</Text>
                                         </TouchableOpacity>}
                                     onDragEnd={async ({ data }) => {
@@ -508,10 +675,68 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                         let link = await Storage.get(`${project.id}/${item.item.name}`, { level: 'private', expires: 10 });
                                         await WebBrowser.openBrowserAsync(link.replace('https://pbot-prod-files.s3.us-east-2.amazonaws.com', 'https://files.productabot.com'));
                                     }}
+                                    onRename={async (item) => {
+                                        let rename = null;
+                                        let originalName = item.item.name;
+                                        let extension = '';
+                                        let nameSplit = item.item.name.split('.');
+                                        if (nameSplit.length > 0) {
+                                            originalName = nameSplit[0];
+                                            extension = '.' + nameSplit[1];
+                                        }
+
+                                        const renameFunction = async (rename) => {
+                                            setLoading(true);
+                                            if (rename) {
+                                                try {
+                                                    await Storage.copy({ key: `${project.id}/${item.item.name}`, level: 'private' }, { key: `${project.id}/${rename}${extension}`, level: 'private' });
+                                                    await Storage.remove(`${project.id}/${item.item.name}`, { level: 'private' });
+                                                    await API.graphql(graphqlOperation(`mutation{update_files_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {name: "${rename}${extension}"}) {id}}`));
+                                                }
+                                                catch (err) {
+                                                    console.log(err);
+                                                }
+                                            }
+                                            await onRefresh();
+                                            setLoading(false);
+                                        }
+
+                                        if (Platform.OS !== 'web') {
+                                            Alert.prompt('Rename', '', async (text) => {
+                                                await renameFunction(text);
+                                            }, 'plain-text', originalName);
+                                        }
+                                        else {
+                                            rename = prompt('Rename', originalName);
+                                            await renameFunction(rename);
+                                        }
+                                    }}
+                                    onDelete={async (item) => {
+                                        const deleteFunction = async () => {
+                                            setLoading(true);
+                                            try {
+                                                await Storage.remove(`${project.id}/${item.item.name}`, { level: 'private' });
+                                                await API.graphql(graphqlOperation(`mutation {delete_files_by_pk(id: "${item.item.id}") {id}}`));
+                                                await onRefresh();
+                                            }
+                                            catch (err) {
+                                                console.log(err);
+                                            }
+                                            setLoading(false);
+                                        }
+
+                                        if (Platform.OS !== 'web') {
+                                            Alert.alert('Warning', 'Are you sure you want to delete this file?',
+                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                        }
+                                        else if (confirm('Are you sure you want to delete this file?')) { await deleteFunction() }
+                                    }}
+                                    setContextPosition={setContextPosition}
+                                    menuRef={menuRef}
                                     ListEmptyComponent={
                                         <TouchableOpacity
                                             onPress={async () => { addAction(); }}
-                                            style={{ cursor: 'grab', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 5, borderRadius: 10, backgroundColor: '#161616' }}>
+                                            style={{ cursor: 'grab', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: '#161616' }}>
                                             <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`upload a file +`}</Text>
                                         </TouchableOpacity>}
                                     onDragEnd={async ({ data }) => {
@@ -528,16 +753,18 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
             <InputAccessoryViewComponent />
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
                 <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y, left: contextPosition.x } }} />
-                <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
+                <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#444444', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
                     <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                        <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={() => {
-                            Alert.prompt('hey');
-                        }} ><Text>Rename</Text></TouchableOpacity>
-                        <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
+                        {contextPosition.rename && <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
+                            menuRef.current.close();
+                            await contextPosition.rename();
+                            await onRefresh();
+                        }} ><Text>Rename</Text></TouchableOpacity>}
+                        {contextPosition.delete && <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
                             menuRef.current.close();
                             await contextPosition.delete();
                             await onRefresh();
-                        }}><Text>Delete</Text></TouchableOpacity>
+                        }}><Text>Delete</Text></TouchableOpacity>}
                         <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
                             onPress={() => { menuRef.current.close(); }}><Text>Cancel</Text></TouchableOpacity>
                     </View>

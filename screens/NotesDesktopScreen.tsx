@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { StyleSheet, TouchableOpacity, TextInput, RefreshControl, useWindowDimensions } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { API, graphqlOperation } from 'aws-amplify';
+import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
@@ -15,10 +15,28 @@ import sanitizeHtml from "sanitize-html";
 import CaretPositioning from './EditCaretPositioning'
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 import SplitPane, { Pane } from 'react-split-pane';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 let timeout: any;
 let timeout2: any;
 let caret = { start: 0, end: 0 };
+
+const sanitizedOptions = {
+    allowedTags: ["b", "i", "u", "a"],
+    disallowedTagsMode: 'discard',
+    allowedAttributes: {
+        a: ['href', 'name', 'target'],
+        img: ['src']
+    },
+    selfClosing: ['img', 'br', 'hr', 'area', 'base', 'basefont', 'input', 'link', 'meta'],
+    allowedSchemes: ['http', 'https', 'ftp', 'mailto', 'tel'],
+    allowedSchemesByTag: {},
+    allowedSchemesAppliedToAttributes: ['href', 'src', 'cite'],
+    allowProtocolRelative: true,
+    enforceHtmlBoundary: false
+}
 
 export default function NotesScreen({ route, navigation, refresh }: any) {
     const windowDimensions = useWindowDimensions();
@@ -31,7 +49,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     const [search, setSearch] = useState('');
     const inputRef = useRef(null);
     const [hidePane, setHidePane] = useState(false);
-    const [paneSize, setPaneSize] = useState(1000);
+    const [paneSize, setPaneSize] = useState(300);
 
     const [noteId, setNoteId] = useState('');
     const [noteContent, setNoteContent] = useState('');
@@ -179,8 +197,8 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
         <View style={styles.container}>
             <View style={{ height: 50 }} />
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: Math.min(windowDimensions.width, root.desktopWidth) + 2, height: windowDimensions.height - 49, maxWidth: Math.min(windowDimensions.width, root.desktopWidth) + 2 }}>
-                <SplitPane split="vertical" pane1Style={hidePane && { display: 'none' }} defaultSize={'26%'} resizerStyle={{ width: 4, backgroundColor: '#444444', cursor: 'col-resize' }} onResizerDoubleClick={(e) => { setHidePane(!hidePane) }} onChange={(size) => { setPaneSize(size) }} >
-                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: `100%`, borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', borderRightWidth: 0, borderTopLeftRadius: 10 }}>
+                <SplitPane split="vertical" pane1Style={hidePane && { display: 'none' }} defaultSize={paneSize} resizerStyle={{ width: 4, backgroundColor: '#444444', cursor: 'col-resize' }} onResizerDoubleClick={(e) => { setHidePane(!hidePane) }} onChange={(size) => { setPaneSize(size) }} >
+                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: `100%`, borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', borderRightWidth: 0, borderTopLeftRadius: windowDimensions.width < root.desktopWidth ? 0 : 10 }}>
                         <View style={{ height: 49, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
                             <TextInput spellCheck={false} placeholder="search" style={{ backgroundColor: '#000000', color: '#ffffff', borderColor: '#444444', borderWidth: 1, padding: 5, borderRadius: 5, width: '100%', outlineWidth: 0, marginLeft: 10 }}
                                 value={search || ''}
@@ -255,6 +273,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                                 renderItemStyle={{ marginLeft: 5, marginRight: 5, paddingLeft: 7.5, paddingRight: 7.5 }}
                                 noBorder={true}
                                 data={notes}
+                                onContextMenu={(item) => { alert('hey'); }}
                                 renderItem={(item) => {
                                     return (
                                         <View
@@ -272,7 +291,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                             />
                         </View>
                     </View>
-                    <View style={[{ width: `100%`, height: '100%', borderWidth: 1, borderColor: '#444444', borderLeftWidth: 0, borderTopRightRadius: 10 }]}>
+                    <View style={[{ width: `100%`, height: '100%', borderWidth: 1, borderColor: '#444444', borderLeftWidth: 0, borderTopRightRadius: windowDimensions.width < root.desktopWidth ? 0 : 10 }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                             <TextInput spellCheck={false}
                                 style={[{ width: '100%', height: 49, color: '#ffffff', padding: 10 }, root.desktopWeb && { outlineWidth: 0 }]}
@@ -283,18 +302,77 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                             />
                             <TouchableOpacity onPress={async () => { await API.graphql(graphqlOperation(`mutation {delete_notes_by_pk(id: "${noteId}") {id}}`)) }} style={{ width: 20 }}><Text>×</Text></TouchableOpacity>
                         </View>
-                        {/* <View style={{ borderTopWidth: 1, borderColor: '#444444', borderTopStyle: 'solid', color: '#ffffff', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', padding: 10, paddingBottom: 0 }}>
-                            <TouchableOpacity onPress={() => { inputRef.current.focus(); document.execCommand('bold', false, ''); }} style={{ backgroundColor: '#222222', width: 20, height: 20, borderRadius: 5 }}><Text style={{ textAlign: 'center' }}>B</Text></TouchableOpacity>
-                        </View> */}
+                        <View style={{ borderTopWidth: 1, borderColor: '#444444', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', padding: 5, paddingLeft: 10 }}>
+                            <TouchableOpacity onPress={() => {
+                                let timestamp = new Date().toLocaleTimeString('en-US', { hour12: true, hour: "numeric", minute: "numeric" });
+                                setNoteContent(inputRef.current.innerHTML + `<div><br/></div><div>${timestamp}</div><div><br/></div>`);
+                            }} style={{ backgroundColor: '#333333', width: 20, height: 20, borderRadius: 5 }}><Text style={{ textAlign: 'center' }}>🕐</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { document.execCommand('bold', false, ''); }} style={{ backgroundColor: '#333333', width: 20, height: 20, borderRadius: 5, marginLeft: 10 }}><Text style={{ textAlign: 'center', fontWeight: 'bold' }}>B</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { document.execCommand('italic', false, ''); }} style={{ backgroundColor: '#333333', width: 20, height: 20, borderRadius: 5, marginLeft: 10 }}><Text style={{ textAlign: 'center', fontStyle: 'italic' }}>I</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { document.execCommand('underline', false, ''); }} style={{ backgroundColor: '#333333', width: 20, height: 20, borderRadius: 5, marginLeft: 10 }}><Text style={{ textAlign: 'center', textDecorationLine: 'underline' }}>U</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { document.execCommand('strikeThrough', false, ''); }} style={{ backgroundColor: '#333333', width: 20, height: 20, borderRadius: 5, marginLeft: 10 }}><Text style={{ textAlign: 'center', textDecorationLine: 'line-through' }}>S</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { document.execCommand('insertUnorderedList', false, ''); }} style={{ backgroundColor: '#333333', width: 20, height: 20, borderRadius: 5, marginLeft: 10 }}><Text style={{ textAlign: 'center' }}>≔</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { document.execCommand('outdent', false, ''); }} style={{ backgroundColor: '#333333', width: 20, height: 20, borderRadius: 5, marginLeft: 10 }}><Text style={{ textAlign: 'center' }}>←</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { document.execCommand('indent', false, ''); }} style={{ backgroundColor: '#333333', width: 20, height: 20, borderRadius: 5, marginLeft: 10 }}><Text style={{ textAlign: 'center' }}>→</Text></TouchableOpacity>
+                        </View>
                         <ContentEditable
+                            onPaste={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                for (const item of e.clipboardData.items) {
+                                    if (item.type.indexOf("image") == -1) {
+                                        let sanitizedData = sanitizeHtml(e.clipboardData.getData('Text'), sanitizedOptions);
+                                        console.log(sanitizedData);
+                                        setNoteContent(inputRef.current.innerHTML + sanitizedData);
+                                    }
+                                    else {
+                                        setLoading(true);
+                                        try {
+                                            let url = URL.createObjectURL(item.getAsFile());
+                                            const getHeightAndWidthFromDataUrl = dataURL => new Promise(resolve => {
+                                                const img = new Image()
+                                                img.onload = () => {
+                                                    resolve({
+                                                        height: img.height,
+                                                        width: img.width
+                                                    })
+                                                }
+                                                img.src = dataURL
+                                            })
+                                            const dimensions = await getHeightAndWidthFromDataUrl(url);
+                                            let media = await ImageManipulator.manipulateAsync(url, [], { compress: 0, format: ImageManipulator.SaveFormat.JPEG });
+                                            let response = await fetch(media.uri);
+                                            let filename = `${uuidv4()}.jpg`;
+                                            await Storage.put(filename, (await response.blob()), { contentType: 'image/jpeg', level: 'public' });
+                                            setNoteContent(inputRef.current.innerHTML + `<div style="overflow: hidden;resize: both;height:${dimensions.height}px; width: ${dimensions.width}px"><img style="object-fit:contain;width:100%;height:100%;" src="https://files.productabot.com/public/${filename}"/></div>`);
+                                            setLoading(false);
+                                        }
+                                        catch (err) {
+                                            console.log(err);
+                                            setLoading(false);
+                                        }
+                                    }
+                                }
+                            }}
                             id="editable"
                             spellCheck={false}
                             innerRef={inputRef}
-                            html={noteContent || ''} // innerHTML of the editable div
-                            disabled={false}       // use true to disable editing
-                            style={{ width: 'calc(100% - 20px)', height: '100%', overflowY: 'scroll', color: '#ffffff', padding: 10, fontSize: 12, fontFamily: 'droid', outlineWidth: 0, borderTopWidth: 1, borderColor: '#444444', borderTopStyle: 'solid' }}
+                            html={noteContent || ''}
+                            disabled={false}
+                            style={{ width: (Math.min(windowDimensions.width, root.desktopWidth) - (hidePane ? 0 : paneSize)) - 23, height: '100%', overflowY: 'scroll', color: '#ffffff', padding: 10, fontSize: 12, fontFamily: 'droid', outlineWidth: 0 }}
                             onChange={async () => { }}
-                            onBlur={async () => { saveNoteContentImmediately(); clearTimeout(timeout); }}
+                            onBlur={async (e) => {
+                                if (e.nativeEvent.relatedTarget) {
+                                    if (e.nativeEvent.relatedTarget.style.height !== '20px' && e.nativeEvent.relatedTarget.style.width !== '20px') {
+                                        saveNoteContentImmediately();
+                                        clearTimeout(timeout);
+                                    }
+                                }
+                                else {
+                                    saveNoteContentImmediately();
+                                    clearTimeout(timeout);
+                                }
+                            }}
                             onClick={() => {
                                 try {
                                     caret = CaretPositioning.saveSelection(inputRef.current);
@@ -334,7 +412,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                                 else if (e.key === 'F1') {
                                     e.preventDefault();
                                     let timestamp = new Date().toLocaleTimeString('en-US', { hour12: true, hour: "numeric", minute: "numeric" });
-                                    setNoteContent(noteContent + `<div><br/></div><div>${timestamp}</div><div><br/></div>`);
+                                    setNoteContent(inputRef.current.innerHTML + `<div><br/></div><div>${timestamp}</div><div><br/></div>`);
                                 }
                                 else if (e.key === 's' && e.ctrlKey) {
                                     e.preventDefault();

@@ -26,6 +26,9 @@ export default {
               board: {
                 path: 'board'
               },
+              item: {
+                path: 'item'
+              },
               document: {
                 path: 'document'
               },

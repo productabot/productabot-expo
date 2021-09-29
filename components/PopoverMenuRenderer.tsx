@@ -205,7 +205,7 @@ export default class Popover extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            scaleAnim: new Animated.Value(0.1),
+            scaleAnim: new Animated.Value(1),
         };
     }
 

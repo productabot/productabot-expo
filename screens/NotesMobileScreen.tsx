@@ -7,9 +7,11 @@ import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import RNPickerSelect from 'react-native-picker-select';
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
+import { DrawerActions } from '@react-navigation/native';
 
 export default function NotesScreen({ route, navigation, refresh }: any) {
     const [loading2, setLoading] = useState(false);
+    const [refreshControl, setRefreshControl] = useState(false);
     const [tags, setTags] = useState([]);
     const [tag, setTag] = useState({});
     const [notes, setNotes] = useState([]);
@@ -18,16 +20,16 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
 
     useFocusEffect(
         React.useCallback(() => {
-            onRefresh(false);
+            onRefresh();
         }, [])
     );
 
     useEffect(() => {
-        onRefresh(false);
+        onRefresh();
     }, [refresh]);
 
-    let onRefresh = async (showLoader = true) => {
-        showLoader && setLoading(true);
+    let onRefresh = async (showRefreshControl = false) => {
+        showRefreshControl ? setRefreshControl(true) : setLoading(true);
 
         let tagsData = await API.graphql(graphqlOperation(`{
             tags(order_by: {order: asc}) {
@@ -59,8 +61,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
             }
           }`));
         setNotes(notesData.data.notes);
-        showLoader && setLoading(false);
-        setTimeout(() => { setLoading(false) }, 8);
+        showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
 
     useEffect(() => {
@@ -120,8 +121,9 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     return (
         <View style={styles.container}>
             <View style={{ padding: 10, paddingTop: 40, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Text></Text>
-
+                <TouchableOpacity onPress={() => { console.log('open drawer'); navigation.dispatch(DrawerActions.openDrawer()) }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <Text style={{ fontSize: 30 }}>☰</Text>
+                </TouchableOpacity>
                 <RNPickerSelect
                     placeholder={{}}
                     style={{
@@ -129,7 +131,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                     }}
                     value={tag.id}
                     onValueChange={(value) => setTag({ title: tags.filter(obj => obj.id === value).length > 0 ? tags.filter(obj => obj.id === value)[0].title : 'null', id: value })}
-                    items={tags.map(obj => { return ({ label: '📁 '+obj.title, value: obj.id }) })}
+                    items={tags.map(obj => { return ({ label: '📁 ' + obj.title, value: obj.id }) })}
                 />
                 <TouchableOpacity onPress={async () => {
                     let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -156,8 +158,8 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                 }}
                 refreshControl={
                     <RefreshControl
-                        refreshing={loading2}
-                        onRefresh={onRefresh}
+                        refreshing={refreshControl}
+                        onRefresh={() => { onRefresh(true) }}
                         colors={["#ffffff"]}
                         tintColor='#ffffff'
                         titleColor="#ffffff"

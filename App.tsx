@@ -28,12 +28,15 @@ Amplify.configure({
   API: {
     graphql_endpoint: Environment.endpoint,
     graphql_headers: async () => ({
-      Authorization: "Bearer " + (await Auth.currentSession()).idToken.jwtToken
+      Authorization: "Bearer " + (await Auth.currentSession()).getIdToken().getJwtToken()
     }),
     endpoints: [
       {
         name: "1",
-        endpoint: "https://lambda.productabot.com"
+        endpoint: "https://lambda.productabot.com",
+        custom_header: async () => ({
+          Authorization: (await Auth.currentSession()).getIdToken().getJwtToken(),
+        })
       }
     ]
   },

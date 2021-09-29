@@ -25,7 +25,7 @@ export default function useCachedResources() {
           if (update.isAvailable) {
             setTimeout(() => SplashScreen.hideAsync(), 100);
             await Updates.fetchUpdateAsync();
-            await Updates.reloadAsync();
+            setTimeout(async () => await Updates.reloadAsync(), 1000);
           } else {
             setLoadingComplete(true);
           }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, useWindowDimensions, FlatList, ActionSheetIOS } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, useWindowDimensions, FlatList, ActionSheetIOS, Pressable } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -8,6 +8,8 @@ import DraggableFlatList from 'react-native-draggable-flatlist';
 import { useFocusEffect } from '@react-navigation/native';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import * as Haptics from 'expo-haptics';
+import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
+import ContextMenuRenderer from '../components/ContextMenuRenderer';
 
 let mainDragRefTimeout: any;
 let dragRefTimeouts = [null, null, null, null, null, null, null, null];
@@ -21,6 +23,10 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
     const mainDragRef = useRef(null);
     const dragRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
     const [lik, setLik] = useState(`${0}`);
+    const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, delete: () => { } });
+    const menuRef = useRef(null);
+    const modalRef = useRef(null);
+    const [modal, setModal] = useState({});
     const updateLik = () => {
         setLik(`${lik + 1}`);
     }
@@ -45,12 +51,13 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
                   id
               }
               kanban_columns(order_by: {order: asc}) {
-                  id
+                id
                 name
                 kanban_items(order_by: {order: asc}) {
-                    id
+                  id
                   name
                   key
+                  hidden
                 }
               }
             }
@@ -67,7 +74,7 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
         if (kanban.kanban_columns.length > 0 && update) {
             let response = await API.graphql(graphqlOperation(`mutation {
             ${kanban.kanban_columns.map((column, columnIndex) => `column${columnIndex}: update_kanban_columns_by_pk(pk_columns: {id: "${column.id}"}, _set: {order: ${columnIndex}}) {id}
-                ${column.kanban_items.map((item, itemIndex) => `column${columnIndex}item${itemIndex}: update_kanban_items_by_pk(pk_columns: {id: "${item.id}"}, _set: {order: ${itemIndex}, name: "${item.name.replace(/[\r\n]/g, "\\n").replace(/"/g, `\\"`)}", kanban_column_id: "${column.id}"}) {id}`)}
+                ${column.kanban_items.map((item, itemIndex) => `column${columnIndex}item${itemIndex}: update_kanban_items_by_pk(pk_columns: {id: "${item.id}"}, _set: {order: ${itemIndex}, name: "${item.name.replace(/[\r\n]/g, "\\n").replace(/"/g, `\\"`)}", hidden: ${item.hidden ? 'true' : 'false'}, kanban_column_id: "${column.id}"}) {id}`)}
             `)}
             }`));
         }
@@ -193,23 +200,73 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
                                 </TouchableOpacity>
                             </View>
                             <DraggableFlatList
+                                dragFreely={true}
                                 onScroll={e => { touchX = false }}
                                 scrollEnabled={true}
                                 layoutInvalidationKey={lik}
-                                containerStyle={{ height: '100%', borderWidth: 1, borderColor: '#000000', borderStyle: 'solid' }}
+                                containerStyle={{ height: '100%' }}
                                 data={columnParams.item.kanban_items}
                                 ref={dragRefs[columnParams.index]}
                                 renderItem={(item) => {
                                     return (
-                                        <TouchableOpacity
-                                            onPressIn={() => { if (Platform.OS === 'web') { updateLik(); dragRefs[columnParams.index].current && dragRefs[columnParams.index].current.flushQueue(); clearTimeout(dragRefTimeouts[columnParams.index]); } }}
-                                            onPressOut={() => { if (Platform.OS === 'web') { dragRefs[columnParams.index].current && dragRefs[columnParams.index].current.flushQueue(); clearTimeout(dragRefTimeouts[columnParams.index]); dragRefTimeouts[columnParams.index] = setTimeout(() => { dragRefs[columnParams.index].current && dragRefs[columnParams.index].current.resetHoverState(); }, 750); } }}
+                                        <Pressable
+                                            onPress={async (e) => {
+                                                navigation.navigate('item', { id: item.item.id });
+                                                // setModal({ ...item.item, columnIndex: columnParams.index, itemIndex: item.index });
+                                                // modalRef.current.open();
+                                            }}
+                                            onContextMenu={async (e: any) => {
+                                                e.preventDefault();
+                                                setContextPosition({
+                                                    x: e.nativeEvent.pageX, y: e.nativeEvent.pageY,
+                                                    delete: async () => {
+                                                        await API.graphql(graphqlOperation(`mutation {delete_kanban_items_by_pk(id: "${item.item.id}") {id}}`));
+                                                        let newKanbanColumns = kanban.kanban_columns;
+                                                        newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1);
+                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                    }
+                                                });
+                                                setTimeout(() => { menuRef.current.open() }, 0);
+                                            }}
+                                            onPressIn={(e) => {
+                                                if (Platform.OS === 'web') { updateLik(); dragRefs[columnParams.index].current && dragRefs[columnParams.index].current.flushQueue(); clearTimeout(dragRefTimeouts[columnParams.index]); }
+                                                // setTimeout(() => {
+                                                //     dragRefs[columnParams.index].current.resetHoverState();
+                                                //     let newKanbanColumns = kanban.kanban_columns;
+                                                //     newKanbanColumns[columnParams.index + 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1)[0]);
+                                                //     setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                //     const key = `draggable-item-${item.item.id}`;
+                                                //     const cellRef = dragRefs[columnParams.index + 1].current.cellRefs.get(key);
+                                                //     // console.log(dragRefs[columnParams.index + 1].current.flatlistRef.current);
+                                                //     const hoverComponent = dragRefs[columnParams.index + 1].current.renderItem({ isActive: false, item: item.item, index: newKanbanColumns[columnParams.index + 1].kanban_items.length - 1 });
+                                                //     console.log(hoverComponent);
+                                                //     hoverComponent.drag();
+                                                //     // dragRefs[columnParams.index + 1].current.drag(hoverComponent, key);
+                                                // }, 500)
+                                            }}
+                                            onPressOut={(e) => {
+                                                if (Platform.OS === 'web') {
+                                                    dragRefs[columnParams.index].current && dragRefs[columnParams.index].current.flushQueue(); clearTimeout(dragRefTimeouts[columnParams.index]); dragRefTimeouts[columnParams.index] = setTimeout(() => { dragRefs[columnParams.index].current && dragRefs[columnParams.index].current.resetHoverState(); }, 750);
+                                                    if (columnParams.index < 3 && e.nativeEvent.locationX > (Platform.OS === 'web' ? (Math.min(window.width, root.desktopWidth) / 3) : window.width - 20)) {
+                                                        dragRefs[columnParams.index].current.resetHoverState();
+                                                        let newKanbanColumns = kanban.kanban_columns;
+                                                        newKanbanColumns[columnParams.index + 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1)[0]);
+                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                    }
+                                                    else if (columnParams.index > 0 && e.nativeEvent.locationX < (Platform.OS === 'web' ? 0 : 20)) {
+                                                        dragRefs[columnParams.index].current.resetHoverState();
+                                                        let newKanbanColumns = kanban.kanban_columns;
+                                                        newKanbanColumns[columnParams.index - 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1)[0]);
+                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                    }
+                                                }
+                                            }}
                                             disabled={item.isActive}
                                             delayLongPress={100}
                                             onLongPress={item.drag}
                                             style={{
                                                 margin: 5,
-                                                height: 100,
+                                                height: 'auto',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
                                                 justifyContent: 'flex-start',
@@ -220,55 +277,40 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
                                                 borderRadius: 10,
                                                 cursor: 'grab',
                                             }}>
-                                            <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between', height: 22, paddingLeft: 5, paddingRight: 5 }}>
+                                            <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 5, paddingRight: 5 }}>
                                                 {columnParams.index !== 0 ?
                                                     <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={() => {
                                                         let newKanbanColumns = kanban.kanban_columns;
                                                         newKanbanColumns[columnParams.index - 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1)[0]);
                                                         setKanban({ ...kanban, kanban_columns: newKanbanColumns });
                                                     }}><Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{`←`}</Text></TouchableOpacity> :
-                                                    <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={async () => {
-                                                        await API.graphql(graphqlOperation(`mutation {delete_kanban_items_by_pk(id: "${item.item.id}") {id}}`));
-                                                        let newKanbanColumns = kanban.kanban_columns;
-                                                        newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1);
-                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
-                                                    }}><Text>×</Text></TouchableOpacity>
+                                                    <View />
                                                 }
-                                                <Text style={{ fontSize: 10, marginRight: 10 }}>{kanban.project.key}-{kanban.name}-{item.item.key}</Text>
+                                                <TouchableOpacity onPress={() => {
+                                                    let newKanbanColumns = kanban.kanban_columns;
+                                                    newKanbanColumns[columnParams.index].kanban_items[item.index].hidden = !newKanbanColumns[columnParams.index].kanban_items[item.index].hidden;
+                                                    setUpdate(true);
+                                                    setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                                }} style={{ backgroundColor: '#444444', padding: 5, marginRight: 10, borderRadius: 5 }}>
+                                                    <Text style={{ fontSize: 10, textAlign: 'center' }}>{kanban.project.key}-{kanban.name}-{item.item.key} {item.item.hidden ? '[+]' : '[-]'}</Text>
+                                                </TouchableOpacity>
                                                 {columnParams.index !== kanban.kanban_columns.length - 1 ?
                                                     <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={() => {
                                                         let newKanbanColumns = kanban.kanban_columns;
                                                         newKanbanColumns[columnParams.index + 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1)[0]);
                                                         setKanban({ ...kanban, kanban_columns: newKanbanColumns });
                                                     }}><Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{`→`}</Text></TouchableOpacity> :
-                                                    <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={async () => {
-                                                        await API.graphql(graphqlOperation(`mutation {delete_kanban_items_by_pk(id: "${item.item.id}") {id}}`));
-                                                        let newKanbanColumns = kanban.kanban_columns;
-                                                        newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1);
-                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
-                                                    }}><Text>×</Text></TouchableOpacity>
+                                                    <View />
                                                 }
                                             </View>
-                                            <TextInput spellCheck={false} multiline={true} textAlignVertical={'top'} style={[{ color: '#ffffff', fontSize: 18, width: '100%', padding: 5, height: 75 }, root.desktopWeb && { outlineWidth: 0, height: '100%', fontSize: 12, cursor: 'grab' }]} value={item.item.name}
-                                                inputAccessoryViewID='main'
-                                                onChangeText={(value) => {
-                                                    let newKanbanColumns = kanban.kanban_columns;
-                                                    newKanbanColumns[columnParams.index].kanban_items[item.index].name = value;
-                                                    setUpdate(false);
-                                                    setKanban({ ...kanban, kanban_columns: newKanbanColumns });
-                                                }}
-                                                onBlur={async () => {
-                                                    setUpdate(true);
-                                                    setKanban({ ...kanban });
-                                                }}
-                                            />
-                                        </TouchableOpacity>
+                                            {!item.item.hidden && <Text style={[{ color: '#ffffff', fontSize: 14, width: '100%', padding: 5 }]}>{item.item.name}</Text>}
+                                        </Pressable>
                                     )
                                 }}
                                 keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
                                 activationDistance={0}
                                 dragItemOverflow={true}
-                                onDragBegin={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
+                                onDragBegin={(e) => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); touchX = false; }}
                                 onTouchEnd={(e) => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                                 onDragEnd={({ data }) => {
                                     let newKanbanColumns = kanban.kanban_columns;
@@ -292,6 +334,48 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
             />
             {loading && <LoadingComponent />}
             <InputAccessoryViewComponent />
+            <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
+                <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y, left: contextPosition.x } }} />
+                <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#444444', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
+                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                        {contextPosition.rename && <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
+                            menuRef.current.close();
+                            await contextPosition.rename();
+                            await onRefresh();
+                        }} ><Text>Rename</Text></TouchableOpacity>}
+                        {contextPosition.delete && <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
+                            menuRef.current.close();
+                            await contextPosition.delete();
+                            await onRefresh();
+                        }}><Text>Delete</Text></TouchableOpacity>}
+                        <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
+                            onPress={() => { menuRef.current.close(); }}><Text>Cancel</Text></TouchableOpacity>
+                    </View>
+                </MenuOptions>
+            </Menu>
+            <Menu style={{ position: 'absolute', top: Platform.OS === 'web' ? 'calc(20% - 75px)' : '20%', left: Platform.OS === 'web' ? '25%' : '5%' }} ref={modalRef} renderer={ContextMenuRenderer}>
+                <MenuTrigger customStyles={{ triggerOuterWrapper: { top: 0, left: 0 } }} />
+                <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: 'transparent', width: '100%', height: '100%' }, optionsContainer: { width: Platform.OS === 'web' ? '50%' : '90%', height: Platform.OS === 'web' ? '60%' : '60%' } }}>
+                    {modal.key &&
+                        <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#000000', borderColor: '#444444', borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }}>
+                            <Text>{kanban.project.key} • {kanban.name} #{modal.key}</Text>
+                            <TextInput spellCheck={false} multiline={true} textAlignVertical={'top'} style={[{ color: '#ffffff', fontSize: 14, width: '100%', padding: 5, height: '100%' }]} value={kanban.kanban_columns[modal.columnIndex].kanban_items[modal.itemIndex].name}
+                                inputAccessoryViewID='main'
+                                onChangeText={(value) => {
+                                    let newKanbanColumns = kanban.kanban_columns;
+                                    newKanbanColumns[modal.columnIndex].kanban_items[modal.itemIndex].name = value;
+                                    setUpdate(false);
+                                    setKanban({ ...kanban, kanban_columns: newKanbanColumns });
+                                }}
+                                onBlur={async () => {
+                                    setUpdate(true);
+                                    setKanban({ ...kanban });
+                                }}
+                            />
+                        </View>
+                    }
+                </MenuOptions>
+            </Menu>
         </KeyboardAvoidingView >
     );
 }

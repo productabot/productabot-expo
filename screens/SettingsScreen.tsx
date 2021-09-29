@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, View } from '../components/Themed';
 import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
-import { TouchableOpacity, SafeAreaView, useWindowDimensions, Image, TextInput, StyleSheet, Alert, ScrollView, RefreshControl, Platform, KeyboardAvoidingView } from 'react-native';
+import { TouchableOpacity, SafeAreaView, useWindowDimensions, Image, TextInput, StyleSheet, Alert, ScrollView, RefreshControl, Platform, KeyboardAvoidingView, FlatList } from 'react-native';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import 'react-native-get-random-values';
@@ -10,6 +10,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import * as WebBrowser from 'expo-web-browser';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import * as AuthSession from 'expo-auth-session';
 function formatBytes(bytes: number, decimals = 2) {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -25,6 +27,8 @@ export default function SettingsScreen({ navigation }: any) {
     const [oldUser, setOldUser] = useState({});
     const [user, setUser] = useState({});
     const [size, setSize] = useState(0);
+    const [index, setIndex] = useState(0);
+    const [github, setGithub] = useState([]);
 
     React.useEffect(() => {
         reload();
@@ -34,7 +38,7 @@ export default function SettingsScreen({ navigation }: any) {
         setLoading(true);
         let user = await Auth.currentSession();
         let data = await API.graphql(graphqlOperation(`{
-            users{id created_at email username image first_name last_name plan phone}
+            users{id created_at email username image first_name last_name plan phone github}
             files_aggregate(where: {user_id: {_eq: "${user.getIdToken().payload.sub}"}}) {
                 aggregate {
                   sum {
@@ -49,6 +53,25 @@ export default function SettingsScreen({ navigation }: any) {
         setSize(data.data.files_aggregate.aggregate.sum.size);
         setLoading(false);
     }
+
+    React.useEffect(() => {
+        const async = async () => {
+            if (index === 2 && user.github && github.length === 0) {
+                try {
+                    setLoading(true);
+                    let data = await API.get('1', '/auth/github', {});
+                    console.log(data);
+                    setGithub(data);
+                    setLoading(false);
+                }
+                catch (err) {
+                    setLoading(false);
+                    console.log(err);
+                }
+            }
+        }
+        async();
+    }, [index])
 
 
     const pickImage = async () => {
@@ -89,6 +112,10 @@ export default function SettingsScreen({ navigation }: any) {
         await Auth.signOut();
         setLoading(false);
         navigation.navigate('auth');
+    }
+
+    const cancelChanges = async () => {
+        setUser(oldUser);
     }
 
     const saveChanges = async () => {
@@ -139,7 +166,7 @@ export default function SettingsScreen({ navigation }: any) {
                         titleColor="#ffffff"
                         title=""
                     />}
-                    style={{ maxWidth: Math.min(windowDimensions.width, root.desktopWidth), width: root.desktopWeb ? 600 : '100%', padding: 10, height: '100%' }}>
+                    style={{ maxWidth: Math.min(windowDimensions.width, root.desktopWidth), width: root.desktopWeb ? 600 : windowDimensions.width, padding: 10, height: '100%' }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%' }}>
                         <TouchableOpacity onPress={() => { pickImage(); }}>
                             <Image
@@ -148,75 +175,157 @@ export default function SettingsScreen({ navigation }: any) {
                             />
                         </TouchableOpacity>
                         <View style={{ flexDirection: 'column' }}>
-                            <Text style={{ fontSize: 30 }}>{user.username}</Text>
+                            <Text style={{ fontSize: 30 }}>{oldUser.username}</Text>
                             <Text style={{ fontSize: 15 }}>{user.created_at ? `productive since ${new Date(user.created_at).toLocaleDateString()}` : ``}</Text>
-                            <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${user.plan === 'free' ? `100 MB` : `5 TB`} used`}</Text>
+                            <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${oldUser.plan === 'free' ? `100 MB` : `1,000 GB`} used`}</Text>
                         </View>
+                        <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
+                            <TouchableOpacity onPress={logout}><Text style={{ textAlign: 'center' }}>log out →</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { navigation.navigate('test') }}><Text style={{ textAlign: 'center' }}>{root.desktopWeb ? `need help? talk to us` : `help`}</Text></TouchableOpacity>
+                        </View>
+
                     </View>
 
+                    <SegmentedControl
+                        appearance='dark'
+                        style={{ marginTop: 10 }}
+                        values={[`account`, `cards/invoices`, `integrations`]}
+                        selectedIndex={index}
+                        onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex) }}
+                    />
+                    <View style={{ flexDirection: 'column', width: '100%' }}>
+                        {index == 0 &&
+                            <>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                    <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'free' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'free' ? '#3F0054' : '#000000' }}>
+                                        <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
+                                            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>free</Text>
+                                            <Text style={{ fontSize: 20 }}>$0 per month</Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
+                                            <Text>• 0.1 GB storage</Text>
+                                            <Text>• 3 projects</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'paid' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'paid' ? '#3F0054' : '#000000' }}>
+                                        <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
+                                            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>✦ premium</Text>
+                                            <Text style={{ fontSize: 20 }}>$4 per month</Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
+                                            <Text>• 1,000 GB storage</Text>
+                                            <Text>• unlimited projects</Text>
+                                            <Text>• website & blog</Text>
+                                            <Text>• api integrations</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
 
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                        <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'free' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'free' ? '#3F0054' : '#000000' }}>
-                            <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
-                                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Free Plan</Text>
-                                <Text style={{ fontSize: 20 }}>$0 per month</Text>
-                            </View>
-                            <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                <Text>• 100 MB storage</Text>
-                                <Text>• 5 projects</Text>
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'paid' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'paid' ? '#3F0054' : '#000000' }}>
-                            <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
-                                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Paid Plan</Text>
-                                <Text style={{ fontSize: 20 }}>$5 per month</Text>
-                            </View>
-                            <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                <Text>• 2 TB storage</Text>
-                                <Text>• Unlimited projects</Text>
-                                <Text>• Website & blog</Text>
-                                <Text>• API integrations</Text>
-                            </View>
-                        </TouchableOpacity>
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>website </Text>
+                                    <Text onPress={async () => {
+                                        root.desktopWeb ? window.open(`https://${user.username}.pbot.it`) :
+                                            await WebBrowser.openBrowserAsync(`https://${user.username}.pbot.it`);
+                                    }} style={[styles.textInput, { borderWidth: 0, width: '78%', textDecorationLine: 'underline' }]}>
+                                        {user.username ? `${user.username}.productabot.com →\n${user.username}.pbot.it →` : ``}
+                                    </Text>
+                                </View>
+
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>username</Text>
+                                    <TextInput inputAccessoryViewID='main' value={user.username} onChangeText={(value) => { setUser({ ...user, username: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                                </View>
+
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>email</Text>
+                                    <TextInput inputAccessoryViewID='main' value={user.email} onChangeText={(value) => { setUser({ ...user, email: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                                </View>
+
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>phone</Text>
+                                    <TextInput keyboardType='phone-pad' inputAccessoryViewID='main' value={`${user.phone}`} onChangeText={(value) => { setUser({ ...user, phone: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                                </View>
+
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>first name</Text>
+                                    <TextInput inputAccessoryViewID='main' value={user.first_name} onChangeText={(value) => { setUser({ ...user, first_name: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                                </View>
+
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>last name</Text>
+                                    <TextInput inputAccessoryViewID='main' value={user.last_name} onChangeText={(value) => { setUser({ ...user, last_name: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                                </View>
+
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>password</Text>
+                                    <Text onPress={async () => { }} style={[styles.textInput, { borderWidth: 0, width: '78%', textDecorationLine: 'underline' }]}>
+                                        {`change password →`}
+                                    </Text>
+                                </View>
+                                {(!user.username || user !== oldUser) &&
+                                    <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
+                                        <TouchableOpacity onPress={cancelChanges} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>
+                                        <TouchableOpacity onPress={saveChanges} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ textAlign: 'center' }}>save changes</Text></TouchableOpacity>
+                                    </View>}
+                            </>}
+                        {index == 1 &&
+                            <View style={{ padding: 10 }}>
+                                <Text style={{ width: '100%', marginBottom: 5 }}>cards</Text>
+                                <FlatList style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 20 }} data={[]} renderItem={(item) => <View></View>} />
+                                <Text style={{ width: '100%', marginBottom: 5 }}>invoices</Text>
+                                <FlatList style={{ width: '100%', height: 300, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 5 }} data={[]} renderItem={(item) => <View></View>} />
+                            </View>}
+                        {index == 2 &&
+                            <View style={{ padding: 10 }}>
+                                {user.github ?
+                                    <>
+                                        <TouchableOpacity onPress={async () => {
+                                            Alert.alert('Warning', `Are you sure you want to disconnect GitHub?`,
+                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: () => console.log("yes") }])
+                                        }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 140, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: '#000000', marginBottom: 10 }}>
+                                            <Image style={{ height: 80, width: 80 }} source={require('../assets/images/github.png')} />
+                                            <View style={{ flexDirection: 'column', width: '70%', alignItems: 'flex-start' }}>
+                                                <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
+                                                    <Text style={{ fontSize: 20, fontWeight: 'bold' }}>disconnect from github</Text>
+                                                </View>
+                                                <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
+                                                    <Text>• unlink repositories</Text>
+                                                    <Text>• stop automating time entries with new commits</Text>
+                                                </View>
+                                            </View>
+                                        </TouchableOpacity>
+                                        {/* <Text>{JSON.stringify(github)}</Text> */}
+                                        <FlatList style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 20 }} data={github} renderItem={(item) => <Text style={{ color: '#ffffff', padding: 10 }}>{item.item}</Text>} />
+                                    </>
+                                    :
+                                    <TouchableOpacity onPress={async () => {
+                                        let user = await Auth.currentSession();
+                                        await WebBrowser.openBrowserAsync(`https://github.com/login/oauth/authorize?client_id=ddf157abfeef6dade7b6&scope=repo&redirect_uri=https://lambda.productabot.com/github_callback?sub=${user.getIdToken().payload.sub}`);
+                                    }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 140, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: '#000000', marginBottom: 10 }}>
+                                        <Image style={{ height: 80, width: 80 }} source={require('../assets/images/github.png')} />
+                                        <View style={{ flexDirection: 'column', width: '70%', alignItems: 'flex-start' }}>
+                                            <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
+                                                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>connect to github</Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
+                                                <Text>• link repositories</Text>
+                                                <Text>• automate time entries with new commits</Text>
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+                                }
+                                {/* <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'paid' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: '#000000' }}>
+                                    <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
+                                        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>connect with google</Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
+                                        <Text>• sync files to google drive</Text>
+                                        <Text>• sync entries to google calendar</Text>
+                                        <Text>• sync docs to google docs</Text>
+                                    </View>
+                                </TouchableOpacity> */}
+                            </View>}
                     </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                        <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>website </Text>
-                        <Text onPress={async () => {
-                            root.desktopWeb ? window.open(`https://${user.username}.pbot.it`) :
-                                await WebBrowser.openBrowserAsync(`https://${user.username}.pbot.it`);
-                        }} inputAccessoryViewID='main' value={user.username} onChangeText={(value) => { setUser({ ...user, username: value }) }} style={[styles.textInput, { borderWidth: 0, width: '78%', textDecorationLine: 'underline' }]}>
-                            {user.username ? `${user.username}.productabot.com →\n${user.username}.pbot.it →` : ``}
-                        </Text>
-                    </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                        <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>username</Text>
-                        <TextInput inputAccessoryViewID='main' value={user.username} onChangeText={(value) => { setUser({ ...user, username: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                    </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                        <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>email</Text>
-                        <TextInput inputAccessoryViewID='main' value={user.email} onChangeText={(value) => { setUser({ ...user, email: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                    </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                        <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>phone</Text>
-                        <TextInput keyboardType='phone-pad' inputAccessoryViewID='main' value={`${user.phone}`} onChangeText={(value) => { setUser({ ...user, phone: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                    </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                        <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>first name</Text>
-                        <TextInput inputAccessoryViewID='main' value={user.first_name} onChangeText={(value) => { setUser({ ...user, first_name: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                    </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                        <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>last name</Text>
-                        <TextInput inputAccessoryViewID='main' value={user.last_name} onChangeText={(value) => { setUser({ ...user, last_name: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                    </View>
-
-                    <TouchableOpacity onPress={saveChanges} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', alignSelf: 'center', marginTop: 10 }}><Text style={{ textAlign: 'center' }}>save changes</Text></TouchableOpacity>
-                    <TouchableOpacity onPress={logout} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#000000', alignSelf: 'center', marginTop: 10 }}><Text style={{ textAlign: 'center' }}>log out</Text></TouchableOpacity>
                 </ScrollView>
             </KeyboardAvoidingView>
             {loading && <LoadingComponent />}

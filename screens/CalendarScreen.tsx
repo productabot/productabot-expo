@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View } from '../components/Themed';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import { RefreshControl, ScrollView, TouchableOpacity, Alert, useWindowDimensions, SafeAreaView } from 'react-native';
+import { RefreshControl, ScrollView, TouchableOpacity, Image, useWindowDimensions, SafeAreaView, Platform } from 'react-native';
 import * as root from '../Root';
 import { API, graphqlOperation } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
@@ -9,10 +9,10 @@ import { LoadingComponent } from '../components/LoadingComponent';
 import Popover from '../components/PopoverMenuRenderer';
 
 LocaleConfig.locales['en'] = {
-    monthNames: ['January', 'Februrary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    monthNamesShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'],
-    dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday', 'Sunday'],
-    dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    monthNames: ['january', 'februrary', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'],
+    monthNamesShort: ['jan', 'feb', 'mar', 'apr', 'may', 'june', 'july', 'aug', 'sept', 'oct', 'nov', 'dec'],
+    dayNames: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'saturday', 'sunday'],
+    dayNamesShort: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 };
 LocaleConfig.defaultLocale = 'en';
 
@@ -21,6 +21,7 @@ import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 export default function CalendarScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
     const [loading, setLoading] = useState(false);
+    const [refreshControl, setRefreshControl] = useState(false);
     const [timesheets, setTimesheets] = useState([]);
     const [month, setMonth] = useState(new Date().toLocaleDateString('fr-CA'));
 
@@ -31,8 +32,8 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
         }, [refresh, month])
     );
 
-    let onRefresh = async (showLoader = false) => {
-        showLoader && setLoading(true);
+    let onRefresh = async (showRefreshControl = false) => {
+        showRefreshControl ? setRefreshControl(true) : setLoading(true);
 
         let lastMonth = new Date(month);
         lastMonth.setMonth(lastMonth.getMonth() - 1);
@@ -42,9 +43,11 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
         {
             timesheets(order_by: {date: asc, project: {name: asc}, hours: desc}, where: {date: {_gte: "${lastMonth.toLocaleDateString('fr-CA').substr(0, 7)}-23", _lt: "${nextMonth.toLocaleDateString('fr-CA').substr(0, 7)}-07"}}) {
               project {
+                id
                 name
                 key
                 color
+                image
               }
               hours
               category
@@ -55,17 +58,17 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
         }          
         `));
         setTimesheets(data.data.timesheets);
-        showLoader && setLoading(false);
+        showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: root.desktopWeb ? 30 : 0, backgroundColor: '#000000' }}>
+        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: root.desktopWeb ? 30 : 0, backgroundColor: '#000000', marginTop: root.desktopWeb?0:-10 }}>
             <ScrollView
-                style={{ maxWidth: Math.min(root.desktopWidth, window.width), height: '100%', padding: 10 }}
+                style={{ maxWidth: Math.min(root.desktopWidth, window.width), height: window.height - 20, padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl
-                        refreshing={loading}
+                        refreshing={refreshControl}
                         onRefresh={() => onRefresh(true)}
                         colors={["#ffffff"]}
                         tintColor='#ffffff'
@@ -75,7 +78,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
             >
                 <Calendar
                     enableSwipeMonths={!root.desktopWeb}
-                    style={{ width: (Math.min(root.desktopWidth, window.width) - (root.desktopWeb ? 12 : 0)), borderRadius: 10 }}
+                    style={{ width: (Math.min(root.desktopWidth, window.width) - (root.desktopWeb ? 12 : 0)) }}
                     current={month}
                     theme={{
                         backgroundColor: '#ffffff00',
@@ -107,7 +110,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                     dayComponent={({ date, state }) => {
                         return (
                             <ScrollView style={[
-                                { borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', marginBottom: -15, marginLeft: 0 },
+                                { borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0 },
                                 root.desktopWeb ? { width: (Math.min(root.desktopWidth, window.width) - (root.desktopWeb ? 12 : 0)) / 7, height: 130 } :
                                     { width: window.width / 7, height: 100 }
                             ]}>
@@ -126,26 +129,42 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                                             </View>
                                         </MenuTrigger>
                                         <MenuOptions customStyles={{
-                                            optionsWrapper: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 200 }
+                                            optionsWrapper: { backgroundColor: 'transparent', width: 250 },
+                                            optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
                                         }}>
-                                            <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
-                                                <Text style={{ margin: 5 }}>{obj.project.name}{obj.category ? ' - ' + obj.category : ''} - {obj.hours} hrs</Text>
-                                                <Text style={{ margin: 5 }}>{obj.details}</Text>
-                                            </ScrollView>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                                                <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }} onPress={async () => {
-                                                    await API.graphql(graphqlOperation(`
+                                            <View style={{ backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 250, borderRadius: 10 }}>
+                                                <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
+                                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
+                                                        <TouchableOpacity onPress={() => { navigation.navigate('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                                            <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: '#ffffff', borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
+                                                            <View style={{ flexDirection: 'column', marginLeft: 5 }}>
+                                                                <Text numberOfLines={1} style={{ marginLeft: 3 }}>{obj.project.name}</Text>
+                                                                <View style={{ flexDirection: 'row' }}>
+                                                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
+                                                                        <Text numberOfLines={1} style={{ fontSize: 12 }}>{obj.category}</Text>
+                                                                    </View>
+                                                                </View>
+                                                            </View>
+                                                        </TouchableOpacity>
+                                                        <Text numberOfLines={1} style={{ fontSize: 30, fontWeight: 'bold' }}>{obj.hours}<Text numberOfLines={1} style={{ fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
+                                                    </View>
+                                                    <Text style={{ margin: 5 }}>{obj.details}</Text>
+                                                </ScrollView>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                                    <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
+                                                        await API.graphql(graphqlOperation(`
                                                                 mutation {
                                                                     delete_timesheets_by_pk(id: "${obj.id}") {
                                                                         id
                                                                     }
                                                                 }
                                                                 `));
-                                                    onRefresh();
-                                                }}><Text>Delete</Text></TouchableOpacity>
-                                                <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }} onPress={() => {
-                                                    onRefresh(); navigation.navigate('entry', { id: obj.id, date: undefined })
-                                                }} ><Text>Edit</Text></TouchableOpacity>
+                                                        onRefresh();
+                                                    }}><Text>Delete</Text></TouchableOpacity>
+                                                    <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
+                                                        onRefresh(); navigation.navigate('entry', { id: obj.id, date: undefined })
+                                                    }} ><Text>Edit</Text></TouchableOpacity>
+                                                </View>
                                             </View>
                                         </MenuOptions>
                                     </Menu>
@@ -154,8 +173,8 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                         );
                     }}
                 />
+                {loading && <LoadingComponent />}
             </ScrollView>
-            {loading && <LoadingComponent />}
         </SafeAreaView>
     );
 }

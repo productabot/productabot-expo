@@ -38,11 +38,12 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
 
     const firstLoad = () => {
         let noteExists = note.content ? true : false;
-        setTimeout(() => {
+        timeout = setTimeout(() => {
             if (noteExists) {
                 firstLoad();
             }
             else {
+                clearTimeout(timeout);
                 inputRef.current.injectJavaScript(`(function() {
                     document.querySelector('#editor').focus();
                     document.execCommand('selectAll', false, null);
@@ -80,7 +81,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         if (content) {
             setNote({ ...note, content: `${note.content}<p></p>${content}<br/><br/>` });
             inputRef.current.injectJavaScript(`(function() {
-                document.querySelector('#editor').innerHTML +=  \`<p></p>${content}<br/><br/>\`;
+                document.querySelector('#editor').innerHTML +=  \`<div><br/></div><div>${content}</div><div><br/></div>\`;
                 document.execCommand('selectAll', false, null);
                 document.getSelection().collapseToEnd();
             })();`);
@@ -111,12 +112,8 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
             inputRef.current.injectJavaScript(`(function() {
                     document.execCommand('selectAll', false, null);
                     document.getSelection().collapseToEnd();
+                    setTimeout(()=>{document.querySelector('#editor').scrollIntoView({ behavior: "smooth", block: "end" });},50);
                 })();`);
-            setTimeout(() => {
-                inputRef.current.injectJavaScript(`(function() {
-                    document.querySelector('#editor').scrollIntoView({ behavior: "smooth", block: "end" });
-                })();`);
-            }, 50);
         }
     }, [keyboardOpen]);
 
@@ -163,7 +160,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                 style={{ width: '100%', height: window.height - 160 }}
             >
                 <WebView
-                    style={{ backgroundColor: 'transparent' }}
+                    style={{ backgroundColor: 'transparent', flex: 0, height: '100%' }}
                     ref={inputRef}
                     hideKeyboardAccessoryView={true}
                     inputAccessoryViewID='main'
@@ -177,7 +174,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                                 ${DroidWebViewStyle}
                                 </style>
                                 </head>
-                                <body style="background-color:#000000;">
+                                <body>
                                 <div id="editor" contenteditable="true" style="outline:none;font-family:droid;color:#ffffff;font-size:12;"/>
                                 </body>
                             `}}
@@ -186,7 +183,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                     scalesPageToFit={false}
                     scrollEnabled={true}
                     javaScriptEnabled={true}
-                    automaticallyAdjustContentInsets={false}
+                    automaticallyAdjustContentInsets={true}
                     decelerationRate={0.998}
                     injectedJavaScript={`(function() {
                             window.addEventListener('load', function() {
@@ -202,7 +199,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                 />
                 {keyboardOpen && <InputAccessoryViewWebViewComponent injectJavascript={injectJavascript} />}
             </KeyboardAvoidingView >
-        </Animated.View >
+        </Animated.View>
     );
 }
 

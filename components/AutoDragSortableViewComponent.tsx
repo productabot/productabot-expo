@@ -600,7 +600,9 @@ export default class AutoDragSortableView extends Component {
                 }}
                 scrollEnabled={this.state.scrollEnabled}
                 onScroll={this.onScrollListener}
-                style={styles.container}>
+                style={this.props.style}
+                contentContainerStyle={this.props.contentContainerStyle}
+            >
                 {this.props.renderHeaderView ? this.props.renderHeaderView : null}
                 <View
                     //ref={(ref)=>this.sortParentRef=ref}
@@ -714,6 +716,21 @@ AutoDragSortableView.propTypes = {
     onScrollRef: PropTypes.func
 }
 
+
+const styles = StyleSheet.create({
+    container: {
+        height: 1
+    },
+    swipe: {
+        flexWrap: 'wrap',
+        flexDirection: 'row',
+    },
+    item: {
+        position: 'absolute',
+        zIndex: defaultZIndex,
+    },
+})
+
 AutoDragSortableView.defaultProps = {
     marginChildrenTop: 0,
     marginChildrenBottom: 0,
@@ -738,18 +755,5 @@ AutoDragSortableView.defaultProps = {
     },
     headerViewHeight: 0,
     bottomViewHeight: 0,
+    style: styles.container
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    swipe: {
-        flexWrap: 'wrap',
-        flexDirection: 'row',
-    },
-    item: {
-        position: 'absolute',
-        zIndex: defaultZIndex,
-    },
-})

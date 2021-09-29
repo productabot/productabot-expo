@@ -74,19 +74,6 @@
       background-color: #ffffff;
     }
 
-    div[data-focusable=true]:hover {
-      text-decoration: underline;
-      text-decoration-color: #ffffff;
-    }
-
-    div[aria-selected=false]:hover {
-      text-decoration-color: #ffffff;
-    }
-
-    div[role="slider"]:hover {
-      text-decoration: unset;
-    }
-
     input[type="date"] {
       position: relative;
     }
@@ -120,10 +107,19 @@
       background-color: #ffffff !important;
     }
 
-    a[data-focusable=true]:hover>span {
+    div[tabindex="0"]:hover,
+    a:hover>span {
       text-decoration: underline;
       text-decoration-color: #ffffff;
       color: #ffffff !important;
+    }
+
+    div[role="slider"]:hover {
+      text-decoration: unset !important;
+    }
+    
+    textarea:hover {
+      text-decoration: none !important;
     }
   </style>
 </head>
