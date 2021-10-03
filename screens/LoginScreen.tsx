@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, TextInput, Platform, Keyboard, KeyboardAvoidingView, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, TextInput, Platform, Keyboard, KeyboardAvoidingView } from 'react-native';
 import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo"
-import { LoadingComponent } from '../components/LoadingComponent';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { useApolloClient } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function LoginScreen({ route, navigation }: any) {
+export default function LoginScreen({ route, navigation, setLoading}: any) {
     const client = useApolloClient();
-    const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false, loading: false });
+    const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false });
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
@@ -22,7 +21,7 @@ export default function LoginScreen({ route, navigation }: any) {
             });
         }
         if (route.params.demo) {
-            setState({ ...state, loading: true });
+            setLoading(true);
             Auth.signIn({
                 username: 'demo@productabot.com',
                 password: 'password'
@@ -30,7 +29,8 @@ export default function LoginScreen({ route, navigation }: any) {
                 //if the login attempt succeeds, store the password
                 AsyncStorage.setItem('e2e', 'password').then(() => {
                     connectWebsocket();
-                    setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
+                    setState({ ...state, errorMessage: '', success: false, email: '', password: '' });
+                    setLoading(false);
                     navigation.navigate('app');
                 });
             });
@@ -39,7 +39,7 @@ export default function LoginScreen({ route, navigation }: any) {
 
     const login = async () => {
         Keyboard.dismiss();
-        setState({ ...state, loading: true })
+        setLoading(true);
         try {
             await Auth.signIn({
                 username: state.email,
@@ -47,12 +47,14 @@ export default function LoginScreen({ route, navigation }: any) {
             });
             await AsyncStorage.setItem('e2e', state.password);
             connectWebsocket();
-            setState({ ...state, loading: false, errorMessage: '', success: false, email: '', password: '' });
+            setLoading(false);
+            setState({ ...state, errorMessage: '', success: false, email: '', password: '' });
             navigation.navigate('app');
         }
         catch (err) {
             console.log(err);
-            setState({ ...state, loading: false, success: false, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
+            setLoading(false);
+            setState({ ...state, success: false, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
         }
     }
 
@@ -71,7 +73,7 @@ export default function LoginScreen({ route, navigation }: any) {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={[styles.container, { width: '100%', height: '100%' }]}
@@ -104,8 +106,7 @@ export default function LoginScreen({ route, navigation }: any) {
                 </View>
             </KeyboardAvoidingView>
             <InputAccessoryViewComponent />
-            {state.loading && <LoadingComponent />}
-        </SafeAreaView>
+        </View>
     );
 }
 const isWeb = Platform.OS === 'web';
@@ -115,7 +116,6 @@ function s(number: number, factor = 0.6) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000',
         alignItems: 'center',
         justifyContent: 'center'
     },

@@ -7,6 +7,7 @@ let dragRefTimeout: any;
 let mobileContextTimeout: any;
 let pageX: number | null = null;
 let pageY: number | null = null;
+let dragged: boolean = false;
 class CustomRenderItem extends React.PureComponent {
     render() {
         const { item, renderItem, onPress, dragRef, updateLik, renderItemStyle, setContextPosition, menuRef, onRename, onDelete, draggable } = this.props;
@@ -24,10 +25,13 @@ class CustomRenderItem extends React.PureComponent {
                 onPress={async () => { await onPress(item); }}
                 style={(state) => [{ cursor: draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? '#000000' : item.isActive ? '#333333' : state.hovered ? '#202020' : '#161616' }, renderItemStyle]}
                 onPressIn={async () => {
-                    if (Platform.OS === 'web') {
-                        updateLik();
-                        dragRef.current.flushQueue();
-                        clearTimeout(dragRefTimeout);
+                    if (Platform.OS === 'web' && draggable) {
+                        dragged = false;
+                        setTimeout(() => { dragged = true; }, 100);
+                        item.drag();
+                        // updateLik();
+                        // dragRef.current.flushQueue();
+                        // clearTimeout(dragRefTimeout);
                     }
                     else {
                         const mobileContext = async () => {
@@ -64,8 +68,8 @@ class CustomRenderItem extends React.PureComponent {
                         pageY = null;
                     }
                 }}
-                onPressOut={() => { if (Platform.OS === 'web') { dragRef.current.flushQueue(); clearTimeout(dragRefTimeout); dragRefTimeout = setTimeout(() => { dragRef.current && dragRef.current.resetHoverState(); }, 750); } else { pageX = null; pageY = null; clearTimeout(mobileContextTimeout); } }}
-                disabled={item.isActive} delayLongPress={200} onLongPress={draggable ? item.drag : () => { }}>
+                onPressOut={async () => { if (Platform.OS === 'web') { if (!dragged) { await onPress(item); } dragRef.current.flushQueue(); clearTimeout(dragRefTimeout); dragRefTimeout = setTimeout(() => { dragRef.current && dragRef.current.resetHoverState(); }, 750); } else { pageX = null; pageY = null; clearTimeout(mobileContextTimeout); } }}
+                disabled={item.isActive} delayLongPress={150} onLongPress={draggable ? item.drag : () => { }}>
                 {renderItem(item)}
             </Pressable>
         );

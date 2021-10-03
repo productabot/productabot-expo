@@ -1,39 +1,38 @@
-import { StackScreenProps } from '@react-navigation/stack';
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, Keyboard, KeyboardAvoidingView, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, Keyboard, KeyboardAvoidingView } from 'react-native';
 import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo";
-import { LoadingComponent } from '../components/LoadingComponent';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import * as root from '../Root';
 
-export default function ResetScreen({ route, navigation }: any) {
+export default function ResetScreen({ route, navigation, setLoading }: any) {
     const [state, setState] = useState({
-        email: '', loading: false, errorMessage: ''
+        email: '', errorMessage: ''
     });
     const reset = async () => {
         Keyboard.dismiss();
         if (state.email.length === 0) {
-            setState({ ...state, loading: false, errorMessage: 'Please enter an email address' });
+            setState({ ...state, errorMessage: 'Please enter an email address' });
         }
         else {
-            setState({ ...state, loading: true });
+            setLoading(true);
             try {
                 let response = await Auth.forgotPassword(state.email);
                 console.log(response);
-                setState({ ...state, loading: false });
+                setLoading(false);
                 navigation.navigate('login', { reset: true });
             }
             catch (err) {
                 console.log(err);
-                setState({ ...state, loading: false, errorMessage: JSON.stringify(err.message) });
+                setLoading(false);
+                setState({ ...state, errorMessage: JSON.stringify(err.message) });
             }
 
         }
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={[styles.container, { width: '100%', height: '100%' }]}
@@ -61,8 +60,7 @@ export default function ResetScreen({ route, navigation }: any) {
                 </TouchableOpacity>
             </KeyboardAvoidingView>
             <InputAccessoryViewComponent />
-            {state.loading && <LoadingComponent />}
-        </SafeAreaView>
+        </View>
     );
 }
 const isWeb = Platform.OS === 'web';
@@ -72,7 +70,6 @@ function s(number: number, factor = 0.6) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000',
         alignItems: 'center',
         justifyContent: 'center'
     },

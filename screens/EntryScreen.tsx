@@ -8,7 +8,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { WebView } from 'react-native-webview';
 
-export default function EntryScreen({ route, navigation, refresh }: any) {
+export default function EntryScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
     const [projects, setProjects] = useState([]);
     const [dates, setDates] = useState([]);
@@ -19,7 +19,6 @@ export default function EntryScreen({ route, navigation, refresh }: any) {
         hours: null,
         details: null
     });
-    const [loading, setLoading] = useState(false);
     const [refreshControl, setRefreshControl] = useState(false);
     const [webViewLag, setWebViewLag] = useState('none');
     const [githubCommits, setGithubCommits] = useState([]);
@@ -151,7 +150,7 @@ export default function EntryScreen({ route, navigation, refresh }: any) {
             {root.desktopWeb ?
                 <View style={{ height: 50 }} />
                 :
-                <View style={{ padding: 10, paddingTop: 40, paddingBottom: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <View style={{ padding: 10, paddingBottom: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                     <Text>{route.params.id ? 'edit entry' : 'add entry'}</Text>
                     <Text style={{ fontSize: 30, opacity: 0 }}>←</Text>
@@ -242,7 +241,6 @@ export default function EntryScreen({ route, navigation, refresh }: any) {
                     <TouchableOpacity onPress={submit} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ textAlign: 'center' }}>{route.params.id ? `save` : `add`}</Text></TouchableOpacity>
                 </View>
             </ScrollView>
-            {loading && <LoadingComponent />}
             <InputAccessoryViewComponent />
         </View>
     );

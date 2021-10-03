@@ -14,9 +14,8 @@ import ContextMenuRenderer from '../components/ContextMenuRenderer';
 let mainDragRefTimeout: any;
 let dragRefTimeouts = [null, null, null, null, null, null, null, null];
 let touchX: any;
-export default function BoardScreen({ route, navigation, refresh }: any) {
+export default function BoardScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
-    const [loading, setLoading] = useState(false);
     const [update, setUpdate] = useState(true);
     const [kanban, setKanban] = useState({ kanban_columns: [] });
     const [layoutKey, setLayoutKey] = useState((new Date).toString());
@@ -36,7 +35,7 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
             onRefresh();
-        }, [refresh])
+        }, [refresh, route.params])
     );
 
     let onRefresh = async () => {
@@ -88,7 +87,7 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={[styles.container, { width: '100%', height: '100%' }]}
         >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 50, marginBottom: root.desktopWeb ? 0 : -20, zIndex: 10, position: 'relative', width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%', paddingLeft: 30, paddingRight: 30 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: root.desktopWeb ? 50 : 10, marginBottom: root.desktopWeb ? 0 : -20, zIndex: 10, position: 'relative', width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%', paddingLeft: 30, paddingRight: 30 }}>
                 <TouchableOpacity hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} style={{ marginRight: 10 }} onPress={async () => {
                     navigation.navigate('project', { id: kanban.project.id })
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
@@ -277,33 +276,7 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
                                                 borderRadius: 10,
                                                 cursor: 'grab',
                                             }}>
-                                            <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 5, paddingRight: 5 }}>
-                                                {columnParams.index !== 0 ?
-                                                    <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={() => {
-                                                        let newKanbanColumns = kanban.kanban_columns;
-                                                        newKanbanColumns[columnParams.index - 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1)[0]);
-                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
-                                                    }}><Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{`←`}</Text></TouchableOpacity> :
-                                                    <View />
-                                                }
-                                                <TouchableOpacity onPress={() => {
-                                                    let newKanbanColumns = kanban.kanban_columns;
-                                                    newKanbanColumns[columnParams.index].kanban_items[item.index].hidden = !newKanbanColumns[columnParams.index].kanban_items[item.index].hidden;
-                                                    setUpdate(true);
-                                                    setKanban({ ...kanban, kanban_columns: newKanbanColumns });
-                                                }} style={{ backgroundColor: '#444444', padding: 5, marginRight: 10, borderRadius: 5 }}>
-                                                    <Text style={{ fontSize: 10, textAlign: 'center' }}>{kanban.project.key}-{kanban.name}-{item.item.key} {item.item.hidden ? '[+]' : '[-]'}</Text>
-                                                </TouchableOpacity>
-                                                {columnParams.index !== kanban.kanban_columns.length - 1 ?
-                                                    <TouchableOpacity hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }} onPress={() => {
-                                                        let newKanbanColumns = kanban.kanban_columns;
-                                                        newKanbanColumns[columnParams.index + 1].kanban_items.push(newKanbanColumns[columnParams.index].kanban_items.splice(item.index, 1)[0]);
-                                                        setKanban({ ...kanban, kanban_columns: newKanbanColumns });
-                                                    }}><Text style={{ textAlign: 'center', fontSize: 20, fontWeight: 'bold' }}>{`→`}</Text></TouchableOpacity> :
-                                                    <View />
-                                                }
-                                            </View>
-                                            {!item.item.hidden && <Text style={[{ color: '#ffffff', fontSize: 14, width: '100%', padding: 5 }]}>{item.item.name}</Text>}
+                                            {!item.item.hidden && <Text style={[{ color: '#ffffff', fontSize: 14, width: '100%', padding: 5 }]}>• {item.item.name}</Text>}
                                         </Pressable>
                                     )
                                 }}
@@ -332,7 +305,6 @@ export default function BoardScreen({ route, navigation, refresh }: any) {
                     setLayoutKey(new Date().toString());
                 }}
             />
-            {loading && <LoadingComponent />}
             <InputAccessoryViewComponent />
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
                 <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y, left: contextPosition.x } }} />

@@ -9,9 +9,8 @@ import { InputAccessoryViewComponent } from '../components/InputAccessoryViewCom
 import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function DocumentScreen({ route, navigation }: any) {
+export default function DocumentScreen({ route, navigation, setLoading }: any) {
     const window = useWindowDimensions();
-    const [loading, setLoading] = useState(false);
     const [document, setDocument] = useState({});
     const [update, setUpdate] = useState(true);
     const [editable, setEditable] = useState(true);
@@ -22,7 +21,7 @@ export default function DocumentScreen({ route, navigation }: any) {
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
             onRefresh();
-        }, [])
+        }, [route.params])
     );
 
     let onRefresh = async () => {
@@ -75,7 +74,7 @@ export default function DocumentScreen({ route, navigation }: any) {
 
     return (
         <View style={styles.container}>
-            <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: root.desktopWeb ? 0 : 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%' }}>
+            <View style={{ padding: 10, paddingTop: root.desktopWeb ? 40 : 0, borderColor: '#444444', borderBottomWidth: root.desktopWeb ? 0 : 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%' }}>
                 <TouchableOpacity onPress={() => {
                     navigation.goBack()
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
@@ -149,7 +148,6 @@ export default function DocumentScreen({ route, navigation }: any) {
                     }}
                 />
             </KeyboardAvoidingView>
-            {loading && <LoadingComponent />}
             <InputAccessoryViewComponent enterTimestamp={enterTimestamp} />
         </View >
     );

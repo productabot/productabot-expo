@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View } from '../components/Themed';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import { RefreshControl, ScrollView, TouchableOpacity, Image, useWindowDimensions, SafeAreaView, Platform } from 'react-native';
+import { RefreshControl, ScrollView, TouchableOpacity, Image, useWindowDimensions, Platform, Alert } from 'react-native';
 import * as root from '../Root';
 import { API, graphqlOperation } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,9 +18,8 @@ LocaleConfig.defaultLocale = 'en';
 
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 
-export default function CalendarScreen({ route, navigation, refresh }: any) {
+export default function CalendarScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
-    const [loading, setLoading] = useState(false);
     const [refreshControl, setRefreshControl] = useState(false);
     const [timesheets, setTimesheets] = useState([]);
     const [month, setMonth] = useState(new Date().toLocaleDateString('fr-CA'));
@@ -29,7 +28,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
             onRefresh();
-        }, [refresh, month])
+        }, [refresh, month, route.params])
     );
 
     let onRefresh = async (showRefreshControl = false) => {
@@ -62,7 +61,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: root.desktopWeb ? 30 : 0, backgroundColor: '#000000', marginTop: root.desktopWeb?0:-10 }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: root.desktopWeb ? 30 : 0, marginTop: root.desktopWeb ? 0 : -20 }}>
             <ScrollView
                 style={{ maxWidth: Math.min(root.desktopWidth, window.width), height: window.height - 20, padding: 10 }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
@@ -152,14 +151,17 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                                                 </ScrollView>
                                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                                                     <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
-                                                        await API.graphql(graphqlOperation(`
-                                                                mutation {
-                                                                    delete_timesheets_by_pk(id: "${obj.id}") {
-                                                                        id
-                                                                    }
-                                                                }
-                                                                `));
-                                                        onRefresh();
+                                                        const deleteFunction = async () => {
+                                                            setLoading(true);
+                                                            await API.graphql(graphqlOperation(`mutation {delete_timesheets_by_pk(id: "${obj.id}") {id}}`));
+                                                            await onRefresh();
+                                                            setLoading(false);
+                                                        }
+                                                        if (Platform.OS !== 'web') {
+                                                            Alert.alert('Warning', 'Are you sure you want to delete this time entry?',
+                                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                                        }
+                                                        else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
                                                     }}><Text>Delete</Text></TouchableOpacity>
                                                     <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
                                                         onRefresh(); navigation.navigate('entry', { id: obj.id, date: undefined })
@@ -173,8 +175,7 @@ export default function CalendarScreen({ route, navigation, refresh }: any) {
                         );
                     }}
                 />
-                {loading && <LoadingComponent />}
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }

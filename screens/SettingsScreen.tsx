@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Text, View } from '../components/Themed';
 import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
-import { TouchableOpacity, SafeAreaView, useWindowDimensions, Image, TextInput, StyleSheet, Alert, ScrollView, RefreshControl, Platform, KeyboardAvoidingView, FlatList } from 'react-native';
-import { LoadingComponent } from '../components/LoadingComponent';
+import { TouchableOpacity, useWindowDimensions, Image, TextInput, StyleSheet, Alert, ScrollView, RefreshControl, Platform, KeyboardAvoidingView, FlatList } from 'react-native';
 import * as root from '../Root';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,7 +10,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import * as WebBrowser from 'expo-web-browser';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
-import * as AuthSession from 'expo-auth-session';
+import { useFocusEffect } from '@react-navigation/native';
 function formatBytes(bytes: number, decimals = 2) {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -21,21 +20,23 @@ function formatBytes(bytes: number, decimals = 2) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-export default function SettingsScreen({ navigation }: any) {
+export default function SettingsScreen({ navigation, refresh, setLoading }: any) {
     const windowDimensions = useWindowDimensions();
-    const [loading, setLoading] = useState(true);
+    const [refreshControl, setRefreshControl] = useState(false);
     const [oldUser, setOldUser] = useState({});
     const [user, setUser] = useState({});
     const [size, setSize] = useState(0);
     const [index, setIndex] = useState(0);
     const [github, setGithub] = useState([]);
 
-    React.useEffect(() => {
-        reload();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            onRefresh();
+        }, [refresh])
+    );
 
-    const reload = async () => {
-        setLoading(true);
+    const onRefresh = async (showRefreshControl = false) => {
+        showRefreshControl ? setRefreshControl(true) : setLoading(true);
         let user = await Auth.currentSession();
         let data = await API.graphql(graphqlOperation(`{
             users{id created_at email username image first_name last_name plan phone github}
@@ -51,7 +52,7 @@ export default function SettingsScreen({ navigation }: any) {
         setOldUser(data.data.users[0]);
         setUser(data.data.users[0]);
         setSize(data.data.files_aggregate.aggregate.sum.size);
-        setLoading(false);
+        showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
 
     React.useEffect(() => {
@@ -133,12 +134,12 @@ export default function SettingsScreen({ navigation }: any) {
                 }
             }`));
             setLoading(false);
-            reload();
+            onRefresh();
         }
         catch (err) {
             Alert.alert('There was an error saving your changes');
             setLoading(false);
-            reload();
+            onRefresh();
             console.log(err);
         }
         setLoading(false);
@@ -146,9 +147,8 @@ export default function SettingsScreen({ navigation }: any) {
     }
 
     return (
-        <SafeAreaView style={{
+        <View style={{
             flex: 1,
-            backgroundColor: '#000000',
             alignItems: 'center',
             justifyContent: 'center',
             paddingTop: root.desktopWeb ? 50 : 0
@@ -159,8 +159,8 @@ export default function SettingsScreen({ navigation }: any) {
             >
                 <ScrollView
                     refreshControl={<RefreshControl
-                        refreshing={loading}
-                        onRefresh={() => reload()}
+                        refreshing={refreshControl}
+                        onRefresh={() => onRefresh(true)}
                         colors={["#ffffff"]}
                         tintColor='#ffffff'
                         titleColor="#ffffff"
@@ -328,9 +328,8 @@ export default function SettingsScreen({ navigation }: any) {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-            {loading && <LoadingComponent />}
             <InputAccessoryViewComponent />
-        </SafeAreaView>
+        </View>
     );
 }
 

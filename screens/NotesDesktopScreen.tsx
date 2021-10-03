@@ -38,10 +38,9 @@ const sanitizedOptions = {
     enforceHtmlBoundary: false
 }
 
-export default function NotesScreen({ route, navigation, refresh }: any) {
+export default function NotesScreen({ route, navigation, refresh, setLoading }: any) {
     const windowDimensions = useWindowDimensions();
     const [key, setKey] = useState('');
-    const [loading, setLoading] = useState(true);
     const [tags, setTags] = useState([]);
     const [tag, setTag] = useState({});
     const [notes, setNotes] = useState([]);
@@ -322,8 +321,8 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                                 for (const item of e.clipboardData.items) {
                                     if (item.type.indexOf("image") == -1) {
                                         let sanitizedData = sanitizeHtml(e.clipboardData.getData('Text'), sanitizedOptions);
-                                        console.log(sanitizedData);
-                                        setNoteContent(inputRef.current.innerHTML + sanitizedData);
+                                        document.execCommand('insertText', false, sanitizedData);
+                                        break;
                                     }
                                     else {
                                         setLoading(true);
@@ -344,7 +343,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                                             let response = await fetch(media.uri);
                                             let filename = `${uuidv4()}.jpg`;
                                             await Storage.put(filename, (await response.blob()), { contentType: 'image/jpeg', level: 'public' });
-                                            setNoteContent(inputRef.current.innerHTML + `<div style="overflow: hidden;resize: both;height:${dimensions.height}px; width: ${dimensions.width}px"><img style="object-fit:contain;width:100%;height:100%;" src="https://files.productabot.com/public/${filename}"/></div>`);
+                                            document.execCommand('insertText', false, `<div style="overflow: hidden;resize: both;height:${dimensions.height}px; width: ${dimensions.width}px"><img style="object-fit:contain;width:100%;height:100%;" src="https://files.productabot.com/public/${filename}"/></div>`);
                                             setLoading(false);
                                         }
                                         catch (err) {
@@ -382,8 +381,6 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                             onKeyDown={(e) => {
                                 if (e.key === 'r' && e.ctrlKey) {
                                     e.preventDefault();
-                                    document.execCommand('enableObjectResizing', false, '');
-                                    document.execCommand('enableInlineTableEditing', false, '');
                                 }
                                 if (e.key === 'd' && e.ctrlKey) {
                                     e.preventDefault();
@@ -412,7 +409,7 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                                 else if (e.key === 'F1') {
                                     e.preventDefault();
                                     let timestamp = new Date().toLocaleTimeString('en-US', { hour12: true, hour: "numeric", minute: "numeric" });
-                                    setNoteContent(inputRef.current.innerHTML + `<div><br/></div><div>${timestamp}</div><div><br/></div>`);
+                                    document.execCommand('insertText', false, `<div><br/></div><div>${timestamp}</div><div><br/></div>`);
                                 }
                                 else if (e.key === 's' && e.ctrlKey) {
                                     e.preventDefault();
@@ -421,13 +418,33 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                                     saveNoteContentImmediately();
                                     return;
                                 }
+                                else if (e.key === 'Tab' && e.shiftKey) {
+                                    e.preventDefault();
+                                    document.execCommand('outdent', false, '');
+                                }
+                                else if (e.key === 'Tab') {
+                                    e.preventDefault();
+                                    if (caret.start === caret.end) {
+                                        document.execCommand('insertText', false, '  ');
+                                    }
+                                    else {
+                                        document.execCommand('indent', false, '');
+                                    }
+                                }
+                                else if (e.key === '>' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('increaseFontSize', false, '');
+                                }
+                                else if (e.key === '<' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    document.execCommand('decreaseFontSize', false, '');
+                                }
                                 clearTimeout(timeout);
                                 saveNoteContent();
                             }}
                         />
                     </View>
                 </SplitPane>
-                {loading && <LoadingComponent />}
             </View>
         </View>
     );

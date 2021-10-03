@@ -1,8 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, Image, TextInput, useWindowDimensions, SafeAreaView, Platform, Alert, ActionSheetIOS } from 'react-native';
+import { StyleSheet, TouchableOpacity, Image, TextInput, useWindowDimensions, Platform, Alert } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { Auth, API, graphqlOperation, Storage } from 'aws-amplify';
-import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import 'react-native-get-random-values';
@@ -54,9 +53,8 @@ dateTo.setMonth(dateTo.getMonth() + 1);
 dateTo.setDate(0);
 const dateToString = dateTo.toISOString().split('T')[0];
 
-export default function ProjectScreen({ route, navigation, refresh }: any) {
+export default function ProjectScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
-    const [loading, setLoading] = useState(false);
     const [project, setProject] = useState({ kanban_projects: [], documents: [], timesheets: [], files: [] });
     const [index, setIndex] = useState(0);
     const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
@@ -70,7 +68,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
             onRefresh();
-        }, [refresh])
+        }, [refresh, route.params])
     );
 
     let onRefresh = async () => {
@@ -237,9 +235,8 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
     }
 
     return (
-        <SafeAreaView style={{
+        <View style={{
             flex: 1,
-            backgroundColor: '#000000',
             alignItems: 'center',
             justifyContent: 'center',
             marginTop: Platform.OS === 'web' ? -40 : 0
@@ -510,7 +507,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                                                     </View>
                                                 </View>
                                                 <Text style={{ fontSize: 14, width: '50%' }}>{`${item.item.details}`}</Text>
-                                                <Text style={{ fontSize: 14, width: '20%', textAlign: 'right' }}>{`${item.item.hours} hours`}</Text>
+                                                <Text numberOfLines={1} style={{ fontSize: 30, fontWeight: 'bold', width:'20%', textAlign:'center' }}>{item.item.hours}<Text numberOfLines={1} style={{ fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
                                             </>
                                         );
                                     }}
@@ -749,7 +746,6 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                         </View>
                     </>}
             </View>
-            {loading && <LoadingComponent />}
             <InputAccessoryViewComponent />
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
                 <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y, left: contextPosition.x } }} />
@@ -770,7 +766,7 @@ export default function ProjectScreen({ route, navigation, refresh }: any) {
                     </View>
                 </MenuOptions>
             </Menu>
-        </SafeAreaView >
+        </View>
     );
 }
 

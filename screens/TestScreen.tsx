@@ -9,11 +9,9 @@ import { InputAccessoryViewComponent } from '../components/InputAccessoryViewCom
 import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function TestScreen({ route, navigation }: any) {
+export default function TestScreen({ route, navigation, setLoading }: any) {
     const window = useWindowDimensions();
-    const [loading, setLoading] = useState(false);
     const [document, setDocument] = useState('');
-    const [update, setUpdate] = useState(true);
     const [editable, setEditable] = useState(true);
     const [touch, setTouch] = useState({});
     const inputRef = useRef(null);
@@ -71,7 +69,6 @@ export default function TestScreen({ route, navigation }: any) {
                     }
                 })}</Text></TextInput>
             </KeyboardAvoidingView>
-            {loading && <LoadingComponent />}
             <InputAccessoryViewComponent />
         </View >
     );

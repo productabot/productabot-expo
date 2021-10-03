@@ -1,26 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert, useWindowDimensions, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, RefreshControl, ScrollView, TextInput, Platform } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
-import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
-import RNPickerSelect from 'react-native-picker-select';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
-import { WebView } from 'react-native-webview';
 
-export default function ItemScreen({ route, navigation, refresh }: any) {
-    const window = useWindowDimensions();
+export default function ItemScreen({ route, navigation, refresh, setLoading }: any) {
     const [item, setItem] = useState({});
-    const [loading, setLoading] = useState(false);
-    const inputRef = useRef(null);
+    const [refreshControl, setRefreshControl] = useState(false);
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
         onRefresh();
-    }, [refresh]);
+    }, [refresh, route.params]);
 
-    let onRefresh = async () => {
-        setLoading(true);
+    let onRefresh = async (showRefreshControl = false) => {
+        showRefreshControl ? setRefreshControl(true) : setLoading(true);
         let item = await API.graphql(graphqlOperation(`
         {
             kanban_items_by_pk(id: "${route.params.id}") {
@@ -42,7 +37,7 @@ export default function ItemScreen({ route, navigation, refresh }: any) {
           }          
           `));
         setItem(item.data.kanban_items_by_pk);
-        setLoading(false);
+        showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
 
     const saveItem = async () => {
@@ -55,15 +50,15 @@ export default function ItemScreen({ route, navigation, refresh }: any) {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             {root.desktopWeb && <View style={{ height: 50 }} />}
             <ScrollView
                 style={{ maxWidth: 600, width: '100%', height: '100%', padding: 10, overflow: 'visible' }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl
-                        refreshing={loading}
-                        onRefresh={onRefresh}
+                        refreshing={refreshControl}
+                        onRefresh={() => onRefresh(true)}
                         colors={["#ffffff"]}
                         tintColor='#ffffff'
                         titleColor="#ffffff"
@@ -71,7 +66,7 @@ export default function ItemScreen({ route, navigation, refresh }: any) {
                     />}
                 keyboardShouldPersistTaps="always"
             >
-                <View style={{ flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <View style={{ flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', width: '100%', height: 50 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                         <TouchableOpacity onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                         <Text>{item?.kanban_column ? `${item.kanban_column.kanban_project.project.key}-${item.kanban_column.kanban_project.name}-${item.key}` : ``}</Text>
@@ -90,9 +85,8 @@ export default function ItemScreen({ route, navigation, refresh }: any) {
                     <TouchableOpacity onPress={async () => { await saveItem(); navigation.goBack(); }} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ textAlign: 'center' }}>{route.params.id ? `save` : `add`}</Text></TouchableOpacity>
                 </View>
             </ScrollView>
-            {loading && <LoadingComponent />}
             <InputAccessoryViewComponent />
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -103,7 +97,6 @@ function s(number: number, factor = 0.6) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000',
         alignItems: 'center',
         justifyContent: 'center'
     },

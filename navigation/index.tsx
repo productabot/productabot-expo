@@ -2,7 +2,7 @@ import { NavigationContainer, DarkTheme, useNavigation, useRoute } from '@react-
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import * as React from 'react';
-import { View, Platform, Text, TouchableOpacity, useWindowDimensions, Pressable } from 'react-native';
+import { View, Platform, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -26,7 +26,7 @@ import ResetScreen from '../screens/ResetScreen';
 import * as Linking from 'expo-linking';
 import TestScreen from '../screens/TestScreen';
 
-export default function Navigation({ navigation, authenticated }: any) {
+export default function Navigation({ navigation, authenticated, setLoading }: any) {
   return (
     <NavigationContainer
       theme={DarkTheme}
@@ -36,7 +36,7 @@ export default function Navigation({ navigation, authenticated }: any) {
           `productabot • ${options?.title ?? route?.name.replace('_', ' ')}`,
       }}
     >
-      <RootNavigator authenticated={authenticated} />
+      <RootNavigator authenticated={authenticated} setLoading={setLoading} />
     </NavigationContainer>
   );
 }
@@ -47,7 +47,7 @@ const AppBottomTab = createBottomTabNavigator<any>();
 const AppStack = createStackNavigator<any>();
 const MobileNotesStack = createDrawerNavigator<any>();
 
-function RootNavigator({ authenticated }: any) {
+function RootNavigator({ authenticated, setLoading }: any) {
   const window = useWindowDimensions();
   const [refresh, setRefresh] = React.useState(false);
   return (
@@ -98,19 +98,19 @@ function RootNavigator({ authenticated }: any) {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="projects" >
                     <AppStack.Screen name="projects">
-                      {props => <ProjectsScreen {...props} refresh={refresh} />}
+                      {props => <ProjectsScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="project">
-                      {props => <ProjectScreen {...props} refresh={refresh} />}
+                      {props => <ProjectScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="board">
-                      {props => <BoardScreen {...props} refresh={refresh} />}
+                      {props => <BoardScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="document">
-                      {props => <DocumentScreen {...props} refresh={refresh} />}
+                      {props => <DocumentScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="item">
-                      {props => <ItemScreen {...props} refresh={refresh} />}
+                      {props => <ItemScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>
                 )
@@ -124,10 +124,10 @@ function RootNavigator({ authenticated }: any) {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="calendar">
                     <AppStack.Screen name="calendar">
-                      {props => <CalendarScreen {...props} refresh={refresh} />}
+                      {props => <CalendarScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="entry">
-                      {props => <EntryScreen {...props} refresh={refresh} />}
+                      {props => <EntryScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>
                 )
@@ -146,16 +146,16 @@ function RootNavigator({ authenticated }: any) {
                           <MobileNotesStack.Navigator initialRouteName="innerNotes"
                             drawerStyle={{ width: 300 }} swipeEdgeWidth={400} screenOptions={{ headerShown: false, swipeEnabled: true, }}>
                             <MobileNotesStack.Screen name="innerNotes">
-                              {props => <NotesMobileScreen {...props} refresh={refresh} />}
+                              {props => <NotesMobileScreen {...props} refresh={refresh} setLoading={setLoading} />}
                             </MobileNotesStack.Screen>
                           </MobileNotesStack.Navigator>
 
                           :
-                          <NotesDesktopScreen {...props} refresh={refresh} />
+                          <NotesDesktopScreen {...props} refresh={refresh} setLoading={setLoading} />
                       }
                     </AppStack.Screen>
                     <AppStack.Screen name="note">
-                      {props => <NoteScreen {...props} refresh={refresh} />}
+                      {props => <NoteScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>)
               }}
@@ -168,10 +168,10 @@ function RootNavigator({ authenticated }: any) {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="settings">
                     <AppStack.Screen name="settings">
-                      {props => <SettingsScreen {...props} refresh={refresh} />}
+                      {props => <SettingsScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="test">
-                      {props => <TestScreen {...props} refresh={refresh} />}
+                      {props => <TestScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>)
               }}

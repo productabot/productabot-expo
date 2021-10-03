@@ -1,9 +1,7 @@
-import { StackScreenProps } from '@react-navigation/stack';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, Keyboard, KeyboardAvoidingView, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, Keyboard, KeyboardAvoidingView } from 'react-native';
 import { Auth } from "aws-amplify";
 import LogoSvg from "../svgs/logo";
-import { LoadingComponent } from '../components/LoadingComponent';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import * as root from '../Root';
 import * as WebBrowser from 'expo-web-browser';
@@ -13,9 +11,9 @@ import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function SignupScreen({ route, navigation }: any) {
+export default function SignupScreen({ route, navigation, setLoading }: any) {
     const client = useApolloClient();
-    const defaultState = { email: '', username: '', password: '', confirmPassword: '', errorMessage: '', successMessage: '', checkbox: false, loading: false };
+    const defaultState = { email: '', username: '', password: '', confirmPassword: '', errorMessage: '', successMessage: '', checkbox: false };
     const [state, setState] = useState(defaultState);
     const connectWebsocket = () => {
         client.setLink(new WebSocketLink({
@@ -34,43 +32,46 @@ export default function SignupScreen({ route, navigation }: any) {
         Keyboard.dismiss();
         setState({ ...state, loading: true });
         if (!state.email || !state.username || !state.password || !state.confirmPassword) {
-            setState({ ...state, loading: false, errorMessage: "You're missing some information" });
+            setState({ ...state, errorMessage: "You're missing some information" });
         }
         else if (!state.checkbox) {
-            setState({ ...state, loading: false, errorMessage: "You must agree to the Terms and Privacy Policy" });
+            setState({ ...state, errorMessage: "You must agree to the Terms and Privacy Policy" });
         }
         else if (state.password !== state.confirmPassword) {
-            setState({ ...state, loading: false, errorMessage: "Make sure your passwords match!" });
+            setState({ ...state, errorMessage: "Make sure your passwords match!" });
         }
         else if (state.password.length < 6) {
-            setState({ ...state, loading: false, errorMessage: "Your password must be at least 6 characters long" });
+            setState({ ...state, errorMessage: "Your password must be at least 6 characters long" });
         }
         else {
+            setLoading(true);
             try {
                 await Auth.signUp({ username: uuidv4(), password: state.password, attributes: { 'custom:username': state.username, email: state.email, 'custom:userType': 'user' } });
                 await Auth.signIn({ username: state.username, password: state.password });
                 await AsyncStorage.setItem('e2e', state.password);
                 connectWebsocket();
                 setState(defaultState);
+                setLoading(false);
                 navigation.navigate('app');
             }
             catch (err) {
                 console.log(err);
+                setLoading(false);
                 if (err.message === "Invalid email address format.") {
-                    setState({ ...state, loading: false, errorMessage: "Please enter a valid email address" });
+                    setState({ ...state, errorMessage: "Please enter a valid email address" });
                 }
                 else if (err.message === "An account with the given email already exists.") {
-                    setState({ ...state, loading: false, errorMessage: "An account with this email already exists" });
+                    setState({ ...state, errorMessage: "An account with this email already exists" });
                 }
                 else {
-                    setState({ ...state, loading: false, errorMessage: "An account with this username already exists" });
+                    setState({ ...state, errorMessage: "An account with this username already exists" });
                 }
             }
         }
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={[styles.container, { width: '100%', height: '100%' }]}
@@ -104,8 +105,7 @@ export default function SignupScreen({ route, navigation }: any) {
                 </TouchableOpacity>
                 <InputAccessoryViewComponent />
             </KeyboardAvoidingView>
-            {state.loading && <LoadingComponent />}
-        </SafeAreaView>
+        </View>
     );
 }
 const isWeb = Platform.OS === 'web';
@@ -115,7 +115,6 @@ function s(number: number, factor = 0.6) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000',
         alignItems: 'center',
         justifyContent: 'center'
     },

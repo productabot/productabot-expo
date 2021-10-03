@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { TouchableOpacity, RefreshControl, Image, useWindowDimensions, SafeAreaView, Platform, Alert } from 'react-native';
+import { TouchableOpacity, RefreshControl, Image, useWindowDimensions, Platform, Alert } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
-import { LoadingComponent } from '../components/LoadingComponent';
+import { StartupComponent } from '../components/StartupComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import AutoDragSortableView from '../components/AutoDragSortableViewComponent';
@@ -10,9 +10,8 @@ import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';
 import * as Haptics from 'expo-haptics';
 
-export default function ProjectsScreen({ route, navigation, refresh }: any) {
+export default function ProjectsScreen({ route, navigation, refresh, setLoading }: any) {
   const window = useWindowDimensions();
-  const [loading, setLoading] = useState(false);
   const [refreshControl, setRefreshControl] = useState(false);
   const [projects, setProjects] = useState([]);
   const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, archive: () => { }, rename: () => { } });
@@ -23,9 +22,8 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
   useFocusEffect(
     React.useCallback(() => {
       if (!route.params) { route.params = {}; }
-      setArchived(false);
       onRefresh();
-    }, [refresh])
+    }, [refresh, archived, route.params])
   );
 
   let onRefresh = async (showRefreshControl = false) => {
@@ -81,16 +79,15 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
   }, [archived]);
 
   return (
-    <SafeAreaView style={{
+    <View style={{
       flex: 1,
-      backgroundColor: '#000000',
       alignItems: 'center',
       justifyContent: 'center',
       paddingTop: root.desktopWeb ? 30 : 0
     }}>
-
       <AutoDragSortableView
         isDragFreely={true}
+        style={{ padding: root.desktopWeb ? 0 : (window.width - (2 * 140)) / 6 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshControl}
@@ -101,11 +98,11 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
             title=""
           />}
         renderHeaderView={
-          <View style={{ marginTop: Platform.OS === 'web' ? 30 : 10, flexDirection: 'row', justifyContent: 'space-between', padding: (Platform.OS === 'web' && window.width > 1280) ? 60 : 20, paddingTop: 0, paddingBottom: 0, marginBottom: -10, zIndex: 1 }}>
+          <View style={{ marginTop: Platform.OS === 'web' ? 30 : 0, flexDirection: 'row', justifyContent: 'space-between', padding: (Platform.OS === 'web' && window.width > 1280) ? 60 : 20, paddingTop: 0, paddingBottom: 0, marginBottom: -10, zIndex: 1 }}>
             <Text style={{ color: '#ffffff', fontSize: 20 }}>{greeting}</Text>
             <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
               <Text style={{ marginRight: 5 }}>archived</Text>
-              <View style={{ borderWidth: 1, borderColor: '#ffffff', borderRadius: 5, height: 20, width: 20, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontWeight: 'bold' }}>{archived ? '✓' : ''}</Text></View>
+              <View style={{ borderWidth: 1, borderColor: '#ffffff', borderRadius: 5, height: 20, width: 20, marginRight: 25, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontWeight: 'bold' }}>{archived ? '✓' : ''}</Text></View>
             </TouchableOpacity>
           </View>}
         minOpacity={100}
@@ -116,10 +113,10 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
         sortable={true}
         dataSource={projects}
         parentWidth={root.desktopWeb ? Math.min(window.width, root.desktopWidth) : window.width}
-        marginChildrenTop={30}
-        marginChildrenBottom={30}
-        marginChildrenLeft={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - (5 * 141)) / 10 : (window.width - (2 * 140)) / 4}
-        marginChildrenRight={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - (5 * 141)) / 10 : (window.width - (2 * 140)) / 4}
+        marginChildrenTop={25}
+        marginChildrenBottom={25}
+        marginChildrenLeft={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - (5 * 141)) / 10 : (window.width - (2 * 140)) / 6}
+        marginChildrenRight={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - (5 * 141)) / 10 : (window.width - (2 * 140)) / 6}
         childrenWidth={140}
         childrenHeight={140}
         fixedItems={[projects.length - 1]}
@@ -217,7 +214,6 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
             </View>
         )}
       />
-      {loading && <LoadingComponent />}
       <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
         <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y, left: contextPosition.x } }} />
         <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
@@ -237,6 +233,6 @@ export default function ProjectsScreen({ route, navigation, refresh }: any) {
           </View>
         </MenuOptions>
       </Menu>
-    </SafeAreaView>
+    </View>
   );
 }

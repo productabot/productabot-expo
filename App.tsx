@@ -1,9 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MenuProvider } from 'react-native-popup-menu';
-import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native';
 import { LoadingComponent } from './components/LoadingComponent';
+import { StartupComponent } from './components/StartupComponent';
 
 import useCachedResources from './hooks/useCachedResources';
 import Navigation from './navigation';
@@ -57,6 +57,7 @@ const client = new ApolloClient({ cache: new InMemoryCache() });
 export default function App() {
   const isLoadingComplete = useCachedResources();
   const [authenticated, setAuthenticated] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
   React.useEffect(() => {
     const async = async () => {
       Platform.OS !== 'web' && LogBox.ignoreLogs([
@@ -91,19 +92,24 @@ export default function App() {
   })
   if (!isLoadingComplete || authenticated === null) {
     return (
-      <View style={{ backgroundColor: '#000000', flex: 1 }}>
-        <LoadingComponent />
-      </View>
+      <SafeAreaView style={{ backgroundColor: '#000000', flex: 1 }}>
+        <StartupComponent />
+      </SafeAreaView>
     );
   } else {
     return (
       <ApolloProvider client={client}>
-        <SafeAreaProvider style={{ backgroundColor: '#000000' }}>
-          <MenuProvider>
-            <Navigation authenticated={authenticated} />
-            <StatusBar />
-          </MenuProvider>
-        </SafeAreaProvider>
+        <MenuProvider>
+          <SafeAreaView style={{
+            backgroundColor: '#000000',
+            height: '100%',
+            width: '100%'
+          }}>
+            <Navigation authenticated={authenticated} setLoading={setLoading} />
+          </SafeAreaView>
+          <LoadingComponent loading={loading} />
+          <StatusBar />
+        </MenuProvider>
       </ApolloProvider>
     );
   }

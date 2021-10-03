@@ -9,8 +9,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 import { DrawerActions } from '@react-navigation/native';
 
-export default function NotesScreen({ route, navigation, refresh }: any) {
-    const [loading2, setLoading] = useState(false);
+export default function NotesScreen({ route, navigation, refresh, setLoading }: any) {
     const [refreshControl, setRefreshControl] = useState(false);
     const [tags, setTags] = useState([]);
     const [tag, setTag] = useState({});
@@ -69,10 +68,8 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
     }, [notes]);
 
     useEffect(() => {
-        if (!loading2) {
-            updateTag();
-            onRefresh(false);
-        }
+        updateTag();
+        onRefresh(false);
     }, [tag]);
 
     useEffect(() => {
@@ -166,7 +163,6 @@ export default function NotesScreen({ route, navigation, refresh }: any) {
                         title=""
                     />}
             />
-            {loading2 && <LoadingComponent />}
         </View>
     );
 }
