@@ -1,20 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { RefreshControl, ScrollView, TouchableOpacity, Alert, Text, View, FlatList } from 'react-native';
-import * as root from '../Root';
-import { LoadingComponent } from '../components/LoadingComponent';
-import { API, graphqlOperation } from 'aws-amplify';
+import React, { useState, useCallback } from 'react';
+import { RefreshControl, TouchableOpacity, Text, View, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Popover from '../components/PopoverMenuRenderer';
 
-import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
+import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 
-export default function NotificationsComponent({ route, navigation }: any) {
-    const [state, setState] = useState({
-        loading: false
-    });
-
+export default function NotificationsComponent({ route, navigation, loading }: any) {
     useFocusEffect(
-        React.useCallback(() => {
+        useCallback(() => {
             onRefresh();
         }, [])
     );
@@ -45,7 +38,7 @@ export default function NotificationsComponent({ route, navigation }: any) {
                     keyExtractor={item => item}
                     refreshControl={
                         <RefreshControl
-                            refreshing={state.loading}
+                            refreshing={loading}
                             onRefresh={onRefresh}
                             colors={["#ffffff"]}
                             tintColor='#ffffff'

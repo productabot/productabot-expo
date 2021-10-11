@@ -54,6 +54,13 @@ export default {
               },
             }
           },
+          tasks: {
+            screens: {
+              tasks: {
+                path: 'tasks'
+              }
+            }
+          },
           settings: {
             screens: {
               settings: {

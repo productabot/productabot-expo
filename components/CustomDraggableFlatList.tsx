@@ -10,7 +10,7 @@ let pageY: number | null = null;
 let dragged: boolean = false;
 class CustomRenderItem extends React.PureComponent {
     render() {
-        const { item, renderItem, onPress, dragRef, updateLik, renderItemStyle, setContextPosition, menuRef, onRename, onDelete, draggable } = this.props;
+        const { item, renderItem, onPress, dragRef, updateLik, renderItemStyle, setContextPosition, menuRef, onRename, onDelete, draggable, delayDragOnWeb } = this.props;
         return (
             <Pressable
                 onContextMenu={async (e: any) => {
@@ -25,7 +25,7 @@ class CustomRenderItem extends React.PureComponent {
                 onPress={async () => { await onPress(item); }}
                 style={(state) => [{ cursor: draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? '#000000' : item.isActive ? '#333333' : state.hovered ? '#202020' : '#161616' }, renderItemStyle]}
                 onPressIn={async () => {
-                    if (Platform.OS === 'web' && draggable) {
+                    if (Platform.OS === 'web' && draggable && !delayDragOnWeb) {
                         dragged = false;
                         setTimeout(() => { dragged = true; }, 100);
                         item.drag();
@@ -33,7 +33,7 @@ class CustomRenderItem extends React.PureComponent {
                         // dragRef.current.flushQueue();
                         // clearTimeout(dragRefTimeout);
                     }
-                    else {
+                    else if (Platform.OS !== 'web') {
                         const mobileContext = async () => {
                             dragRef.current.resetHoverState();
                             let options = ['Cancel'];
@@ -68,7 +68,7 @@ class CustomRenderItem extends React.PureComponent {
                         pageY = null;
                     }
                 }}
-                onPressOut={async () => { if (Platform.OS === 'web') { if (!dragged) { await onPress(item); } dragRef.current.flushQueue(); clearTimeout(dragRefTimeout); dragRefTimeout = setTimeout(() => { dragRef.current && dragRef.current.resetHoverState(); }, 750); } else { pageX = null; pageY = null; clearTimeout(mobileContextTimeout); } }}
+                onPressOut={async () => { if (Platform.OS === 'web') { if (!dragged && !delayDragOnWeb) { await onPress(item); } dragRef.current.flushQueue(); clearTimeout(dragRefTimeout); dragRefTimeout = setTimeout(() => { dragRef.current && dragRef.current.resetHoverState(); }, 750); } else { pageX = null; pageY = null; clearTimeout(mobileContextTimeout); } }}
                 disabled={item.isActive} delayLongPress={150} onLongPress={draggable ? item.drag : () => { }}>
                 {renderItem(item)}
             </Pressable>
@@ -76,11 +76,11 @@ class CustomRenderItem extends React.PureComponent {
     }
 }
 
-export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true }: any) {
+export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true, delayDragOnWeb = false }: any) {
     const dragRef = useRef(null);
     const [lik, setLik] = useState(`${0}`);
     const updateLik = () => { setLik(`${lik + 1}`) }
-    const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} updateLik={updateLik} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} draggable={draggable} />
+    const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} updateLik={updateLik} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} draggable={draggable} delayDragOnWeb={delayDragOnWeb} />
 
     return (
         <DraggableFlatList
@@ -95,12 +95,12 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
             onEndReached={() => { }}
             ListEmptyComponent={ListEmptyComponent}
             dragItemOverflow={true}
-            onDragBegin={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
-            onTouchEnd={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+            onDragBegin={() => { if (Platform.OS !== 'web') { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } }}
             onDragEnd={onDragEnd}
             ListFooterComponent={ListFooterComponent}
             refreshControl={refreshControl}
             initialNumToRender={11}
+            activationDistance={1}
         />
     )
 }

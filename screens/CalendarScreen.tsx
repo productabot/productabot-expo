@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Text, View } from '../components/Themed';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import { RefreshControl, ScrollView, TouchableOpacity, Image, useWindowDimensions, Platform, Alert } from 'react-native';
+import { RefreshControl, ScrollView, TouchableOpacity, Image, useWindowDimensions, Platform, Alert, Animated, Easing } from 'react-native';
 import * as root from '../Root';
 import { API, graphqlOperation } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
-import { LoadingComponent } from '../components/LoadingComponent';
 import Popover from '../components/PopoverMenuRenderer';
 
 LocaleConfig.locales['en'] = {
@@ -17,12 +16,14 @@ LocaleConfig.locales['en'] = {
 LocaleConfig.defaultLocale = 'en';
 
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
-
+let dateOpacity = false;
 export default function CalendarScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
     const [refreshControl, setRefreshControl] = useState(false);
     const [timesheets, setTimesheets] = useState([]);
     const [month, setMonth] = useState(new Date().toLocaleDateString('fr-CA'));
+    const [firstLoad, setFirstLoad] = useState(false);
+    const opacity = Array(42).fill(0).map(() => useRef(new Animated.Value(0)).current);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -33,7 +34,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
 
     let onRefresh = async (showRefreshControl = false) => {
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
-
+        dateOpacity = false;
         let lastMonth = new Date(month);
         lastMonth.setMonth(lastMonth.getMonth() - 1);
         let nextMonth = new Date(month);
@@ -58,6 +59,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         `));
         setTimesheets(data.data.timesheets);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
+        for (let i = 0; i < 42; i++) {
+            Animated.sequence([Animated.delay(10 * i), Animated.timing(opacity[i], { toValue: 1, duration: 100, easing: Easing.ease, useNativeDriver: false })]).start();
+        }
     }
 
     return (
@@ -107,6 +111,28 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     onPressArrowLeft={subtractMonth => subtractMonth()}
                     onPressArrowRight={addMonth => addMonth()}
                     dayComponent={({ date, state }) => {
+                        if (!dateOpacity) {
+                            let currentDateString = date.dateString;
+                            let dateOpacityObject = {};
+                            for (let i = 0; i < 42; i++) {
+                                if (!firstLoad || timesheets.filter(timesheet => timesheet.date === currentDateString).length === 0) {
+                                    dateOpacityObject[currentDateString] = i;
+                                }
+                                else {
+                                    dateOpacityObject[currentDateString] = -1;
+                                }
+                                let currentDate = new Date(currentDateString);
+                                currentDate.setDate(currentDate.getDate() + 1);
+                                currentDateString = currentDate.toISOString().split('T')[0];
+                            }
+                            dateOpacity = dateOpacityObject;
+                            for (let i = 0; i < 42; i++) {
+                                opacity[i].setValue(0);
+                            }
+                            if (!firstLoad) {
+                                setTimeout(() => { setFirstLoad(true); }, 1000);
+                            }
+                        }
                         return (
                             <ScrollView style={[
                                 { borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0 },
@@ -122,10 +148,10 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                 {timesheets.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
                                     <Menu key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                         <MenuTrigger>
-                                            <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Animated.View style={{ opacity: dateOpacity[date.dateString] !== -1 ? opacity[dateOpacity[date.dateString]] : 1, paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Text numberOfLines={1} style={{ fontSize: 12 }}>{root.desktopWeb ? obj.project.name : obj.project.key}</Text>
                                                 <Text numberOfLines={1} style={{ fontSize: 12, minWidth: obj.hours.toString().length * 6 }}>{obj.hours}</Text>
-                                            </View>
+                                            </Animated.View>
                                         </MenuTrigger>
                                         <MenuOptions customStyles={{
                                             optionsWrapper: { backgroundColor: 'transparent', width: 250 },

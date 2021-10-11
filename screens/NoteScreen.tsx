@@ -51,7 +51,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                 })();`);
                 Animated.timing(fadeAnim, { toValue: 1, duration: 50, useNativeDriver: false }).start();
             }
-        }, 50);
+        }, 500);
     }
 
     useSubscription(
@@ -120,44 +120,41 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
     return (
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
             {
-                root.desktopWeb ?
-                    <View style={{ height: 50 }} />
-                    :
-                    <View style={{ padding: 10, paddingTop: 40, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <TouchableOpacity onPress={() => {
-                            navigation.navigate('notes')
-                        }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                        <TextInput spellCheck={false} style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
-                            setNote({ ...note, title: value });
-                        }} onBlur={() => {
-                            setNote({ ...note });
-                        }} />
-                        <TouchableOpacity onPress={async () => {
-                            Platform.OS === 'ios' &&
-                                ActionSheetIOS.showActionSheetWithOptions(
-                                    {
-                                        options: ['Cancel', 'Delete'],
-                                        cancelButtonIndex: 0,
-                                        destructiveButtonIndex: 1
-                                    },
-                                    buttonIndex => {
-                                        if (buttonIndex !== 0) {
-                                            API.graphql(graphqlOperation(`mutation {
+                <View style={{ padding: 10, paddingTop: 0, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <TouchableOpacity onPress={() => {
+                        navigation.navigate('notes')
+                    }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
+                    <TextInput spellCheck={false} style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
+                        setNote({ ...note, title: value });
+                    }} onBlur={() => {
+                        setNote({ ...note });
+                    }} />
+                    <TouchableOpacity onPress={async () => {
+                        Platform.OS === 'ios' &&
+                            ActionSheetIOS.showActionSheetWithOptions(
+                                {
+                                    options: ['Cancel', 'Delete'],
+                                    cancelButtonIndex: 0,
+                                    destructiveButtonIndex: 1
+                                },
+                                buttonIndex => {
+                                    if (buttonIndex !== 0) {
+                                        API.graphql(graphqlOperation(`mutation {
                                             delete_notes_by_pk(id: "${note.id}") {
                                                 id
                                             }
                                         }`)).then((response) => {
-                                                navigation.navigate('notes');
-                                            });
-                                        }
+                                            navigation.navigate('notes');
+                                        });
                                     }
-                                )
-                        }}><Text style={{ fontSize: 30 }}>...</Text></TouchableOpacity>
-                    </View>
+                                }
+                            )
+                    }}><Text style={{ fontSize: 30 }}>...</Text></TouchableOpacity>
+                </View>
             }
             <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{ width: '100%', height: window.height - 160 }}
+                behavior={"height"}
+                style={{ width: '100%', height: '100%', paddingBottom: 45 }}
             >
                 <WebView
                     style={{ backgroundColor: 'transparent', flex: 0, height: '100%' }}

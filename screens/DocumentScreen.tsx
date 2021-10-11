@@ -13,7 +13,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
     const window = useWindowDimensions();
     const [document, setDocument] = useState({});
     const [update, setUpdate] = useState(true);
-    const [editable, setEditable] = useState(true);
+    const [editable, setEditable] = useState(Platform.OS === 'web' ? true : false);
     const [touch, setTouch] = useState({});
     const inputRef = useRef(null);
 
@@ -125,11 +125,12 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                         setTimeout(() => { inputRef.current.focus(); }, 0);
                     }
                 }}
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={[{ width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%', height: window.height - 150 }]}
+                behavior={"height"}
+                style={[{ width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%', height: '100%', paddingBottom: 45 }]}
             >
-                <TextInput spellCheck={false}
-                    autoFocus={true}
+                <TextInput
+                    spellCheck={false}
+                    // autoFocus={true}
                     ref={inputRef}
                     //dataDetectorTypes={'all'}
                     editable={editable}

@@ -6,10 +6,12 @@ import { InputAccessoryViewComponent } from '../components/InputAccessoryViewCom
 import { useApolloClient } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AnimatedLogo } from '../components/AnimatedLogo';
 
-export default function LoginScreen({ route, navigation, setLoading}: any) {
+export default function LoginScreen({ route, navigation, setLoading }: any) {
     const client = useApolloClient();
     const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false });
+    const [internalLoading, setInternalLoading] = useState(false);
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
@@ -40,6 +42,7 @@ export default function LoginScreen({ route, navigation, setLoading}: any) {
     const login = async () => {
         Keyboard.dismiss();
         setLoading(true);
+        setInternalLoading(true);
         try {
             await Auth.signIn({
                 username: state.email,
@@ -48,12 +51,14 @@ export default function LoginScreen({ route, navigation, setLoading}: any) {
             await AsyncStorage.setItem('e2e', state.password);
             connectWebsocket();
             setLoading(false);
+            setInternalLoading(false);
             setState({ ...state, errorMessage: '', success: false, email: '', password: '' });
             navigation.navigate('app');
         }
         catch (err) {
             console.log(err);
             setLoading(false);
+            setInternalLoading(false);
             setState({ ...state, success: false, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
         }
     }
@@ -80,8 +85,9 @@ export default function LoginScreen({ route, navigation, setLoading}: any) {
                 keyboardVerticalOffset={-200}
             >
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                    <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10, borderWidth: 1, borderColor: '#ffffff', borderRadius: 10, borderStyle: 'solid' }} />
-                    <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
+                    {/* <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10, borderWidth: 1, borderColor: '#ffffff', borderRadius: 10, borderStyle: 'solid' }} /> */}
+                    <AnimatedLogo loading={internalLoading} size={1.5} />
+                    <Text style={[styles.baseText, { fontSize: s(50, 0.85), marginLeft: 5 }]}>productabot</Text>
                 </TouchableOpacity>
                 <View style={{ margin: 30 }}>
                     {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}

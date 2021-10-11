@@ -218,6 +218,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                             {paneSize >= 220 &&
                                 <View style={{ width: '50%', maxWidth: 150 }}>
                                     <CustomDraggableFlatList
+                                        delayDragOnWeb={true}
                                         renderItemStyle={{ marginLeft: 5, marginRight: 5, paddingLeft: 7.5, paddingRight: 7.5 }}
                                         noBorder={true}
                                         data={tags}
@@ -269,6 +270,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                         )}
                                     /></View>}
                             <CustomDraggableFlatList
+                                delayDragOnWeb={true}
                                 renderItemStyle={{ marginLeft: 5, marginRight: 5, paddingLeft: 7.5, paddingRight: 7.5 }}
                                 noBorder={true}
                                 data={notes}

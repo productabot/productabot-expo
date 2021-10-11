@@ -81,13 +81,13 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
             timesheet = data.data.timesheets_by_pk;
         }
         else {
-            //preselect last project you entered time for
+            //preselect last project you entered time for, if it exists
             let data = await API.graphql(graphqlOperation(`{
                 timesheets(limit: 1, order_by: {date_created: desc}) {
                   project_id
                 }
               }`));
-            lastProject = data.data.timesheets[0].project_id;
+            lastProject = data.data.timesheets[0]?.project_id;
         }
 
         setTimesheet({

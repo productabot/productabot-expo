@@ -12,7 +12,7 @@ import * as WebBrowser from 'expo-web-browser';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useFocusEffect } from '@react-navigation/native';
 function formatBytes(bytes: number, decimals = 2) {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0 || !bytes) return '0 Bytes';
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -243,7 +243,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
 
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
                                     <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>phone</Text>
-                                    <TextInput keyboardType='phone-pad' inputAccessoryViewID='main' value={`${user.phone}`} onChangeText={(value) => { setUser({ ...user, phone: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                                    <TextInput keyboardType='phone-pad' inputAccessoryViewID='main' value={`${user.phone ? user.phone : ''}`} onChangeText={(value) => { setUser({ ...user, phone: value }) }} style={[styles.textInput, { width: '78%' }]} />
                                 </View>
 
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>

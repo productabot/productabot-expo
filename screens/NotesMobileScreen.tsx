@@ -117,9 +117,9 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
 
     return (
         <View style={styles.container}>
-            <View style={{ padding: 10, paddingTop: 40, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <TouchableOpacity onPress={() => { console.log('open drawer'); navigation.dispatch(DrawerActions.openDrawer()) }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Text style={{ fontSize: 30 }}>☰</Text>
+            <View style={{ padding: 10, paddingTop: 0, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <Text style={{ fontSize: 30, opacity: 0 }}>☰</Text>
                 </TouchableOpacity>
                 <RNPickerSelect
                     placeholder={{}}

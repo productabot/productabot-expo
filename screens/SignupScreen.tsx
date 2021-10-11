@@ -80,17 +80,18 @@ export default function SignupScreen({ route, navigation, setLoading }: any) {
                     <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10, borderWidth: 1, borderColor: '#ffffff', borderRadius: 10, borderStyle: 'solid' }} />
                     <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
                 </TouchableOpacity>
-                <View style={{ margin: 30, marginBottom: 0, maxWidth: 280 }}>
-                    <Text style={[styles.baseText]}>{`NOTE: This app uses end-to-end encryption.\n\nYour password will be the key used to encrypt your documents and notes.\n\n`}<Text style={{ fontWeight: 'bold', color: '#ff3333' }}>{`▲ DO NOT FORGET IT!`}</Text>{`\nWrite it down and keep it somewhere safe.`}</Text>
-                </View>
                 <View style={{ margin: 30 }}>
                     {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
                     <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' />
+                    {/* <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, phone: value }); }} placeholder='phone' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='phone-pad' /> */}
                     <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, username: value }); }} placeholder='username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
                     <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }); }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send' />
                     <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, confirmPassword: value }); }} placeholder='confirm password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                         onSubmitEditing={signup} />
-                    <View style={{ flexDirection: 'row', alignItems: 'center', margin: 10 }}>
+                    <View style={{ marginBottom: 20, marginTop: 20, maxWidth: 280, alignSelf: 'center' }}>
+                        <Text style={[styles.baseText]}>{`Your password will be the key used to encrypt your documents and notes.\n\n`}<Text style={{ fontWeight: 'bold', color: '#ff3333' }}>{`▲ DO NOT FORGET YOUR PASSWORD!`}</Text>{`\nWrite it down and keep it somewhere safe.`}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', margin: 5, marginBottom: 0 }}>
                         <TouchableOpacity onPress={() => { setState({ ...state, checkbox: !state.checkbox }) }} style={{ borderWidth: 1, borderColor: '#ffffff', borderRadius: 2, height: 20, width: 20, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontWeight: 'bold' }}>{state.checkbox && '✓'}</Text></TouchableOpacity>
                         <Text style={{ color: '#ffffff', fontSize: root.desktopWeb ? 11 : 12 }}>I agree to the <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/terms'); }} >Terms of Service</Text> & <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/privacy'); }}>Privacy Policy</Text></Text>
                     </View>

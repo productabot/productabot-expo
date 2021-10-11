@@ -3,7 +3,7 @@ import React from 'react';
 import { MenuProvider } from 'react-native-popup-menu';
 import { SafeAreaView } from 'react-native';
 import { LoadingComponent } from './components/LoadingComponent';
-import { StartupComponent } from './components/StartupComponent';
+import { AnimatedLogo } from './components/AnimatedLogo';
 
 import useCachedResources from './hooks/useCachedResources';
 import Navigation from './navigation';
@@ -66,7 +66,7 @@ export default function App() {
       try {
         let user = await Auth.currentSession();
         if (user) {
-          registerForPushNotificationsAsync();
+          Platform.OS === 'ios' && registerForPushNotificationsAsync();
           client.setLink(new WebSocketLink({
             uri: "wss://api.pbot.it/v1/graphql",
             options: {
@@ -89,11 +89,12 @@ export default function App() {
       }
     }
     async();
-  })
+  }, [])
   if (!isLoadingComplete || authenticated === null) {
+  // if (true) {
     return (
-      <SafeAreaView style={{ backgroundColor: '#000000', flex: 1 }}>
-        <StartupComponent />
+      <SafeAreaView style={{ backgroundColor: '#000000', flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <AnimatedLogo size={2.5} />
       </SafeAreaView>
     );
   } else {
@@ -105,7 +106,7 @@ export default function App() {
             height: '100%',
             width: '100%'
           }}>
-            <Navigation authenticated={authenticated} setLoading={setLoading} />
+            <Navigation authenticated={authenticated} setLoading={setLoading} loading={loading} />
           </SafeAreaView>
           <LoadingComponent loading={loading} />
           <StatusBar />

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { TouchableOpacity, RefreshControl, Image, useWindowDimensions, Platform, Alert } from 'react-native';
+import { TouchableOpacity, RefreshControl, Image, useWindowDimensions, Platform, Alert, Animated, Easing } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { StartupComponent } from '../components/StartupComponent';
@@ -17,6 +17,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
   const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, archive: () => { }, rename: () => { } });
   const [greeting, setGreeting] = useState(<View />);
   const [archived, setArchived] = useState(false);
+  const opacity = Array(20).fill(0).map(() => useRef(new Animated.Value(0)).current);
   const menuRef = useRef(null);
 
   useFocusEffect(
@@ -28,7 +29,6 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
 
   let onRefresh = async (showRefreshControl = false) => {
     showRefreshControl ? setRefreshControl(true) : setLoading(true);
-
     let dateFrom = new Date();
     dateFrom.setDate(1);
     let dateFromString = dateFrom.toISOString().split('T')[0];
@@ -70,7 +70,6 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
         <Text>{data.data.users[0].username}</Text>
       </TouchableOpacity>
     </View>);
-    setLoading(false);
     showRefreshControl ? setRefreshControl(false) : setLoading(false);
   }
 
@@ -115,8 +114,8 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
         parentWidth={root.desktopWeb ? Math.min(window.width, root.desktopWidth) : window.width}
         marginChildrenTop={25}
         marginChildrenBottom={25}
-        marginChildrenLeft={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - (5 * 141)) / 10 : (window.width - (2 * 140)) / 6}
-        marginChildrenRight={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - (5 * 141)) / 10 : (window.width - (2 * 140)) / 6}
+        marginChildrenLeft={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - ((window.width < 600 ? 3 : window.width < 800 ? 4 : 5) * 141)) / (window.width < 600 ? 6 : window.width < 800 ? 8 : 10) : (window.width - (2 * 140)) / 6}
+        marginChildrenRight={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - ((window.width < 600 ? 3 : window.width < 800 ? 4 : 5) * 141)) / (window.width < 600 ? 6 : window.width < 800 ? 8 : 10) : (window.width - (2 * 140)) / 6}
         childrenWidth={140}
         childrenHeight={140}
         fixedItems={[projects.length - 1]}
@@ -186,10 +185,13 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
               onPress={() => { navigation.navigate('project', { id: item.id }) }}
               style={{ alignItems: 'center', width: 140, cursor: 'grab' }}
               key={item.id}>
-              <Image
-                style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1, borderRadius: 20 }}
-                source={{ uri: `https://files.productabot.com/public/${item.image}` }}
-              />
+              <View style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1, borderRadius: 20 }}>
+                <Animated.Image
+                  onLoad={() => { Animated.timing(opacity[index], { toValue: 1, duration: 100, useNativeDriver: false }).start(); }}
+                  style={{ opacity: opacity[index], width: 138, height: 138, borderRadius: 20 }}
+                  source={{ uri: `https://files.productabot.com/public/${item.image}` }}
+                />
+              </View>
               {item.goal &&
                 <View style={{ position: 'absolute', flexDirection: 'row', width: '80%', height: 5, bottom: -8, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
                   <View style={{ height: '100%', backgroundColor: item.color === '#000000' ? '#ffffff' : item.color, width: `${(Math.min(item.timesheets_aggregate.aggregate.sum.hours / item.goal, 1) * 100).toFixed(0)}%`, borderRadius: 3 }} />

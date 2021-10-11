@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, Image, TextInput, useWindowDimensions, Platform, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, Image, TextInput, useWindowDimensions, Platform, Alert, Animated, Easing } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { Auth, API, graphqlOperation, Storage } from 'aws-amplify';
 import * as root from '../Root';
@@ -63,6 +63,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
     const inputRef = useRef(null);
     const [settings, setSettings] = useState(false);
     const [count, setCount] = useState({});
+    const opacity = useRef(new Animated.Value(0)).current;
 
     useFocusEffect(
         React.useCallback(() => {
@@ -148,6 +149,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         setProject(data.data.projects_by_pk);
         setCount({ timesheets: data.data.timesheets_aggregate.aggregate.count, kanban_projects: data.data.kanban_projects_aggregate.aggregate.count, documents: data.data.documents_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.timesheets_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
         setLoading(false);
+        Animated.sequence([Animated.timing(opacity, { toValue: 1, duration: 100, easing: Easing.linear, useNativeDriver: true })]).start();
     }
 
     const pickImage = async () => {
@@ -259,7 +261,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 <View style={{ width: 80, height: 80, marginRight: 10, borderColor: '#ffffff', borderWidth: 1, borderRadius: 10 }} />
                             }
                         </TouchableOpacity>
-                        <View>
+                        <Animated.View style={{ opacity: opacity }}>
                             <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
                                 onChangeText={(value) => { setProject({ ...project, name: value }); }}
                                 onBlur={async () => {
@@ -281,7 +283,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 }`));
                                 }}
                             />
-                        </View>
+                        </Animated.View>
                     </View>
                     {Platform.OS === 'web' && <TouchableOpacity onPress={() => { setSettings(!settings); }} ><Text style={{ fontSize: 30 }}>⚙️</Text></TouchableOpacity>}
                 </View>
@@ -346,7 +348,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
                             <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>goal:</Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={`${project.goal}`} numberOfLines={2} style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 50 }}
+                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={`${project.goal ? project.goal : ''}`} numberOfLines={2} style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 50 }}
                                 onChangeText={(value) => { setProject({ ...project, goal: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`
@@ -439,7 +441,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             selectedIndex={index}
                             onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex) }}
                         />
-                        <View style={{ width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 300) }}>
+                        <Animated.View style={{ opacity: opacity, width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 300) }}>
                             {(index === 0 && count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}
                             {(index === 0 && project.goal && root.desktopWeb) &&
                                 <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
@@ -451,7 +453,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     </MenuTrigger>
                                     <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: 'transparent', width: 600, height: 300 }, optionsContainer: { backgroundColor: 'transparent' } }}>
                                         <View style={{ backgroundColor: '#000000', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderColor: '#444444', borderWidth: 1, borderRadius: 10, borderStyle: 'solid', }}>
-                                            <Text>{`You worked ${count.weeklyGoalHours} out of ${project.goal} hours this month`}</Text>
+                                            <Text>{`You worked ${count.weeklyGoalHours ? count.weeklyGoalHours : 0} out of ${project.goal} hours this month`}</Text>
                                             <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%', height: 200 }}>
                                                 {/* {project.timesheets.map(obj => <View style={{ backgroundColor: project.color, height: `${(obj.hours/8) * 100}%`, width: 5 }} />)} */}
                                                 <PieChart
@@ -507,7 +509,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                                     </View>
                                                 </View>
                                                 <Text style={{ fontSize: 14, width: '50%' }}>{`${item.item.details}`}</Text>
-                                                <Text numberOfLines={1} style={{ fontSize: 30, fontWeight: 'bold', width:'20%', textAlign:'center' }}>{item.item.hours}<Text numberOfLines={1} style={{ fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
+                                                <Text numberOfLines={1} style={{ fontSize: 30, fontWeight: 'bold', width: '20%', textAlign: 'center' }}>{item.item.hours}<Text numberOfLines={1} style={{ fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
                                             </>
                                         );
                                     }}
@@ -743,7 +745,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     }`));
                                     }}
                                 />}
-                        </View>
+                        </Animated.View>
                     </>}
             </View>
             <InputAccessoryViewComponent />
