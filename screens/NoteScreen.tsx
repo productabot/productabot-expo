@@ -51,7 +51,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                 })();`);
                 Animated.timing(fadeAnim, { toValue: 1, duration: 50, useNativeDriver: false }).start();
             }
-        }, 500);
+        }, 1000);
     }
 
     useSubscription(

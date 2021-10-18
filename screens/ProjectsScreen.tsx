@@ -46,7 +46,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
         color
         public
         archived
-        timesheets_aggregate(where: {date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
+        entries_aggregate(where: {date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
           aggregate {
             sum {
               hours
@@ -194,7 +194,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
               </View>
               {item.goal &&
                 <View style={{ position: 'absolute', flexDirection: 'row', width: '80%', height: 5, bottom: -8, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
-                  <View style={{ height: '100%', backgroundColor: item.color === '#000000' ? '#ffffff' : item.color, width: `${(Math.min(item.timesheets_aggregate.aggregate.sum.hours / item.goal, 1) * 100).toFixed(0)}%`, borderRadius: 3 }} />
+                  <View style={{ height: '100%', backgroundColor: item.color === '#000000' ? '#ffffff' : item.color, width: `${(Math.min(item.entries_aggregate.aggregate.sum.hours / item.goal, 1) * 100).toFixed(0)}%`, borderRadius: 3 }} />
                 </View>}
               <Text numberOfLines={1} ellipsizeMode='tail'>{item.public ? '' : '🔒'}{item.name}</Text>
             </View>

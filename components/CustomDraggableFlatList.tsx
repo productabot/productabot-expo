@@ -100,7 +100,8 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
             ListFooterComponent={ListFooterComponent}
             refreshControl={refreshControl}
             initialNumToRender={11}
-            activationDistance={1}
+            activationDistance={5}
+            autoscrollThreshold={100}
         />
     )
 }

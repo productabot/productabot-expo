@@ -14,8 +14,6 @@ import SettingsScreen from '../screens/SettingsScreen';
 import LogoSvg from "../svgs/logo"
 import CalendarScreen from '../screens/CalendarScreen';
 import EntryScreen from '../screens/EntryScreen';
-import BoardScreen from '../screens/BoardScreen';
-import ItemScreen from '../screens/ItemScreen';
 import NotificationsComponent from '../components/NotificationsComponent';
 import NotesDesktopScreen from '../screens/NotesDesktopScreen';
 import NotesMobileScreen from '../screens/NotesMobileScreen';
@@ -103,14 +101,8 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
                     <AppStack.Screen name="project">
                       {props => <ProjectScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="board">
-                      {props => <BoardScreen {...props} refresh={refresh} setLoading={setLoading} />}
-                    </AppStack.Screen>
                     <AppStack.Screen name="document">
                       {props => <DocumentScreen {...props} refresh={refresh} setLoading={setLoading} />}
-                    </AppStack.Screen>
-                    <AppStack.Screen name="item">
-                      {props => <ItemScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>
                 )
@@ -133,6 +125,19 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
                 )
               }}
             </AppBottomTab.Screen>
+            <AppBottomTab.Screen name="tasks" options={{
+              title: `☉ tasks`,
+              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>☉</Text></Pressable> })
+            }}>
+              {props => {
+                return (
+                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="tasks">
+                    <AppStack.Screen name="tasks">
+                      {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                    </AppStack.Screen>
+                  </AppStack.Navigator>)
+              }}
+            </AppBottomTab.Screen>
             <AppBottomTab.Screen name="notes" options={{
               title: `≡ notes`,
               ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>≡</Text></Pressable> })
@@ -151,19 +156,6 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
                     }
                     <AppStack.Screen name="note">
                       {props => <NoteScreen {...props} refresh={refresh} setLoading={setLoading} />}
-                    </AppStack.Screen>
-                  </AppStack.Navigator>)
-              }}
-            </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="tasks" options={{
-              title: `☉ tasks`,
-              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>☉</Text></Pressable> })
-            }}>
-              {props => {
-                return (
-                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="tasks">
-                    <AppStack.Screen name="tasks">
-                      {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>)
               }}

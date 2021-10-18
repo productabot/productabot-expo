@@ -55,7 +55,7 @@ const dateToString = dateTo.toISOString().split('T')[0];
 
 export default function ProjectScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
-    const [project, setProject] = useState({ kanban_projects: [], documents: [], timesheets: [], files: [] });
+    const [project, setProject] = useState({ tasks: [], documents: [], entries: [], files: [] });
     const [index, setIndex] = useState(0);
     const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
     const menuRef = useRef(null);
@@ -86,24 +86,17 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             public
             goal
             website
-            timesheets(order_by: {date: desc}, limit: 50) {
+            entries(order_by: {date: desc}, limit: 50) {
               id
               date
               category
               details
               hours
             }
-            kanban_projects(order_by: {order: asc}) {
-                id
-                name
-                kanban_columns(order_by: {order: asc}) {
-                        name
-                        kanban_items_aggregate {
-                        aggregate {
-                            count
-                        }
-                    }
-                }
+            tasks(order_by: {order: asc}, limit: 50) {
+              id
+              category
+              details
             }
             documents(order_by: {order: asc}) {
               id
@@ -117,13 +110,13 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
               order
             }
         }
-        timesheets_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+        entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
             aggregate {
               count
               sum { hours }
             }
         }
-        kanban_projects_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+        tasks_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
             aggregate {
               count
             }
@@ -139,7 +132,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
               sum { size }
             }
         }
-        goal_aggregate: timesheets_aggregate(where: {project_id: {_eq: "${route.params.id}"}, date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
+        goal_aggregate: entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}, date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
             aggregate {
               count
               sum { hours }
@@ -147,9 +140,9 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         }
         }`));
         setProject(data.data.projects_by_pk);
-        setCount({ timesheets: data.data.timesheets_aggregate.aggregate.count, kanban_projects: data.data.kanban_projects_aggregate.aggregate.count, documents: data.data.documents_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.timesheets_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
+        setCount({ entries: data.data.entries_aggregate.aggregate.count, tasks: data.data.tasks_aggregate.aggregate.count, documents: data.data.documents_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.entries_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
         setLoading(false);
-        Animated.sequence([Animated.timing(opacity, { toValue: 1, duration: 100, easing: Easing.linear, useNativeDriver: true })]).start();
+        Animated.sequence([Animated.timing(opacity, { toValue: 1, duration: Platform.OS === 'web' ? 1 : 100, easing: Easing.linear, useNativeDriver: true })]).start();
     }
 
     const pickImage = async () => {
@@ -191,24 +184,25 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             navigation.navigate('calendar', { screen: 'entry', params: { project_id: project.id } })
         }
         else if (index === 1) {
-            setLoading(true);
-            let count = await API.graphql(graphqlOperation(`{
-            kanban_projects_aggregate(where: {project_id: {_eq: "${project.id}"}}) {
-              aggregate {
-                max {
-                  name
-                }
-                count
-              }
+            const renameFunction = async (rename) => {
+                setLoading(true);
+                let data = await API.graphql(graphqlOperation(`mutation {
+                insert_tasks_one(object: {details: "${rename}", category: "", order: ${project.tasks.length}, project_id: "${project.id}"}) {id}
+              }`));
+                console.log(data);
+                setLoading(false);
+                onRefresh();
             }
-          }`));
-            let data = await API.graphql(graphqlOperation(`mutation {
-            insert_kanban_projects_one(object: {name: "${project.key + ' board ' + (parseInt(count.data.kanban_projects_aggregate.aggregate.max.name ? !isNaN(count.data.kanban_projects_aggregate.aggregate.max.name.slice(-1)) ? count.data.kanban_projects_aggregate.aggregate.max.name.slice(-1) : count.data.kanban_projects_aggregate.aggregate.count : count.data.kanban_projects_aggregate.aggregate.count) + 1)}", description:"add a description here", kanban_columns: {data: [{name: "To-do", order: 0},{name: "In Progress", order: 1},{name: "Done", order: 2}]}, project_id: "${project.id}"}) {
-              id
+            if (Platform.OS !== 'web') {
+                Alert.prompt('Enter task details', '', async (text) => {
+                    await renameFunction(text);
+                }, 'plain-text', '');
             }
-          }`));
-            setLoading(false);
-            navigation.navigate('board', { id: data.data.insert_kanban_projects_one.id })
+            else {
+                let rename = prompt('Enter task details', '');
+                await renameFunction(rename);
+            }
+            // navigation.navigate('document', { id: data.data.insert_tasks_one.id })
         }
         else if (index === 2) {
             setLoading(true);
@@ -437,7 +431,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         <SegmentedControl
                             appearance='dark'
                             style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
-                            values={[`entries (${count.timesheets ?? 0})`, `boards (${count.kanban_projects ?? 0})`, `docs (${count.documents ?? 0})`, `files (${count.files ?? 0})`]}
+                            values={[`entries (${count.entries ?? 0})`, `tasks (${count.tasks ?? 0})`, `docs (${count.documents ?? 0})`, `files (${count.files ?? 0})`]}
                             selectedIndex={index}
                             onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex) }}
                         />
@@ -455,12 +449,12 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                         <View style={{ backgroundColor: '#000000', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderColor: '#444444', borderWidth: 1, borderRadius: 10, borderStyle: 'solid', }}>
                                             <Text>{`You worked ${count.weeklyGoalHours ? count.weeklyGoalHours : 0} out of ${project.goal} hours this month`}</Text>
                                             <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%', height: 200 }}>
-                                                {/* {project.timesheets.map(obj => <View style={{ backgroundColor: project.color, height: `${(obj.hours/8) * 100}%`, width: 5 }} />)} */}
+                                                {/* {project.entries.map(obj => <View style={{ backgroundColor: project.color, height: `${(obj.hours/8) * 100}%`, width: 5 }} />)} */}
                                                 <PieChart
                                                     chartConfig={{
                                                         color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`
                                                     }}
-                                                    data={Object.entries(project.timesheets.filter(obj => obj.date >= dateFromString && obj.date <= dateToString).reduce((acc, obj) => {
+                                                    data={Object.entries(project.entries.filter(obj => obj.date >= dateFromString && obj.date <= dateToString).reduce((acc, obj) => {
                                                         !acc ? acc = {} : null;
                                                         !acc[obj.category] ? acc[obj.category] = 0 : null;
                                                         acc[obj.category] += obj.hours;
@@ -489,10 +483,10 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             {(index === 3 && count.fileSize) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>storage used: {formatBytes(count.fileSize)}</Text>}
                             <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5 }}
                                 onPress={async () => { addAction(); }}
-                            ><Text>{index === 0 ? 'add time entry' : index === 1 ? 'add kanban board' : index === 2 ? 'add project doc' : index === 3 ? 'upload a file' : ''} +</Text></TouchableOpacity>
+                            ><Text>{index === 0 ? 'add time entry' : index === 1 ? 'add task' : index === 2 ? 'add project doc' : index === 3 ? 'upload a file' : ''} +</Text></TouchableOpacity>
                             {index === 0 &&
                                 <CustomDraggableFlatList
-                                    data={project.timesheets}
+                                    data={project.entries}
                                     draggable={false}
                                     renderItem={(item) => {
                                         let date = new Date(item.item.date);
@@ -519,7 +513,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     onDelete={async (item) => {
                                         const deleteFunction = async () => {
                                             setLoading(true);
-                                            await API.graphql(graphqlOperation(`mutation {delete_timesheets_by_pk(id: "${item.item.id}") {id}}`));
+                                            await API.graphql(graphqlOperation(`mutation {delete_entries_by_pk(id: "${item.item.id}") {id}}`));
                                             await onRefresh();
                                             setLoading(false);
                                         }
@@ -541,20 +535,21 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             }
                             {index === 1 &&
                                 <CustomDraggableFlatList
-                                    data={project.kanban_projects}
+                                    data={project.tasks}
                                     renderItem={(item) =>
                                         <>
-                                            <Text style={{ fontSize: 14, width: '75%' }}>📌 {`${item.item.name}`}</Text>
-                                            <Text style={{ fontSize: 14, width: '20%' }}>{`${item.item.kanban_columns[2].kanban_items_aggregate.aggregate.count}/${item.item.kanban_columns[0].kanban_items_aggregate.aggregate.count + item.item.kanban_columns[1].kanban_items_aggregate.aggregate.count + item.item.kanban_columns[2].kanban_items_aggregate.aggregate.count} done`}</Text>
+                                            <Text style={{ fontSize: 14, width: '75%' }}>📌 {`${item.item.details}`}</Text>
                                             <Text style={{ fontSize: 14, width: '5%' }}>☰</Text>
                                         </>
                                     }
-                                    onPress={async (item) => { navigation.navigate('board', { id: item.item.id }) }}
+                                    onPress={async (item) => {
+                                        // navigation.navigate('task', { id: item.item.id }) 
+                                    }}
                                     onRename={async (item) => {
                                         const renameFunction = async (rename) => {
                                             setLoading(true);
                                             if (rename) {
-                                                await API.graphql(graphqlOperation(`mutation{update_kanban_projects_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {name: "${rename}"}) {id}}`));
+                                                await API.graphql(graphqlOperation(`mutation{update_tasks_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {details: "${rename}"}) {id}}`));
                                             }
                                             await onRefresh();
                                             setLoading(false);
@@ -562,25 +557,25 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                         if (Platform.OS !== 'web') {
                                             Alert.prompt('Rename', '', async (text) => {
                                                 await renameFunction(text);
-                                            }, 'plain-text', item.item.name);
+                                            }, 'plain-text', item.item.detail);
                                         }
                                         else {
-                                            let rename = prompt('Rename', item.item.name);
+                                            let rename = prompt('Rename', item.item.detail);
                                             await renameFunction(rename);
                                         }
                                     }}
                                     onDelete={async (item) => {
                                         const deleteFunction = async () => {
                                             setLoading(true);
-                                            await API.graphql(graphqlOperation(`mutation {delete_kanban_projects_by_pk(id: "${item.item.id}") {id}}`));
+                                            await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${item.item.id}") {id}}`));
                                             await onRefresh();
                                             setLoading(false);
                                         }
                                         if (Platform.OS !== 'web') {
-                                            Alert.alert('Warning', 'Are you sure you want to delete this kanban board?',
+                                            Alert.alert('Warning', 'Are you sure you want to delete this task?',
                                                 [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
                                         }
-                                        else if (confirm('Are you sure you want to delete this kanban board?')) { await deleteFunction() }
+                                        else if (confirm('Are you sure you want to delete this task?')) { await deleteFunction() }
                                     }}
                                     setContextPosition={setContextPosition}
                                     menuRef={menuRef}
@@ -588,17 +583,16 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                         <TouchableOpacity
                                             onPress={async () => { addAction(); }}
                                             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: '#161616' }}>
-                                            <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add a board +`}</Text>
+                                            <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add task +`}</Text>
                                         </TouchableOpacity>}
                                     onDragEnd={async ({ data }) => {
-                                        setProject({ ...project, kanban_projects: data });
+                                        setProject({ ...project, tasks: data });
                                         await API.graphql(graphqlOperation(`mutation {
-                                    ${data.map((kanban, kanbanIndex) => `data${kanbanIndex}: update_kanban_projects_by_pk(pk_columns: {id: "${kanban.id}"}, _set: {order: ${kanbanIndex}}) {id}`)}
+                                    ${data.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {order: ${taskIndex}}) {id}`)}
                                 }`));
                                     }}
                                 />
                             }
-
                             {index === 2 &&
                                 <CustomDraggableFlatList
                                     data={project.documents}

@@ -68,7 +68,7 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
         let lastProject = null;
         if (route.params.id) {
             let data = await API.graphql(graphqlOperation(`{
-                    timesheets_by_pk(id: "${route.params.id}") {
+                    entries_by_pk(id: "${route.params.id}") {
                       id
                       project_id
                       date
@@ -78,16 +78,16 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
                     }
                   }
                   `));
-            timesheet = data.data.timesheets_by_pk;
+            timesheet = data.data.entries_by_pk;
         }
         else {
             //preselect last project you entered time for, if it exists
             let data = await API.graphql(graphqlOperation(`{
-                timesheets(limit: 1, order_by: {date_created: desc}) {
+                entries(limit: 1, order_by: {date_created: desc}) {
                   project_id
                 }
               }`));
-            lastProject = data.data.timesheets[0]?.project_id;
+            lastProject = data.data.entries[0]?.project_id;
         }
 
         setTimesheet({
@@ -124,13 +124,13 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
                 ?
                 `            
                 mutation($project_id: uuid, $date: date, $hours: numeric, $details: String, $category: String) {
-                    update_timesheets_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, hours: $hours, details: $details, project_id: $project_id, category: $category}) {id}
+                    update_entries_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, hours: $hours, details: $details, project_id: $project_id, category: $category}) {id}
                 }
                 `
                 :
                 `
                 mutation($project_id: uuid, $date: date, $hours: numeric, $details: String, $category: String) {
-                    insert_timesheets_one(object: {project_id: $project_id, date: $date, hours: $hours, details: $details, category: $category }) {id}
+                    insert_entries_one(object: {project_id: $project_id, date: $date, hours: $hours, details: $details, category: $category }) {id}
                 }
               `, { project_id: timesheet.project, date: timesheet.date, hours: parseFloat(timesheet.hours).toFixed(2), details: timesheet.details, category: timesheet.category }));
             console.log(response);

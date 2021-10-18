@@ -44,7 +44,7 @@ export default function ResetScreen({ route, navigation, setLoading }: any) {
                 </TouchableOpacity>
 
                 <View style={{ margin: 30, marginBottom: 0, maxWidth: 280 }}>
-                    <Text style={[styles.baseText]}>{`NOTE: This app uses end-to-end encryption.\n\nIf you reset your password, you will lose access to all encrypted data (documents and notes).\n\nThere's no limit to password guesses. I highly encourage you to try remembering your password. Once inside the app, you can safely reset your password to something more memorable, and keep access to your encrypted data.\n\nIf you cannot remember your password, you can reset your password below and access unencrypted data (projects, kanbans, timesheets, etc).`}</Text>
+                    <Text style={[styles.baseText]}>{`NOTE: This app uses end-to-end encryption.\n\nIf you reset your password, you will lose access to all encrypted data (documents and notes).\n\nThere's no limit to password guesses. I highly encourage you to try remembering your password. Once inside the app, you can safely reset your password to something more memorable, and keep access to your encrypted data.\n\nIf you cannot remember your password, you can reset your password below and access unencrypted data (projects, tasks, entries, etc).`}</Text>
                 </View>
                 <View style={{ margin: 30 }}>
                     {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
