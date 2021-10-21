@@ -19,6 +19,7 @@ import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 let dateOpacity = false;
 let changingMonths = false;
 let month = new Date().toLocaleDateString();
+let menuOpen = false;
 
 export default function CalendarScreen({ route, navigation, refresh, setLoading }: any) {
     const windowDimensions = useWindowDimensions();
@@ -61,8 +62,10 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
             onRefresh();
 
             const wheelListener = (e) => {
-                if (e.deltaY < 0) { goToPreviousMonth(); }
-                else if (e.deltaY > 0) { goToNextMonth(); }
+                if (!menuOpen) {
+                    if (e.deltaY < 0) { goToPreviousMonth(); }
+                    else if (e.deltaY > 0) { goToNextMonth(); }
+                }
             }
             Platform.OS === 'web' && window.addEventListener("wheel", wheelListener);
             return () => { Platform.OS === 'web' && window.removeEventListener('wheel', wheelListener); }
@@ -174,7 +177,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                 <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
                             </View>
                             {entries.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
-                                <Menu key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
+                                <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                     <MenuTrigger>
                                         <Animated.View style={{ opacity: dateOpacity[date.dateString] !== -1 ? opacity[dateOpacity[date.dateString]] : 1, paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                             <Text numberOfLines={1} style={{ fontSize: 12 }}>{root.desktopWeb ? obj.project.name : obj.project.key}</Text>

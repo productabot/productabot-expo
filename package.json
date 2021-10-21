@@ -43,6 +43,7 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-42.0.0.tar.gz",
     "react-native-calendars": "1.1260.0",
     "react-native-chart-kit": "^6.11.0",
+    "react-native-confetti-cannon": "^1.5.2",
     "react-native-crypto-js": "^1.0.0",
     "react-native-draggable-flatlist": "^2.6.2",
     "react-native-gesture-handler": "~1.10.2",

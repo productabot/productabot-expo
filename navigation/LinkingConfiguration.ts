@@ -21,16 +21,16 @@ export default {
                 path: 'projects'
               },
               project: {
-                path: 'project'
+                path: 'project/:id?'
               },
-              board: {
-                path: 'board'
+              entry: {
+                path: 'projects/entry/:id?'
               },
-              item: {
-                path: 'item'
+              task: {
+                path: 'projects/task/:id?'
               },
-              document: {
-                path: 'document'
+              edit_task: {
+                path: 'projects/task/edit/:id?'
               },
             }
           },
@@ -40,7 +40,7 @@ export default {
                 path: 'calendar',
               },
               entry: {
-                path: 'entry'
+                path: 'entry/:id?'
               },
             }
           },
@@ -58,6 +58,12 @@ export default {
             screens: {
               tasks: {
                 path: 'tasks'
+              },
+              task: {
+                path: 'task/:id?'
+              },
+              edit_task: {
+                path: 'task/edit/:id?'
               }
             }
           },

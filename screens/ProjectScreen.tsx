@@ -93,10 +93,16 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
               details
               hours
             }
-            tasks(order_by: {order: asc}, limit: 50) {
+            tasks(order_by: {order: desc}, limit: 50) {
               id
+              created_at
               category
               details
+              comments_aggregate {
+                  aggregate {
+                      count
+                  }
+              }
             }
             documents(order_by: {order: asc}) {
               id
@@ -181,28 +187,10 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
 
     const addAction = async () => {
         if (index === 0) {
-            navigation.navigate('calendar', { screen: 'entry', params: { project_id: project.id } })
+            navigation.navigate('entry', { project_id: project.id })
         }
         else if (index === 1) {
-            const renameFunction = async (rename) => {
-                setLoading(true);
-                let data = await API.graphql(graphqlOperation(`mutation {
-                insert_tasks_one(object: {details: "${rename}", category: "", order: ${project.tasks.length}, project_id: "${project.id}"}) {id}
-              }`));
-                console.log(data);
-                setLoading(false);
-                onRefresh();
-            }
-            if (Platform.OS !== 'web') {
-                Alert.prompt('Enter task details', '', async (text) => {
-                    await renameFunction(text);
-                }, 'plain-text', '');
-            }
-            else {
-                let rename = prompt('Enter task details', '');
-                await renameFunction(rename);
-            }
-            // navigation.navigate('document', { id: data.data.insert_tasks_one.id })
+            navigation.navigate('edit_task', { project_id: project.id })
         }
         else if (index === 2) {
             setLoading(true);
@@ -508,7 +496,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                         );
                                     }}
                                     onPress={(item) => {
-                                        navigation.navigate('calendar', { screen: 'entry', params: { id: item.item.id } })
+                                        navigation.navigate('entry', { id: item.item.id })
                                     }}
                                     onDelete={async (item) => {
                                         const deleteFunction = async () => {
@@ -536,14 +524,22 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             {index === 1 &&
                                 <CustomDraggableFlatList
                                     data={project.tasks}
-                                    renderItem={(item) =>
-                                        <>
-                                            <Text style={{ fontSize: 14, width: '75%' }}>📌 {`${item.item.details}`}</Text>
-                                            <Text style={{ fontSize: 14, width: '5%' }}>☰</Text>
-                                        </>
+                                    renderItem={({ item }) =>
+                                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
+                                                <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7 }}>
+                                                    <Text>📌</Text>
+                                                </View>
+                                                <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
+                                                    <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
+                                                    <Text style={{ textDecorationLine: item.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
+                                                    <Text style={{ fontSize: 10, color: '#aaaaaa' }}>{item.comments_aggregate.aggregate.count} comments{item.category ? `, #${item.category}` : ``}</Text>
+                                                </View>
+                                            </View>
+                                        </View>
                                     }
                                     onPress={async (item) => {
-                                        // navigation.navigate('task', { id: item.item.id }) 
+                                        navigation.navigate('task', { id: item.item.id })
                                     }}
                                     onRename={async (item) => {
                                         const renameFunction = async (rename) => {
@@ -588,7 +584,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     onDragEnd={async ({ data }) => {
                                         setProject({ ...project, tasks: data });
                                         await API.graphql(graphqlOperation(`mutation {
-                                    ${data.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {order: ${taskIndex}}) {id}`)}
+                                    ${data.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {order: ${data.length - taskIndex - 1}}) {id}`)}
                                 }`));
                                     }}
                                 />

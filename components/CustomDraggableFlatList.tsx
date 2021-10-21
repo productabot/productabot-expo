@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Platform, Pressable, ActionSheetIOS } from 'react-native';
+import { Platform, Pressable, ActionSheetIOS, View } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import * as Haptics from 'expo-haptics';
 
@@ -25,13 +25,11 @@ class CustomRenderItem extends React.PureComponent {
                 onPress={async () => { await onPress(item); }}
                 style={(state) => [{ cursor: draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? '#000000' : item.isActive ? '#333333' : state.hovered ? '#202020' : '#161616' }, renderItemStyle]}
                 onPressIn={async () => {
+                    // if (Platform.OS === 'web') { setTimeout(() => { updateLik(); }, 10); }
                     if (Platform.OS === 'web' && draggable && !delayDragOnWeb) {
                         dragged = false;
                         setTimeout(() => { dragged = true; }, 100);
                         item.drag();
-                        // updateLik();
-                        // dragRef.current.flushQueue();
-                        // clearTimeout(dragRefTimeout);
                     }
                     else if (Platform.OS !== 'web') {
                         const mobileContext = async () => {
@@ -68,7 +66,7 @@ class CustomRenderItem extends React.PureComponent {
                         pageY = null;
                     }
                 }}
-                onPressOut={async () => { if (Platform.OS === 'web') { if (!dragged && !delayDragOnWeb) { await onPress(item); } dragRef.current.flushQueue(); clearTimeout(dragRefTimeout); dragRefTimeout = setTimeout(() => { dragRef.current && dragRef.current.resetHoverState(); }, 750); } else { pageX = null; pageY = null; clearTimeout(mobileContextTimeout); } }}
+                onPressOut={async () => { if (Platform.OS === 'web') { if (!dragged && !delayDragOnWeb) { await onPress(item); } clearTimeout(dragRefTimeout); dragRefTimeout = setTimeout(() => { dragRef.current && dragRef.current.resetHoverState(); }, 750); } else { pageX = null; pageY = null; clearTimeout(mobileContextTimeout); } }}
                 disabled={item.isActive} delayLongPress={150} onLongPress={draggable ? item.drag : () => { }}>
                 {renderItem(item)}
             </Pressable>
@@ -79,24 +77,31 @@ class CustomRenderItem extends React.PureComponent {
 export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true, delayDragOnWeb = false }: any) {
     const dragRef = useRef(null);
     const [lik, setLik] = useState(`${0}`);
-    const updateLik = () => { setLik(`${lik + 1}`) }
+    const updateLik = () => { setLik(`${new Date().toISOString()}`) }
     const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} updateLik={updateLik} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} draggable={draggable} delayDragOnWeb={delayDragOnWeb} />
+
+    React.useEffect(() => {
+        const wheelListener = (e) => { setTimeout(() => { updateLik(); }, 20); }
+        Platform.OS === 'web' && window.addEventListener("wheel", wheelListener);
+        return () => { Platform.OS === 'web' && window.removeEventListener('wheel', wheelListener); }
+    }, []);
 
     return (
         <DraggableFlatList
             ref={dragRef}
             style={[{ height: '100%' }, (Platform.OS === 'web' && !noBorder) && { borderColor: '#333333', borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }, style]}
             data={data}
+            containerStyle={{ maxHeight: '100%' }}
             contentContainerStyle={{ width: '100%' }}
             layoutInvalidationKey={lik}
             autoscrollSpeed={200}
             renderItem={internalRenderItem}
-            keyExtractor={(item, index) => { return `draggable-item-${item.id}` }}
+            keyExtractor={(item, index) => { return `draggable-item-${item ? item.id : new Date().toISOString()}` }}
             onEndReached={() => { }}
             ListEmptyComponent={ListEmptyComponent}
             dragItemOverflow={true}
             onDragBegin={() => { if (Platform.OS !== 'web') { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } }}
-            onDragEnd={onDragEnd}
+            onDragEnd={(props) => { onDragEnd(props); setTimeout(() => { updateLik(); }, 20); }}
             ListFooterComponent={ListFooterComponent}
             refreshControl={refreshControl}
             initialNumToRender={11}

@@ -25,6 +25,8 @@ import * as Linking from 'expo-linking';
 import TestScreen from '../screens/TestScreen';
 import { AnimatedLogo } from '../components/AnimatedLogo';
 import TasksScreen from '../screens/TasksScreen';
+import TaskScreen from '../screens/TaskScreen';
+import EditTaskScreen from '../screens/EditTaskScreen';
 
 export default function Navigation({ navigation, authenticated, setLoading, loading }: any) {
   return (
@@ -90,7 +92,7 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
             }
             <AppBottomTab.Screen name="projects" options={{
               title: `⧉${(root.desktopWeb && window.width < 900) ? `` : ` projects`}`,
-              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>⧉</Text></Pressable> })
+              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15, marginTop: 3 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>⧉</Text></Pressable> })
             }}>
               {props => {
                 return (
@@ -104,13 +106,22 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
                     <AppStack.Screen name="document">
                       {props => <DocumentScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
+                    <AppStack.Screen name="entry">
+                      {props => <EntryScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="task">
+                      {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="edit_task">
+                      {props => <EditTaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
+                    </AppStack.Screen>
                   </AppStack.Navigator>
                 )
               }}
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="calendar" options={{
               title: `▦ calendar`,
-              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>▦</Text></Pressable> })
+              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>▦</Text></Pressable> })
             }}>
               {props => {
                 return (
@@ -127,20 +138,26 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="tasks" options={{
               title: `☉ tasks`,
-              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>☉</Text></Pressable> })
+              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>☉</Text></Pressable> })
             }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="tasks">
                     <AppStack.Screen name="tasks">
-                      {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                      {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="task">
+                      {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="edit_task">
+                      {props => <EditTaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>)
               }}
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="notes" options={{
               title: `≡ notes`,
-              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: '#ffffff' }}>≡</Text></Pressable> })
+              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>≡</Text></Pressable> })
             }}>
               {props => {
                 return (

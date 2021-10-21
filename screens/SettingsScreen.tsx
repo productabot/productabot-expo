@@ -177,7 +177,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
                         <View style={{ flexDirection: 'column' }}>
                             <Text style={{ fontSize: 30 }}>{oldUser.username}</Text>
                             <Text style={{ fontSize: 15 }}>{user.created_at ? `productive since ${new Date(user.created_at).toLocaleDateString()}` : ``}</Text>
-                            <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${oldUser.plan === 'free' ? `100 MB` : `1,000 GB`} used`}</Text>
+                            <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${oldUser.plan === 'free' ? `100 MB` : `100 GB`} used`}</Text>
                         </View>
                         <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
                             <TouchableOpacity onPress={logout}><Text style={{ textAlign: 'center' }}>log out →</Text></TouchableOpacity>
@@ -200,20 +200,20 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
                                     <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'free' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'free' ? '#3F0054' : '#000000' }}>
                                         <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
                                             <Text style={{ fontSize: 20, fontWeight: 'bold' }}>free</Text>
-                                            <Text style={{ fontSize: 20 }}>$0 per month</Text>
+                                            <Text style={{ fontSize: 20 }}>$0.00 per month</Text>
                                         </View>
                                         <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                            <Text>• 0.1 GB storage</Text>
-                                            <Text>• 3 projects</Text>
+                                            <Text>• 100 MB storage</Text>
+                                            <Text>• 4 projects</Text>
                                         </View>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'paid' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'paid' ? '#3F0054' : '#000000' }}>
                                         <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
                                             <Text style={{ fontSize: 20, fontWeight: 'bold' }}>✦ premium</Text>
-                                            <Text style={{ fontSize: 20 }}>$4 per month</Text>
+                                            <Text style={{ fontSize: 20 }}>$2.99 per month</Text>
                                         </View>
                                         <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                            <Text>• 1,000 GB storage</Text>
+                                            <Text>• 100 GB storage</Text>
                                             <Text>• unlimited projects</Text>
                                             <Text>• website & blog</Text>
                                             <Text>• api integrations</Text>
