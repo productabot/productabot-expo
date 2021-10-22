@@ -20,9 +20,9 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.productabot.app",
+      "bundleIdentifier": "com.productabot",
       "usesIcloudStorage": true,
-      "buildNumber": "2021.07.30"
+      "buildNumber": "2021.10.21"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,6 +35,7 @@
       "favicon": "./assets/images/favicon.png",
       "backgroundColor": "#000000"
     },
-    "description": ""
+    "description": "",
+    "jsEngine": "hermes"
   }
 }

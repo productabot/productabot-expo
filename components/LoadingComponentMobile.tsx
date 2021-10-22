@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { View, Animated, Easing } from 'react-native';
-let spinValue = new Animated.Value(0);
 
 export function LoadingComponentMobile() {
-    Animated.sequence([
-        Animated.loop(Animated.timing(spinValue, { toValue: 1, duration: 500, easing: Easing.sin, useNativeDriver: true }))
-    ]).start();
+    const spinValue = new Animated.Value(0);
+    Animated.loop(Animated.timing(spinValue, { toValue: 1, duration: 400, easing: Easing.sin, useNativeDriver: true })).start();
     const spin = spinValue.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
     return (
         <View style={{ position: 'absolute', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
