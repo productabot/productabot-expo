@@ -22,7 +22,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.productabot",
       "usesIcloudStorage": true,
-      "buildNumber": "2021.10.21.2"
+      "buildNumber": "2021.10.21.3"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,7 +35,6 @@
       "favicon": "./assets/images/favicon.png",
       "backgroundColor": "#000000"
     },
-    "description": "",
-    "jsEngine": "hermes"
+    "description": ""
   }
 }

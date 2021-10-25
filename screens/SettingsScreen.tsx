@@ -86,7 +86,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
             });
             if (!selectedMedia.cancelled) {
                 setLoading(true);
-                let media = await ImageManipulator.manipulateAsync(selectedMedia.uri, [{ resize: { width: 500 } }], { compress: 0, format: ImageManipulator.SaveFormat.JPEG });
+                let media = await ImageManipulator.manipulateAsync(selectedMedia.uri, [{ resize: { width: 500 } }], { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
                 let response = await fetch(media.uri);
                 let blob = await response.blob();
                 let filename = `${uuidv4()}.jpg`;

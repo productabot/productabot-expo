@@ -14,6 +14,8 @@ import { Platform, LogBox } from 'react-native';
 import { WebSocketLink } from "@apollo/client/link/ws";
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
+import { enableScreens } from 'react-native-screens';
+enableScreens(true);
 
 Amplify.configure({
   Auth: {
@@ -62,6 +64,7 @@ export default function App() {
     const async = async () => {
       Platform.OS !== 'web' && LogBox.ignoreLogs([
         'ReactNativeFiberHostComponent: Calling getNode() on the ref of an Animated component is no longer necessary. You can now directly use the ref instead. This method will be removed in a future release.',
+        'Constants.platform.ios.model has been deprecated in favor of expo-device\'s Device.modelName property. This API will be removed in SDK 45.'
       ]);
       try {
         let user = await Auth.currentSession();
@@ -91,7 +94,7 @@ export default function App() {
     async();
   }, [])
   if (!isLoadingComplete || authenticated === null) {
-  // if (true) {
+    // if (true) {
     return (
       <SafeAreaView style={{ backgroundColor: '#000000', flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <AnimatedLogo size={2.5} />

@@ -341,7 +341,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                                 img.src = dataURL
                                             })
                                             const dimensions = await getHeightAndWidthFromDataUrl(url);
-                                            let media = await ImageManipulator.manipulateAsync(url, [], { compress: 0, format: ImageManipulator.SaveFormat.JPEG });
+                                            let media = await ImageManipulator.manipulateAsync(url, [], { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
                                             let response = await fetch(media.uri);
                                             let filename = `${uuidv4()}.jpg`;
                                             await Storage.put(filename, (await response.blob()), { contentType: 'image/jpeg', level: 'public' });
