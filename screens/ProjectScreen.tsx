@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, Image, TextInput, useWindowDimensions, Platform, Alert, Animated, Easing } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { Auth, API, graphqlOperation, Storage } from 'aws-amplify';
+import { Storage } from "@aws-amplify/storage";
+import { API, graphqlOperation } from "@aws-amplify/api";
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import 'react-native-get-random-values';

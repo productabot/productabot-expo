@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, TextInput, Platform, Keyboard, KeyboardAvoidingView } from 'react-native';
-import { Auth } from "aws-amplify";
+import { Auth } from "@aws-amplify/auth";
 import LogoSvg from "../svgs/logo"
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { useApolloClient } from "@apollo/client";

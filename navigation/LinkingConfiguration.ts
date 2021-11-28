@@ -75,6 +75,9 @@ export default {
               blank: {
                 path: 'blank'
               },
+              test: {
+                path: 'test'
+              },
             }
           }
         },

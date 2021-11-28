@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, TextInput, Platform, KeyboardAvoidingView, Keyboard, useWindowDimensions, Text, Image } from 'react-native';
 import { View } from '../components/Themed';
-import { API, graphqlOperation } from 'aws-amplify';
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
@@ -47,27 +46,6 @@ export default function TestScreen({ route, navigation, setLoading }: any) {
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={[{ width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%', height: window.height - 150 }]}
             >
-                <TextInput spellCheck={false}
-                    selectionColor='#ff0000'
-                    autoFocus={true}
-                    ref={inputRef}
-                    //dataDetectorTypes={'all'}
-                    editable={editable}
-                    inputAccessoryViewID='main'
-                    style={[{ width: '100%', height: '100%', color: '#ffffff', padding: 10, fontSize: root.desktopWeb ? 12 : 16, paddingTop: 10, fontFamily: 'droid' }, root.desktopWeb && { outlineWidth: 0, borderColor: '#333333', borderWidth: 1, borderStyle: 'solid' }]}
-                    multiline={true}
-                    onChangeText={(value) => {
-                        setDocument(value);
-                    }}
-                    selection={{ start: 0, end: 1 }}
-                ><Text>{document.split(' ').map(obj => {
-                    if (obj.startsWith('#')) {
-                        return <Text style={{ fontWeight: '800', color: '#ff0000' }}>{obj}</Text>
-                    }
-                    else {
-                        return <Text style={{ fontWeight: '800' }}>{obj}</Text>
-                    }
-                })}</Text></TextInput>
             </KeyboardAvoidingView>
             <InputAccessoryViewComponent />
         </View >

@@ -9,7 +9,9 @@ import useCachedResources from './hooks/useCachedResources';
 import Navigation from './navigation';
 
 import { Environment } from './Environment';
-import Amplify, { Auth, API, graphqlOperation } from "aws-amplify";
+import Amplify from "@aws-amplify/core";
+import { Auth } from "@aws-amplify/auth";
+import { API, graphqlOperation } from "@aws-amplify/api";
 import { Platform, LogBox } from 'react-native';
 import { WebSocketLink } from "@apollo/client/link/ws";
 import Constants from 'expo-constants';

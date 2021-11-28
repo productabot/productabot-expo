@@ -3,7 +3,7 @@ import { Text } from '../components/Themed';
 import { View, RefreshControl, Platform, useWindowDimensions, Image, Alert, TouchableOpacity } from 'react-native';
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 import { useFocusEffect } from '@react-navigation/native';
-import { API, graphqlOperation } from 'aws-amplify';
+import { API, graphqlOperation } from "@aws-amplify/api";
 import * as root from '../Root';
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { API, graphqlOperation } from 'aws-amplify';
+import { API, graphqlOperation } from "@aws-amplify/api";
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';

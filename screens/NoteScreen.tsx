@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, TextInput, Platform, ActionSheetIOS, KeyboardAvoidingView, Keyboard, Pressable, useWindowDimensions, Animated } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { API, graphqlOperation } from 'aws-amplify';
+import { API, graphqlOperation } from "@aws-amplify/api";
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import { InputAccessoryViewWebViewComponent } from '../components/InputAccessoryViewWebViewComponent';

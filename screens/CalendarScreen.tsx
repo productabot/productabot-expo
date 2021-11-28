@@ -3,7 +3,7 @@ import { Text, View } from '../components/Themed';
 import { Calendar, CalendarList, LocaleConfig } from 'react-native-calendars';
 import { RefreshControl, ScrollView, TouchableOpacity, Image, useWindowDimensions, Platform, Alert, Animated, Easing } from 'react-native';
 import * as root from '../Root';
-import { API, graphqlOperation } from 'aws-amplify';
+import { API, graphqlOperation } from "@aws-amplify/api";
 import { useFocusEffect } from '@react-navigation/native';
 import Popover from '../components/PopoverMenuRenderer';
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert, useWindowDimensions, Image } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { API, graphqlOperation, Auth } from 'aws-amplify';
+import { API, graphqlOperation } from "@aws-amplify/api";
 import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import RNPickerSelect from 'react-native-picker-select';

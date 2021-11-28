@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { TouchableOpacity, RefreshControl, Image, useWindowDimensions, Platform, Alert, Animated, Easing } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { API, graphqlOperation, Auth } from 'aws-amplify';
+import { Auth } from "@aws-amplify/auth";
+import { API, graphqlOperation } from "@aws-amplify/api";
 import { StartupComponent } from '../components/StartupComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
@@ -113,7 +114,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
           </View>}
         minOpacity={100}
         maxScale={1.05}
-        delayLongPress={200}
+        delayLongPress={Platform.OS !== 'web' ? 200 : 75}
         onDragStart={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
         onDragEnd={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
         sortable={true}

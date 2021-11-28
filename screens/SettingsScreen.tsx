@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Text, View } from '../components/Themed';
-import { Auth, API, graphqlOperation, Storage } from "aws-amplify";
+import { Storage } from "@aws-amplify/storage";
+import { Auth } from "@aws-amplify/auth";
+import { API, graphqlOperation } from "@aws-amplify/api";
 import { TouchableOpacity, useWindowDimensions, Image, TextInput, StyleSheet, Alert, ScrollView, RefreshControl, Platform, KeyboardAvoidingView, FlatList } from 'react-native';
 import * as root from '../Root';
 import 'react-native-get-random-values';
@@ -113,6 +115,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
         await Auth.signOut();
         setLoading(false);
         navigation.navigate('auth');
+        Platform.OS==='web' && window.location.reload();
     }
 
     const cancelChanges = async () => {

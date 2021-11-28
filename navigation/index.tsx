@@ -162,7 +162,7 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="notes">
-                    {Platform.OS === 'ios' ?
+                    {(window.width < 900) ?
                       <AppStack.Screen name="notes">
                         {props => <NotesMobileScreen {...props} refresh={refresh} setLoading={setLoading} />}
                       </AppStack.Screen>
