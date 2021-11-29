@@ -60,7 +60,7 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
         //check if the user has any projects
         if (projects.data.projects.length === 0) {
             alert('You must add a project before adding a time entry');
-            navigation.navigate('projects');
+            navigation.navigate('projectsTab');
         }
 
         //load existing timesheet if editing
@@ -136,7 +136,7 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
             console.log(response);
             setTimesheet({ hours: null, details: null, category: null, date: dates[20].value, project: projects[0].value });
             setLoading(false);
-            navigation.navigate('calendar');
+            navigation.navigate('calendarTab');
         }
         catch (err) {
             setTimesheet({ hours: null, details: null, date: dates[20].value, project: projects[0].value });

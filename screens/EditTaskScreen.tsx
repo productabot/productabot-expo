@@ -58,7 +58,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
         //check if the user has any projects
         if (projects.data.projects.length === 0) {
             alert('You must add a project before adding a task');
-            navigation.navigate('projects');
+            navigation.navigate('projectsTab');
         }
 
         //load existing task if editing
@@ -111,10 +111,10 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                 `
                 :
                 `
-                mutation($project_id: uuid, $date: date, $details: String, $category: String) {
-                    insert_tasks_one(object: {project_id: $project_id, date: $date, details: $details, category: $category, root_order: 10000 }) {id}
+                mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String) {
+                    insert_tasks_one(object: {project_id: $project_id, date: $date, details: $details, category: $category, status: $status, root_order: 10000 }) {id}
                 }
-              `, { project_id: task.project, date: task.date, details: task.details, category: task.category }));
+              `, { project_id: task.project, date: task.date, details: task.details, category: task.category, status: route.params.status }));
             console.log(response);
             setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value });
             setLoading(false);

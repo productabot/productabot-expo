@@ -19,6 +19,7 @@ import { WebView } from 'react-native-webview';
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 import Popover from '../components/PopoverMenuRenderer';
 import { PieChart } from "react-native-chart-kit";
+import * as Haptics from 'expo-haptics';
 const chartColors = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6',
     '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
     '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A',
@@ -373,7 +374,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     setLoading(true);
                                     // await API.graphql(graphqlOperation(`mutation {delete_projects_by_pk(id: "${project.id}") {id}}`));
                                     setLoading(false);
-                                    navigation.navigate('projects');
+                                    navigation.navigate('projectsTab');
                                 }
                                 if (Platform.OS === 'ios') {
                                     Alert.alert('Warning', 'Are you sure you want to archive this project?', [{ style: 'cancel', text: 'no' }, {
@@ -397,7 +398,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     setLoading(true);
                                     await API.graphql(graphqlOperation(`mutation {delete_projects_by_pk(id: "${project.id}") {id}}`));
                                     setLoading(false);
-                                    navigation.navigate('projects');
+                                    navigation.navigate('projectsTab');
                                 }
                                 if (Platform.OS === 'ios') {
                                     Alert.alert('Warning', 'Are you sure you want to delete this project?', [{ style: 'cancel', text: 'no' }, {
@@ -422,7 +423,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
                             values={[`entries (${count.entries ?? 0})`, `tasks (${count.tasks ?? 0})`, `docs (${count.documents ?? 0})`, `files (${count.files ?? 0})`]}
                             selectedIndex={index}
-                            onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex) }}
+                            onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                         />
                         <Animated.View style={{ opacity: opacity, width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 300) }}>
                             {(index === 0 && count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}

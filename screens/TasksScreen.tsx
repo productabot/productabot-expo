@@ -9,6 +9,7 @@ import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import * as Haptics from 'expo-haptics';
 
 const oldDate = new Date();
 oldDate.setDate(oldDate.getDate() - 2);
@@ -84,12 +85,13 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                     style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
                     values={[`backlog (${count.backlog})`, `in progress (${count.in_progress})`, `done (${count.done})`]}
                     selectedIndex={index}
-                    onChange={(e) => { setChecked([]); setIndex(e.nativeEvent.selectedSegmentIndex) }}
+                    onChange={(e) => { setChecked([]); setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                 />
                 <View style={{ width: '100%', height: 30, flexDirection: 'row', justifyContent: 'space-between' }}>
                     {(checked.length > 0 && index !== 0) ? <TouchableOpacity
                         style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
                         onPress={async () => {
+                            Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
                             await API.graphql(graphqlOperation(`mutation {${checked.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task}"}, _set: {status: "${index === 1 ? 'backlog' : index === 2 ? 'in_progress' : 'done'}", root_order: 10000}) {id}`)}}`));
                             await onRefresh();
                         }}><Text>{`move to `}<Text style={{ fontWeight: 'bold' }}>{index === 1 ? 'backlog' : index === 2 ? 'in progress' : 'done'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
@@ -101,12 +103,15 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                         onPress={async () => {
                             await API.graphql(graphqlOperation(`mutation {${checked.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task}"}, _set: {status: "${index === 0 ? 'in_progress' : index === 1 ? 'done' : 'backlog'}", root_order: 10000}) {id}`)}}`));
                             await onRefresh();
-                            if (index === 1) { setConfetti(true); setTimeout(() => { setConfetti(false) }, 2500); }
+                            if (index === 1) {
+                                Platform.OS !== 'web' && [...Array(25).keys()].map(i => setTimeout(() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }, i * 25));
+                                setConfetti(true); setTimeout(() => { setConfetti(false) }, 2500);
+                            }
                         }}><Text>{`move to `}<Text style={{ fontWeight: 'bold' }}>{index === 0 ? 'in progress' : index === 1 ? 'done' : 'backlog'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
                     {checked.length === 0 &&
                         <TouchableOpacity
                             style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
-                            onPress={async () => { navigation.navigate('edit_task', {}) }}><Text>{`add task +`}</Text></TouchableOpacity>
+                            onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.navigate('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'in_progress' : 'done' }) }}><Text>{`add task +`}</Text></TouchableOpacity>
                     }
                 </View>
                 <CustomDraggableFlatList
@@ -118,6 +123,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                             {(!loading && index === 1 && new Date(item.created_at) < oldDate) && <View style={{ position: 'absolute', left: -7, top: -7, backgroundColor: (new Date(new Date().getTime() - new Date(item.created_at).getTime()).getDate() < 7) ? '#3F0054' : '#ff0000', borderRadius: 5, paddingLeft: 5, paddingRight: 5 }}><Text style={{ fontSize: 14 }}>{new Date(new Date().getTime() - new Date(item.created_at).getTime()).getDate()} days old</Text></View>}
                             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
                                 <TouchableOpacity onPress={() => {
+                                    Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                     navigation.navigate('task', { id: item.id });
                                 }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
                                     <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7 }}>
@@ -148,6 +154,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                                         <TouchableOpacity
                                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                             onPress={() => {
+                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                                 if (checked.filter(obj => obj === item.id).length === 0) {
                                                     setChecked([...checked, item.id]);
                                                 }
@@ -185,7 +192,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                     onDelete={async (item) => {
                         const deleteFunction = async () => {
                             setLoading(true);
-                            await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${item.item.id}") {id}}`));
+                            await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${item.id}") {id}}`));
                             await onRefresh();
                             setLoading(false);
                         }
@@ -233,6 +240,6 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                 </MenuOptions>
             </Menu>
             {confetti && <ConfettiCannon count={100} origin={{ x: windowDimensions.width / 2, y: -15 }} autoStart={true} fadeOut={true} explosionSpeed={350} fallSpeed={2000} />}
-        </View>
+        </View >
     );
 }

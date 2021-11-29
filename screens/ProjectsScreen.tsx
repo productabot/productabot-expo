@@ -66,7 +66,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
     let username = await (await Auth.currentSession()).getIdToken().payload.preferred_username;
     setGreeting(<View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
       {(Platform.OS === 'web' && window.width > 800) && <Text>{(currentHour < 12 && currentHour > 6) ? `good morning, ` : (currentHour < 18 && currentHour >= 12) ? `good afternoon, ` : (currentHour < 22 && currentHour >= 18) ? `good evening, ` : `good night, `}</Text>}
-      <TouchableOpacity onPress={() => { navigation.navigate('settings') }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }} >
+      <TouchableOpacity onPress={() => { navigation.navigate('settingsTab') }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }} >
         <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: '#ffffff', borderRadius: 5, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${data.data.users[0].image}` }} />
         <Text>{data.data.users[0].username}</Text>
       </TouchableOpacity>
@@ -113,8 +113,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
             </TouchableOpacity>
           </View>}
         minOpacity={100}
-        maxScale={1.05}
-        delayLongPress={Platform.OS !== 'web' ? 200 : 75}
+        delayLongPress={Platform.OS !== 'web' ? 200 : 85}
         onDragStart={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
         onDragEnd={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
         sortable={true}
@@ -206,22 +205,24 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
                 </View>}
               <Text numberOfLines={1} ellipsizeMode='tail'>{item.public ? '' : '🔒'}{item.name}</Text>
             </View>
-
             :
-            <View
-              onContextMenu={(e) => { e.preventDefault(); }}
-              onPress={async () => {
-                setLoading(true);
-                let data = await API.graphql(graphqlOperation(`mutation {
+            !archived ?
+              <View
+                onContextMenu={(e) => { e.preventDefault(); }}
+                onPress={async () => {
+                  setLoading(true);
+                  let data = await API.graphql(graphqlOperation(`mutation {
                 insert_projects_one(object: {name: "new project", key: "NP", description: "Add a description to your new project", color: "#ff0000", order: ${projects.length}}) {
                   id
                 }
               }`));
-                setLoading(false);
-                navigation.navigate('project', { id: data.data.insert_projects_one.id });
-              }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 140, height: 140 }}>
-              <Text style={{ fontSize: 30 }}>+</Text>
-            </View>
+                  setLoading(false);
+                  navigation.navigate('project', { id: data.data.insert_projects_one.id });
+                }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 140, height: 140 }}>
+                <Text style={{ fontSize: 30 }}>+</Text>
+              </View>
+              :
+              <View />
         )}
       />
       <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>

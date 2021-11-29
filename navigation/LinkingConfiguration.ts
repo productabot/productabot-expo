@@ -15,7 +15,7 @@ export default {
       },
       app: {
         screens: {
-          projects: {
+          projectsTab: {
             screens: {
               projects: {
                 path: 'projects'
@@ -34,7 +34,7 @@ export default {
               },
             }
           },
-          calendar: {
+          calendarTab: {
             screens: {
               calendar: {
                 path: 'calendar',
@@ -44,7 +44,7 @@ export default {
               },
             }
           },
-          notes: {
+          notesTab: {
             screens: {
               notes: {
                 path: 'notes'
@@ -54,7 +54,7 @@ export default {
               },
             }
           },
-          tasks: {
+          tasksTab: {
             screens: {
               tasks: {
                 path: 'tasks'
@@ -67,7 +67,7 @@ export default {
               }
             }
           },
-          settings: {
+          settingsTab: {
             screens: {
               settings: {
                 path: 'settings'

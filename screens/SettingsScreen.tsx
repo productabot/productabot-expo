@@ -13,6 +13,7 @@ import { InputAccessoryViewComponent } from '../components/InputAccessoryViewCom
 import * as WebBrowser from 'expo-web-browser';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useFocusEffect } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 function formatBytes(bytes: number, decimals = 2) {
     if (bytes === 0 || !bytes) return '0 Bytes';
     const k = 1024;
@@ -115,7 +116,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
         await Auth.signOut();
         setLoading(false);
         navigation.navigate('auth');
-        Platform.OS==='web' && window.location.reload();
+        Platform.OS === 'web' && window.location.reload();
     }
 
     const cancelChanges = async () => {
@@ -194,7 +195,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
                         style={{ marginTop: 10 }}
                         values={[`account`, `cards/invoices`, `integrations`]}
                         selectedIndex={index}
-                        onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex) }}
+                        onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                     />
                     <View style={{ flexDirection: 'column', width: '100%' }}>
                         {index == 0 &&

@@ -122,7 +122,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
             {
                 <View style={{ padding: 10, paddingTop: 0, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <TouchableOpacity onPress={() => {
-                        navigation.navigate('notes')
+                        navigation.navigate('notesTab')
                     }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                     <TextInput spellCheck={false} style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
                         setNote({ ...note, title: value });
@@ -144,7 +144,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                                                 id
                                             }
                                         }`)).then((response) => {
-                                            navigation.navigate('notes');
+                                            navigation.navigate('notesTab');
                                         });
                                     }
                                 }
