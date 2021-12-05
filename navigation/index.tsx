@@ -27,6 +27,7 @@ import { AnimatedLogo } from '../components/AnimatedLogo';
 import TasksScreen from '../screens/TasksScreen';
 import TaskScreen from '../screens/TaskScreen';
 import EditTaskScreen from '../screens/EditTaskScreen';
+import TasksDesktopScreen from '../screens/TasksDesktopScreen';
 
 export default function Navigation({ navigation, authenticated, setLoading, loading }: any) {
   return (
@@ -70,7 +71,7 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
       <RootStack.Screen name="app" options={{ animationEnabled: false }}>
         {props =>
           <AppBottomTab.Navigator {...props} initialRouteName="projectsTab" backBehavior={'history'}
-            screenOptions={{ lazy:true, headerShown: false, tabBarActiveTintColor: '#ffffff', tabBarStyle: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: Math.min(window.width, root.desktopWidth), marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, tabBarLabelStyle: Platform.OS !== 'web' ? { top: -13, fontSize: 18 } : {}, tabBarIconStyle: { display: 'none' }  }}>
+            screenOptions={{ lazy: true, headerShown: false, tabBarActiveTintColor: '#ffffff', tabBarStyle: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: Math.min(window.width, root.desktopWidth), marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, tabBarLabelStyle: Platform.OS !== 'web' ? { top: -13, fontSize: 18 } : {}, tabBarIconStyle: { display: 'none' } }}>
             {Platform.OS === 'web' &&
               <AppBottomTab.Screen name="logo"
                 options={{
@@ -143,9 +144,15 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="tasks">
-                    <AppStack.Screen name="tasks">
-                      {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
-                    </AppStack.Screen>
+                    {(window.width < 900) ?
+                      <AppStack.Screen name="tasks">
+                        {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
+                      </AppStack.Screen>
+                      :
+                      <AppStack.Screen name="tasks">
+                        {props => <TasksDesktopScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
+                      </AppStack.Screen>
+                    }
                     <AppStack.Screen name="task">
                       {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                     </AppStack.Screen>

@@ -132,7 +132,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                                     <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
                                         <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
                                         <Text style={{ textDecorationLine: item.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
-                                        <Text style={{ fontSize: 10, color: '#aaaaaa' }}>{item.comments_aggregate.aggregate.count} comments{item.category ? `, #${item.category}` : ``}</Text>
+                                        <Text style={{ fontSize: 10, color: '#aaaaaa' }}>{item.comments_aggregate.aggregate.count} comment{item.comments_aggregate.aggregate.count !== 1 ? 's' : ''}{item.category ? `, #${item.category}` : ``}</Text>
                                     </View>
                                 </TouchableOpacity>
                                 <View onStartShouldSetResponder={() => true}>

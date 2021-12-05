@@ -217,6 +217,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={submit} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ textAlign: 'center' }}>{route.params.id ? `save` : `add`}</Text></TouchableOpacity>
                 </View>
+                {route.params.id && <Text style={{ color: '#ff0000', marginTop: 40 }} onPress={async () => { if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${route.params.id}") {id}}`)); navigation.navigate('tasks'); } }}>delete task</Text>}
             </ScrollView>
             <InputAccessoryViewComponent />
         </View>

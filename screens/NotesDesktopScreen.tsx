@@ -413,7 +413,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                     let timestamp = new Date().toLocaleTimeString('en-US', { hour12: true, hour: "numeric", minute: "numeric" });
                                     document.execCommand('insertText', false, `<div><br/></div><div>${timestamp}</div><div><br/></div>`);
                                 }
-                                else if (e.key === 's' && e.ctrlKey) {
+                                else if (['s', 'S'].includes(e.key) && e.ctrlKey) {
                                     e.preventDefault();
                                     clearTimeout(timeout);
                                     setLoading(true);

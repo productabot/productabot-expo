@@ -421,13 +421,13 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         <SegmentedControl
                             appearance='dark'
                             style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
-                            values={[`entries (${count.entries ?? 0})`, `tasks (${count.tasks ?? 0})`, `docs (${count.documents ?? 0})`, `files (${count.files ?? 0})`]}
+                            values={[`docs (${count.documents ?? 0})`, `files (${count.files ?? 0})`, `entries (${count.entries ?? 0})`, `tasks (${count.tasks ?? 0})`]}
                             selectedIndex={index}
                             onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                         />
                         <Animated.View style={{ opacity: opacity, width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 300) }}>
-                            {(index === 0 && count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}
-                            {(index === 0 && project.goal && root.desktopWeb) &&
+                            {(index === 2 && count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}
+                            {(index === 2 && project.goal && root.desktopWeb) &&
                                 <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
                                     <MenuTrigger onPress={() => { goalRef.current.open(); }} onMouseEnter={(e) => { clearTimeout(goalTimeout); goalTimeout = setTimeout(() => { goalRef.current.open(); }, 750); }} onMouseLeave={(e) => { clearTimeout(goalTimeout) }} style={{ flexDirection: 'row', width: 320, alignSelf: 'center', alignItems: 'center', marginBottom: -15, marginRight: -40 }}>
                                         <View style={{ flexDirection: 'row', width: 200, height: 15, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center' }}>
@@ -469,12 +469,12 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     </MenuOptions>
                                 </Menu>
                             }
-                            {(index === 0 && project.goal && !root.desktopWeb) && <Text style={{ alignSelf: 'center', marginBottom: -20, marginLeft: 5 }}>{`${count.weeklyGoal}%`}</Text>}
-                            {(index === 3 && count.fileSize) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>storage used: {formatBytes(count.fileSize)}</Text>}
+                            {(index === 3 && project.goal && !root.desktopWeb) && <Text style={{ alignSelf: 'center', marginBottom: -20, marginLeft: 5 }}>{`${count.weeklyGoal}%`}</Text>}
+                            {(index === 1 && count.fileSize) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>storage used: {formatBytes(count.fileSize)}</Text>}
                             <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5 }}
                                 onPress={async () => { addAction(); }}
-                            ><Text>{index === 0 ? 'add time entry' : index === 1 ? 'add task' : index === 2 ? 'add project doc' : index === 3 ? 'upload a file' : ''} +</Text></TouchableOpacity>
-                            {index === 0 &&
+                            ><Text>{index === 2 ? 'add time entry' : index === 3 ? 'add task' : index === 0 ? 'add project doc' : index === 1 ? 'upload a file' : ''} +</Text></TouchableOpacity>
+                            {index === 2 &&
                                 <CustomDraggableFlatList
                                     data={project.entries}
                                     draggable={false}
@@ -523,7 +523,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                         </TouchableOpacity>}
                                 />
                             }
-                            {index === 1 &&
+                            {index === 3 &&
                                 <CustomDraggableFlatList
                                     data={project.tasks}
                                     renderItem={({ item }) =>
@@ -591,7 +591,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     }}
                                 />
                             }
-                            {index === 2 &&
+                            {index === 0 &&
                                 <CustomDraggableFlatList
                                     data={project.documents}
                                     renderItem={(item) =>
@@ -652,7 +652,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 />
                             }
 
-                            {index === 3 &&
+                            {index === 1 &&
                                 <CustomDraggableFlatList
                                     data={project.files}
                                     renderItem={(item) =>
