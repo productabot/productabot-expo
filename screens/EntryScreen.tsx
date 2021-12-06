@@ -136,7 +136,7 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
             console.log(response);
             setTimesheet({ hours: null, details: null, category: null, date: dates[20].value, project: projects[0].value });
             setLoading(false);
-            navigation.navigate('calendarTab');
+            navigation.goBack();
         }
         catch (err) {
             setTimesheet({ hours: null, details: null, date: dates[20].value, project: projects[0].value });

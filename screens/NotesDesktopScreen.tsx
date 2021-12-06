@@ -48,7 +48,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     const [search, setSearch] = useState('');
     const inputRef = useRef(null);
     const [hidePane, setHidePane] = useState(false);
-    const [paneSize, setPaneSize] = useState(300);
+    const [paneSize, setPaneSize] = useState(310);
 
     const [noteId, setNoteId] = useState('');
     const [noteContent, setNoteContent] = useState('');
@@ -222,6 +222,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                         renderItemStyle={{ marginLeft: 5, marginRight: 5, paddingLeft: 7.5, paddingRight: 7.5 }}
                                         noBorder={true}
                                         data={tags}
+                                        virtualHeight={windowDimensions.height - 102}
                                         renderItem={(item) => {
                                             return (
                                                 <View
@@ -275,6 +276,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                 noBorder={true}
                                 data={notes}
                                 onContextMenu={(item) => { alert('hey'); }}
+                                virtualHeight={windowDimensions.height - 102}
                                 renderItem={(item) => {
                                     return (
                                         <View

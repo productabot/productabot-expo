@@ -2,8 +2,26 @@ import React, { useState, useRef } from 'react';
 import { Platform, Pressable, ActionSheetIOS, View } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import * as Haptics from 'expo-haptics';
-import { sortableContainer, sortableElement } from "react-sortable-hoc";
-import arrayMove from "array-move";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    TouchSensor,
+    useSensor,
+    useSensors,
+    DragOverlay,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable
+} from '@dnd-kit/sortable';
+import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
+import { CSS } from '@dnd-kit/utilities';
+import VirtualList from 'react-tiny-virtual-list';
 
 let dragRefTimeout: any;
 let mobileContextTimeout: any;
@@ -78,7 +96,7 @@ class CustomRenderItem extends React.PureComponent {
 
 
 
-export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true, delayDragOnWeb = false }: any) {
+export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true, delayDragOnWeb = false, activationConstraint = { distance: 5 }, virtualHeight = 800, virtualSize = 80, }: any) {
     if (Platform.OS === 'ios') {
         const dragRef = useRef(null);
         const [lik, setLik] = useState(`${0}`);
@@ -116,44 +134,122 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
         )
     }
     else {
-        const SortableItem = sortableElement(({ item, renderItemStyle, draggable, menuRef, onRename, onDelete, setContextPosition, RenderItem, onPress }) =>
-            <Pressable
-                onPress={async () => { await onPress({ item: item }); }}
-                onContextMenu={async (e: any) => {
-                    e.preventDefault();
-                    setContextPosition({
-                        x: e.nativeEvent.pageX, y: e.nativeEvent.pageY + 40,
-                        ...(onRename && { rename: async () => onRename(item) }),
-                        ...(onDelete && { delete: async () => onDelete(item) })
-                    });
-                    setTimeout(() => { menuRef.current.open() }, 0);
-                }}
-                style={(state) => [{ cursor: draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? '#000000' : item.isActive ? '#333333' : state.hovered ? '#202020' : '#161616' }, renderItemStyle]}
-            >
-                <RenderItem item={item} />
-            </Pressable>);
+        const [activeId, setActiveId] = useState(null);
+        const sensors = useSensors(
+            useSensor(PointerSensor, {
+                activationConstraint
+            }),
+            useSensor(TouchSensor, {
+                activationConstraint,
+            }),
+            useSensor(KeyboardSensor, {
+                coordinateGetter: sortableKeyboardCoordinates,
+            })
+        );
 
-        const NonSortableItem = ({ item, renderItemStyle, draggable, menuRef, onRename, onDelete, setContextPosition, RenderItem, onPress }) =>
-            <Pressable
-                onPress={async () => { await onPress({ item: item }); }}
-                style={(state) => [{ cursor: draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? '#000000' : item.isActive ? '#333333' : state.hovered ? '#202020' : '#161616' }, renderItemStyle]}
-            >
-                <RenderItem item={item} />
-            </Pressable>
-
-        const SortableContainer = sortableContainer(({ children }) => {
-            return <div style={{ width: '100%', height: 'calc(100% - 50px)', maxHeight: '100%', overflowY: 'scroll', borderColor: '#333333', borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }}>{children}</div>;
-        });
-        const onSortEnd = ({ oldIndex, newIndex }) => {
-            let newData = arrayMove(data, oldIndex, newIndex);
-            onDragEnd({ data: newData });
-        };
         return (
-            <SortableContainer distance={5} style={style} noBorder={noBorder} onSortEnd={onSortEnd}>
-                {draggable ? data.map((item, index) => (
-                    <SortableItem key={`item-${item.id}`} index={index} item={item} renderItemStyle={renderItemStyle} draggable={draggable} menuRef={menuRef} onRename={onRename} onDelete={onDelete} setContextPosition={setContextPosition} RenderItem={renderItem} onPress={onPress} />
-                )) : data.map((item, index) => (<NonSortableItem key={`item-${item.id}`} index={index} item={item} renderItemStyle={renderItemStyle} draggable={draggable} menuRef={menuRef} onRename={onRename} onDelete={onDelete} setContextPosition={setContextPosition} RenderItem={renderItem} onPress={onPress} />))}
-            </SortableContainer>
-        )
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={(event) => {
+                    const { active } = event;
+                    setActiveId(active.id);
+                }}
+                onDragEnd={(event) => {
+                    const { active, over } = event;
+                    if (active.id !== over.id) {
+                        const oldIndex = data.map(obj => obj.id).indexOf(active.id);
+                        const newIndex = data.map(obj => obj.id).indexOf(over.id);
+                        let newData = arrayMove(data, oldIndex, newIndex);
+                        onDragEnd({ data: newData });
+                    }
+                    setActiveId(null);
+                }}
+                modifiers={[restrictToFirstScrollableAncestor]}
+            >
+                <SortableContext
+                    items={data}
+                    strategy={verticalListSortingStrategy}
+                >
+                    {/* {data.map(item => <SortableItem key={item.id} id={item.id} item={item} renderItemStyle={renderItemStyle} draggable={draggable} menuRef={menuRef} onRename={onRename} onDelete={onDelete} setContextPosition={setContextPosition} RenderItem={renderItem} onPress={onPress} />)} */}
+                    <VirtualList
+                        style={{ borderColor: '#333333', borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }}
+                        height={virtualHeight}
+                        itemCount={data.length}
+                        itemSize={virtualSize}
+                        stickyIndices={activeId ? [data.map(obj => obj.id).indexOf(activeId)] : undefined}
+                        renderItem={({ index, style }) => {
+                            const item = data[index];
+                            return (
+                                <SortableItem index={index} key={item.id} id={item.id} item={item} renderItemStyle={renderItemStyle} draggable={draggable} menuRef={menuRef} onRename={onRename} onDelete={onDelete} setContextPosition={setContextPosition} RenderItem={renderItem} onPress={onPress} virtualStyle={style} virtualSize={virtualSize} />
+                            );
+                        }}
+                    />
+                </SortableContext>
+                <DragOverlay>
+                    {activeId ? <NonSortableItem key={activeId} item={data.filter(obj => obj.id === activeId)[0]} renderItemStyle={renderItemStyle} RenderItem={renderItem} virtualSize={virtualSize} /> : null}
+                </DragOverlay>
+            </DndContext>
+        );
+
+        function SortableItem({ id, item, renderItemStyle, draggable, menuRef, onRename, onDelete, setContextPosition, RenderItem, onPress, virtualStyle, virtualSize, index }) {
+            const {
+                attributes,
+                listeners,
+                setNodeRef,
+                transform,
+                transition,
+                isDragging
+            } = useSortable({ id: id });
+
+            const style = {
+                ...renderItemStyle,
+                transform: CSS.Transform.toString(transform),
+                transition,
+                color: '#fff',
+                opacity: isDragging ? 0 : 1,
+                cursor: draggable ? 'grab' : 'pointer', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 10, backgroundColor: '#161616',
+                ...virtualStyle,
+                margin: 10,
+                width: 'calc(100% - 50px)',
+                height: virtualSize - 40,
+                padding: 15
+            };
+
+            return (
+                <div
+                    {...draggable && attributes} {...draggable && listeners}
+                    index={index}
+                    ref={setNodeRef}
+                    style={style}
+                    onClick={async () => { await onPress({ item: item }); }}
+                    onContextMenu={async (e: any) => {
+                        e.preventDefault();
+                        setContextPosition({
+                            x: e.nativeEvent.pageX, y: e.nativeEvent.pageY + 40,
+                            ...(onRename && { rename: async () => onRename(item) }),
+                            ...(onDelete && { delete: async () => onDelete(item) })
+                        });
+                        setTimeout(() => { menuRef.current.open() }, 0);
+                    }}
+                >
+                    <RenderItem item={item} />
+                </div>
+            );
+        }
+        function NonSortableItem({ item, renderItemStyle, RenderItem, virtualSize }) {
+            return (
+                <div
+                    style={{
+                        ...renderItemStyle,
+                        color: '#fff',
+                        cursor: draggable ? 'grab' : 'pointer', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 0, borderRadius: 10, backgroundColor: '#333333',
+                        height: virtualSize - 40,
+                    }}
+                >
+                    <RenderItem item={item} />
+                </div>
+            );
+        }
     }
 }

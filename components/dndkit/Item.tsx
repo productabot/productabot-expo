@@ -3,6 +3,7 @@ import type { DraggableSyntheticListeners } from '@dnd-kit/core';
 import type { Transform } from '@dnd-kit/utilities';
 import { useNavigation } from '@react-navigation/native';
 import { API, graphqlOperation } from "@aws-amplify/api";
+import { CSS } from '@dnd-kit/utilities';
 
 const oldDate = new Date();
 oldDate.setDate(oldDate.getDate() - 2);
@@ -64,17 +65,6 @@ export const Item = React.memo(
       ref
     ) => {
       const navigation = useNavigation();
-      useEffect(() => {
-        if (!dragOverlay) {
-          return;
-        }
-
-        document.body.style.cursor = 'grabbing';
-
-        return () => {
-          document.body.style.cursor = '';
-        };
-      }, [dragOverlay]);
 
       return renderItem ? (
         renderItem({
@@ -97,9 +87,8 @@ export const Item = React.memo(
               ...wrapperStyle,
               opacity: dragging ? '0' : '1',
               listStyleType: 'none',
-              // transition: 'transform ease-in-out 0.1s',
-              transform: `translate(${Math.round(transform ? transform.x : 0)}px, ${Math.round(transform ? transform.y : 0)}px)`,
-              // scale(${Math.round(transform ? transform.scaleX : 1)}, ${Math.round(transform ? transform.scaleY : 1)})
+              transition: sorting ? 'transform ease-in-out 0.15s' : '',
+              transform: CSS.Transform.toString(transform),
             } as React.CSSProperties
           }
           ref={ref}
@@ -116,7 +105,7 @@ export const Item = React.memo(
             {...props}
             tabIndex={!handle ? 0 : undefined}
           >
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', cursor: 'grab', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: '#161616' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', cursor: dragOverlay ? 'grabbing' : 'grab', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: dragOverlay ? '#333333' : '#161616' }}>
               <div style={{ width: '15%', }}><img style={{ width: 30, height: 30, borderRadius: 5, borderWidth: 1, borderColor: '#fff', borderStyle: 'solid' }} src={`https://files.productabot.com/public/${value.project.image}`} /></div>
               <div style={{ width: '85%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
                 <div style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(value.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</div>

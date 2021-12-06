@@ -24,7 +24,6 @@
     "@react-navigation/drawer": "^6.1.6",
     "@react-navigation/native": "^6.0.6",
     "@react-navigation/stack": "^6.0.11",
-    "array-move": "3.0.1",
     "aws-amplify": "^4.2.11",
     "aws-amplify-react-native": "^4.3.1",
     "expo": "^43.0.0",
@@ -61,8 +60,8 @@
     "react-native-svg": "12.1.1",
     "react-native-web": "0.17.1",
     "react-native-webview": "11.13.0",
-    "react-sortable-hoc": "^2.0.0",
     "react-split-pane": "^0.1.92",
+    "react-tiny-virtual-list": "^2.2.0",
     "sanitize-html": "^2.3.3",
     "subscriptions-transport-ws": "^0.9.18",
     "uuid": "^8.3.2"

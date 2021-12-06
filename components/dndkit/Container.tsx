@@ -44,7 +44,7 @@ export const Container = forwardRef<HTMLDivElement, Props>(
         /*
         // @ts-ignore */
         ref={ref}
-        style={{ width: 425, height: '80vh', overflowY: 'scroll', overflowX: 'clip' }}
+        style={{ width: 425, height: 'calc(100vh - 130px)', overflowY: 'scroll', overflowX: 'clip', border: '1px solid #333333', borderRadius: 10, margin: 5 }}
         onClick={onClick}
         tabIndex={onClick ? 0 : undefined}
       >

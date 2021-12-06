@@ -188,13 +188,13 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
     };
 
     const addAction = async () => {
-        if (index === 0) {
+        if (index === 2) {
             navigation.navigate('entry', { project_id: project.id })
         }
-        else if (index === 1) {
+        else if (index === 3) {
             navigation.navigate('edit_task', { project_id: project.id })
         }
-        else if (index === 2) {
+        else if (index === 0) {
             setLoading(true);
             let data = await API.graphql(graphqlOperation(`mutation {
             insert_documents_one(object: {title: "New Document", content: "", order: ${project.documents.length}, project_id: "${project.id}"}) {id}
@@ -203,7 +203,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             setLoading(false);
             navigation.navigate('document', { id: data.data.insert_documents_one.id })
         }
-        else if (index === 3) {
+        else if (index === 1) {
             let file = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: false, multiple: false });
             console.log(file);
             if (file.type === 'success') {
@@ -478,6 +478,8 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 <CustomDraggableFlatList
                                     data={project.entries}
                                     draggable={false}
+                                    virtualSize={120}
+                                    virtualHeight={window.height - 240}
                                     renderItem={(item) => {
                                         let date = new Date(item.item.date);
                                         date.setDate(date.getDate() + 1);
@@ -526,6 +528,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             {index === 3 &&
                                 <CustomDraggableFlatList
                                     data={project.tasks}
+                                    virtualHeight={window.height - 240}
                                     renderItem={({ item }) =>
                                         <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
@@ -594,6 +597,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             {index === 0 &&
                                 <CustomDraggableFlatList
                                     data={project.documents}
+                                    virtualHeight={window.height - 240}
                                     renderItem={(item) =>
                                         <>
                                             <Text style={{ fontSize: 14, width: '75%' }}>📄 {`${item.item.title}`}</Text>
@@ -655,6 +659,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             {index === 1 &&
                                 <CustomDraggableFlatList
                                     data={project.files}
+                                    virtualHeight={window.height - 240}
                                     renderItem={(item) =>
                                         <>
                                             <Text style={{ fontSize: 14, width: '70%' }}>📄 {`${item.item.name}`}</Text>

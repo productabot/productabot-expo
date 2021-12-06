@@ -496,7 +496,6 @@ export function MultipleContainers({
           isDragging: true,
           isDragOverlay: true
         })}
-        color={getColor(id)}
         wrapperStyle={wrapperStyle({ index: 0 })}
         renderItem={renderItem}
         dragOverlay
@@ -529,7 +528,6 @@ export function MultipleContainers({
               isSorting: false,
               isDragOverlay: false
             })}
-            color={getColor(item)}
             wrapperStyle={wrapperStyle({ index })}
             renderItem={renderItem}
           />
@@ -551,21 +549,6 @@ export function MultipleContainers({
 
     return String.fromCharCode(lastContaineId.charCodeAt(0) + 1);
   }
-}
-
-function getColor(id: string) {
-  switch (id[0]) {
-    case "A":
-      return "#7193f1";
-    case "B":
-      return "#ffda6c";
-    case "C":
-      return "#00bcd4";
-    case "D":
-      return "#ef769f";
-  }
-
-  return undefined;
 }
 
 interface SortableItemProps {
@@ -623,7 +606,6 @@ function SortableItem({
         overIndex: over ? getIndex(over.id) : overIndex,
         containerId
       })}
-      color={getColor(id)}
       transition={transition}
       transform={transform}
       fadeIn={mountedWhileDragging}
