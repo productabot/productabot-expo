@@ -92,7 +92,7 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
               </AppBottomTab.Screen>
             }
             <AppBottomTab.Screen name="projectsTab" options={{
-              title: `⧉${(root.desktopWeb && window.width < 900) ? `` : ` projects`}`,
+              title: `⧉ projects`,
               ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15, marginTop: 3 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>⧉</Text></Pressable> })
             }}>
               {props => {
@@ -169,7 +169,7 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="notes">
-                    {(window.width < 900) ?
+                    {(window.width < 400) ?
                       <AppStack.Screen name="notes">
                         {props => <NotesMobileScreen {...props} refresh={refresh} setLoading={setLoading} />}
                       </AppStack.Screen>

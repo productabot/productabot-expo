@@ -18,7 +18,7 @@ import {
   useSensors,
   useSensor,
   MeasuringStrategy,
-  PointerActivationConstraint
+  PointerActivationConstraint,
 } from "@dnd-kit/core";
 import {
   AnimateLayoutChanges,
@@ -35,6 +35,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { Item } from "./Item";
 import { Container } from "./Container";
+import VirtualList from 'react-tiny-virtual-list';
 
 const defaultInitializer = (index: number) => index;
 const createRange = (
@@ -236,22 +237,28 @@ export function MultipleContainers({
       coordinateGetter: sortableKeyboardCoordinates
     })
   );
-  const findContainer = (id: string) => {
+  const findContainer = (id: any) => {
+    if (typeof id === 'object') {
+      id = id.id;
+    }
     if (id in items) {
       return id;
     }
 
-    return Object.keys(items).find((key) => items[key].includes(id));
+    return Object.keys(items).find((key) => items[key].map(obj => obj.id).includes(id));
   };
 
-  const getIndex = (id: string) => {
+  const getIndex = (id: any) => {
+    if (typeof id === 'object') {
+      id = id.id;
+    }
     const container = findContainer(id);
 
     if (!container) {
       return -1;
     }
 
-    const index = items[container].indexOf(id);
+    const index = items[container].map(obj => obj.id).indexOf(id);
 
     return index;
   };
@@ -287,6 +294,7 @@ export function MultipleContainers({
         setClonedItems(items);
       }}
       onDragOver={({ active, over }) => {
+        // console.log(active, over);
         const overId = over?.id;
 
         if (!overId || overId === TRASH_ID || active.id in items) {
@@ -302,9 +310,8 @@ export function MultipleContainers({
 
         if (activeContainer !== overContainer) {
           setItems((items) => {
-            // setTask({ id: JSON.parse(activeId).id, status: overContainer });
-            const activeItems = items[activeContainer];
-            const overItems = items[overContainer];
+            const activeItems = items[activeContainer].map(obj => obj.id);
+            const overItems = items[overContainer].map(obj => obj.id);
             const overIndex = overItems.indexOf(overId);
             const activeIndex = activeItems.indexOf(active.id);
 
@@ -330,7 +337,7 @@ export function MultipleContainers({
             return {
               ...items,
               [activeContainer]: items[activeContainer].filter(
-                (item) => item !== active.id
+                (item) => item.id !== active.id
               ),
               [overContainer]: [
                 ...items[overContainer].slice(0, newIndex),
@@ -372,7 +379,7 @@ export function MultipleContainers({
           setItems((items) => ({
             ...items,
             [activeContainer]: items[activeContainer].filter(
-              (id) => id !== activeId
+              (item) => item.id !== activeId
             )
           }));
           setActiveId(null);
@@ -387,7 +394,7 @@ export function MultipleContainers({
             setItems((items) => ({
               ...items,
               [activeContainer]: items[activeContainer].filter(
-                (id) => id !== activeId
+                (item) => item.id !== activeId
               ),
               [newContainerId]: [active.id]
             }));
@@ -399,8 +406,8 @@ export function MultipleContainers({
         const overContainer = findContainer(overId);
 
         if (overContainer) {
-          const activeIndex = items[activeContainer].indexOf(active.id);
-          const overIndex = items[overContainer].indexOf(overId);
+          const activeIndex = items[activeContainer].map(obj => obj.id).indexOf(active.id);
+          const overIndex = items[overContainer].map(obj => obj.id).indexOf(overId);
 
           if (activeIndex !== overIndex) {
             setItems((items) => ({
@@ -415,7 +422,7 @@ export function MultipleContainers({
         }
         setActiveId(null);
         setItems(items => {
-          saveTasks(items, { id: JSON.parse(activeId).id, status: overContainer });
+          saveTasks(items, { id: activeId, status: overContainer });
           return items;
         })
       }}
@@ -425,9 +432,8 @@ export function MultipleContainers({
     >
       <div
         style={{
-          display: "inline-flex",
-          boxSizing: "border-box",
-          gridAutoFlow: "column",
+          display: "flex",
+          flexDirection: 'row',
           width: '100%'
         }}
       >
@@ -446,12 +452,12 @@ export function MultipleContainers({
               style={containerStyle}
               onRemove={() => handleRemove(containerId)}
             >
-              <SortableContext items={items[containerId]} strategy={strategy} >
+              <SortableContext key={containerId} items={items[containerId]} strategy={strategy} >
                 {items[containerId].map((value, index) => {
                   return (
                     <SortableItem
                       disabled={isSortingContainer}
-                      key={JSON.parse(value).id}
+                      key={value.id}
                       id={value}
                       index={index}
                       handle={handle}
@@ -460,10 +466,35 @@ export function MultipleContainers({
                       renderItem={renderItem}
                       containerId={containerId}
                       getIndex={getIndex}
-
                     />
                   );
                 })}
+                {/* <VirtualList
+                style={{ borderColor: '#333333', borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }}
+                height={800}
+                width={415}
+                itemCount={items[containerId].length}
+                itemSize={140}
+                renderItem={({ index, style }) => {
+                  const item = items[containerId][index];
+                  return (
+                    <div key={item.id + 'virtual'} style={style}>
+                      <SortableItem
+                        disabled={isSortingContainer}
+                        key={item.id}
+                        id={item}
+                        index={index}
+                        handle={handle}
+                        style={getItemStyles}
+                        wrapperStyle={wrapperStyle}
+                        renderItem={renderItem}
+                        containerId={containerId}
+                        getIndex={getIndex}
+                      />
+                    </div>
+                  );
+                }}
+              /> */}
               </SortableContext>
             </DroppableContainer>
           ))}
@@ -474,7 +505,7 @@ export function MultipleContainers({
           {activeId
             ? containers.includes(activeId)
               ? renderContainerDragOverlay(activeId)
-              : renderSortableItemDragOverlay(activeId)
+              : renderSortableItemDragOverlay(Object.values(items).flat().find(obj => obj.id === activeId))
             : null}
         </DragOverlay>,
         document.body
@@ -485,7 +516,7 @@ export function MultipleContainers({
   function renderSortableItemDragOverlay(id: string) {
     return (
       <Item
-        value={JSON.parse(id)}
+        value={id}
         handle={handle}
         style={getItemStyles({
           containerId: findContainer(id) as string,
@@ -516,7 +547,7 @@ export function MultipleContainers({
       >
         {items[containerId].map((item, index) => (
           <Item
-            key={JSON.parse(item).id}
+            key={item.id}
             value={item}
             handle={handle}
             style={getItemStyles({
@@ -584,7 +615,7 @@ function SortableItem({
     transform,
     transition
   } = useSortable({
-    id
+    id: id.id
   });
   const mounted = useMountStatus();
   const mountedWhileDragging = isDragging && !mounted;
@@ -592,7 +623,7 @@ function SortableItem({
   return (
     <Item
       ref={disabled ? undefined : setNodeRef}
-      value={JSON.parse(id)}
+      value={id}
       dragging={isDragging}
       sorting={isSorting}
       handle={handle}

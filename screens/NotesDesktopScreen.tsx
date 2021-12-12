@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useReducer } from 'react';
-import { StyleSheet, TouchableOpacity, TextInput, RefreshControl, useWindowDimensions } from 'react-native';
+import { StyleSheet, TouchableOpacity, TextInput, RefreshControl, useWindowDimensions, Platform } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -362,7 +362,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                             innerRef={inputRef}
                             html={noteContent || ''}
                             disabled={false}
-                            style={{ width: (Math.min(windowDimensions.width, root.desktopWidth) - (hidePane ? 0 : paneSize)) - 23, height: '100%', overflowY: 'scroll', color: '#ffffff', padding: 10, fontSize: 12, fontFamily: 'droid', outlineWidth: 0 }}
+                            style={{ width: (Math.min(windowDimensions.width, root.desktopWidth) - (hidePane ? 0 : paneSize)) - 23, height: '100%', overflowY: 'scroll', color: '#ffffff', padding: 10, fontSize: 13, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', outlineWidth: 0 }}
                             onChange={async () => { }}
                             onBlur={async (e) => {
                                 if (e.nativeEvent.relatedTarget) {

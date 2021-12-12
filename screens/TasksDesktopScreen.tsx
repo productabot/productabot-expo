@@ -38,7 +38,6 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
               root_order
               project {
                   image
-                  color
               }
               comments_aggregate {
                   aggregate {
@@ -52,7 +51,7 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
               image
             }
           }`));
-        setTasks({ backlog: tasksData.data.backlog.map(obj2 => JSON.stringify(obj2)), in_progress: tasksData.data.in_progress.map(obj2 => JSON.stringify(obj2)), done: tasksData.data.done.map(obj2 => JSON.stringify(obj2)) });
+        setTasks({ backlog: tasksData.data.backlog.map(obj => { obj.image = obj.project.image; obj.count = obj.comments_aggregate.aggregate.count; delete obj.project; delete obj.comments_aggregate; return obj; }), in_progress: tasksData.data.in_progress.map(obj => { obj.image = obj.project.image; obj.count = obj.comments_aggregate.aggregate.count; delete obj.project; delete obj.comments_aggregate; return obj; }), done: tasksData.data.done.map(obj => { obj.image = obj.project.image; obj.count = obj.comments_aggregate.aggregate.count; delete obj.project; delete obj.comments_aggregate; return obj; }) });
         setProjects(tasksData.data.projects);
         setLoading(false);
     }
@@ -63,7 +62,7 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
             await API.graphql(graphqlOperation(`mutation {
                 ${task.id ? `saveTask: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {status: "${task.status}"}) {id}` : ''}
                 ${['backlog', 'in_progress', 'done'].map(
-                status => tasks[status].map((task, taskIndex) => `saveTasks${status}${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${JSON.parse(task).id}"}, _set: {root_order: ${tasks[status].length - taskIndex - 1}}) {id}`).join(', ')
+                status => tasks[status].map((task, taskIndex) => `saveTasks${status}${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {root_order: ${tasks[status].length - taskIndex - 1}}) {id}`).join(', ')
             ).join(',')}}`));
         }
     }

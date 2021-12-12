@@ -9,7 +9,6 @@ import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import sanitizeHtml from "sanitize-html";
-import { DroidWebViewStyle } from '../assets/fonts/DroidWebViewStyle';
 import { useMutation, useSubscription, gql } from "@apollo/client";
 let timeout: any;
 
@@ -168,11 +167,10 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                                 <head>
                                 <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
                                 <style>
-                                ${DroidWebViewStyle}
                                 </style>
                                 </head>
                                 <body>
-                                <div id="editor" contenteditable="true" style="outline:none;font-family:droid;color:#ffffff;font-size:12;"/>
+                                <div id="editor" contenteditable="true" style="outline:none;font-family:Menlo, monospace;color:#ffffff;font-size:12;"/>
                                 </body>
                             `}}
                     keyboardDisplayRequiresUserAction={false}

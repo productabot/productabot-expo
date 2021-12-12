@@ -135,7 +135,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                     //dataDetectorTypes={'all'}
                     editable={editable}
                     inputAccessoryViewID='main'
-                    style={[{ width: '100%', height: '100%', color: '#ffffff', padding: 10, fontSize: root.desktopWeb ? 12 : 16, paddingTop: 10, fontFamily: 'droid' }, root.desktopWeb && { outlineWidth: 0, borderColor: '#333333', borderWidth: 1, borderStyle: 'solid' }]}
+                    style={[{ width: '100%', height: '100%', color: '#ffffff', padding: 10, fontSize: root.desktopWeb ? 13 : 16, paddingTop: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }, root.desktopWeb && { outlineWidth: 0, borderColor: '#333333', borderWidth: 1, borderStyle: 'solid' }]}
                     multiline={true}
                     value={document.content}
                     onChangeText={(value) => {
