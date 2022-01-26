@@ -13,5 +13,8 @@
   },
   "submit": {
     "production": {}
+  },
+  "cli": {
+    "version": ">= 0.45.1"
   }
 }
