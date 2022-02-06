@@ -10,13 +10,13 @@ export function InputAccessoryViewWebViewComponent({ injectJavascript }: any) {
                 <TouchableOpacity onPress={() => {
                     injectJavascript(null, new Date().toLocaleTimeString('en-US', { hour12: true, hour: "numeric", minute: "numeric" }));
                 }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10 }}>{`🕐`}</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => { injectJavascript(`bold`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10, fontWeight: 'bold' }}>B</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => { injectJavascript(`italic`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10, fontStyle: 'italic' }}>I</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => { injectJavascript(`underline`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10, textDecorationLine: 'underline' }}>U</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => { injectJavascript(`strikeThrough`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10, textDecorationLine: 'line-through' }}>S</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => { injectJavascript(`insertUnorderedList`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10 }}>{`≔`}</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => { injectJavascript(`outdent`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10 }}>{`←`}</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => { injectJavascript(`indent`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10 }}>{`→`}</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => { injectJavascript(`editor.chain().focus().toggleBold().run()`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10, fontWeight: 'bold' }}>B</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => { injectJavascript(`editor.chain().focus().toggleItalic().run()`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10, fontStyle: 'italic' }}>I</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => { injectJavascript(`editor.chain().focus().toggleUnderline().run()`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10, textDecorationLine: 'underline' }}>U</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => { injectJavascript(`editor.chain().focus().toggleStrike().run()`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10, textDecorationLine: 'line-through' }}>S</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => { injectJavascript(`editor.chain().focus().toggleBulletList().run()`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10 }}>{`≔`}</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => { injectJavascript(`document.execCommand('outdent', false, null);`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10 }}>{`←`}</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => { injectJavascript(`document.execCommand('indent', false, null);`) }}><Text style={{ color: '#ffffff', fontSize: 18, padding: 10 }}>{`→`}</Text></TouchableOpacity>
             </ScrollView>
             <TouchableOpacity
                 onPress={() => { inputRef.current.focus(); Keyboard.dismiss(); }}

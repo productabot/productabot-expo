@@ -2,13 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, TextInput, Platform, ActionSheetIOS, KeyboardAvoidingView, Keyboard, Pressable, useWindowDimensions, Animated } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from "@aws-amplify/api";
-import { LoadingComponent } from '../components/LoadingComponent';
-import * as root from '../Root';
 import { InputAccessoryViewWebViewComponent } from '../components/InputAccessoryViewWebViewComponent';
 import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
-import sanitizeHtml from "sanitize-html";
 import { useMutation, useSubscription, gql } from "@apollo/client";
 let timeout: any;
 
@@ -19,7 +16,6 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
     const [note, setNote] = useState({});
     const [keyboardOpen, setKeyboardOpen] = useState(false);
     const inputRef = useRef(null);
-    const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', () => { setKeyboardOpen(true); });
@@ -35,24 +31,6 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         };
     }, []);
 
-    const firstLoad = () => {
-        let noteExists = note.content ? true : false;
-        timeout = setTimeout(() => {
-            if (noteExists) {
-                firstLoad();
-            }
-            else {
-                clearTimeout(timeout);
-                inputRef.current.injectJavaScript(`(function() {
-                    document.querySelector('#editor').focus();
-                    document.execCommand('selectAll', false, null);
-                    document.getSelection().collapseToEnd();
-                })();`);
-                Animated.timing(fadeAnim, { toValue: 1, duration: 50, useNativeDriver: false }).start();
-            }
-        }, 1000);
-    }
-
     useSubscription(
         gql`subscription ($id: uuid!) {
             notes_by_pk(id: $id) {
@@ -64,13 +42,12 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         {
             variables: { id: route.params.id },
             onSubscriptionData: async ({ subscriptionData: { data, error, loading } }) => {
-                if (!note.content) {
-                    firstLoad();
-                }
                 data.notes_by_pk.content = CryptoJS.AES.decrypt(data.notes_by_pk.content, key).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
                 setNote(data.notes_by_pk);
                 inputRef.current.injectJavaScript(`(function() {
-                    document.querySelector('#editor').innerHTML =  \`${data.notes_by_pk.content}\`;
+                    const { from, to } = editor.state.selection;
+                    editor.commands.setContent(\`${data.notes_by_pk.content.replace(/<div><br><\/div>/g, '<p></p>').replace(/<div>/g, '<p>').replace(/<\/div>/g, '</p>')}\`);
+                    editor.commands.setTextSelection({ from, to });
                 })();`);
             }
         });
@@ -80,15 +57,12 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         if (content) {
             setNote({ ...note, content: `${note.content}<p></p>${content}<br/><br/>` });
             inputRef.current.injectJavaScript(`(function() {
-                document.querySelector('#editor').innerHTML +=  \`<div><br/></div><div>${content}</div><div><br/></div>\`;
-                document.execCommand('selectAll', false, null);
-                document.getSelection().collapseToEnd();
+                editor.chain().focus().insertContent(\`${content}\`).run()
             })();`);
         }
         else {
             inputRef.current.injectJavaScript(`(function() {
-                document.execCommand('${javascript}', false, '');
-                window.ReactNativeWebView.postMessage(document.querySelector('#editor').innerHTML);
+                ${javascript}
             })();`);
         }
     }
@@ -107,17 +81,10 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         if (!keyboardOpen) {
             updateNote();
         }
-        else {
-            inputRef.current.injectJavaScript(`(function() {
-                    document.execCommand('selectAll', false, null);
-                    document.getSelection().collapseToEnd();
-                    setTimeout(()=>{document.querySelector('#editor').scrollIntoView({ behavior: "smooth", block: "end" });},50);
-                })();`);
-        }
     }, [keyboardOpen]);
 
     return (
-        <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+        <View style={[styles.container]}>
             {
                 <View style={{ padding: 10, paddingTop: 0, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <TouchableOpacity onPress={() => {
@@ -164,14 +131,60 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                     source={{
                         baseUrl: '',
                         html: `
-                                <head>
-                                <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
-                                <style>
-                                </style>
-                                </head>
-                                <body>
-                                <div id="editor" contenteditable="true" style="outline:none;font-family:Menlo, monospace;color:#ffffff;font-size:12;"/>
-                                </body>
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                          <meta charset="utf-8">
+                          <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
+                          <style>
+                          .ProseMirror {
+                            outline:none;font-family:Menlo, monospace;color:#ffffff;font-size:13px;height: 100vh;
+                          }
+                          .ProseMirror p {
+                            margin: 0px;
+                        }
+                        
+                        .ProseMirror:hover {
+                            text-decoration-line: none !important;
+                        }
+                        
+                        code {
+                            border: 1px solid white;
+                            padding: 10px;
+                            margin: 10px;
+                            display: block;
+                            border-radius: 5px;
+                        }
+                          </style>
+                        </head>
+                        <body>
+                          <div id="editor"></div>
+                          <script type="module">
+                            import { Editor } from 'https://cdn.skypack.dev/@tiptap/core?min'
+                            import StarterKit from 'https://cdn.skypack.dev/@tiptap/starter-kit?min'
+                            window.editor = new Editor({
+                              element: document.querySelector('#editor'),
+                              extensions: [
+                                StarterKit,
+                              ],
+                              content: '',
+                              onUpdate: async ({ editor }) => {
+                                  const html = editor.getHTML();
+                                  window.ReactNativeWebView.postMessage(html);
+                              },
+                            })
+                            
+                            window.addEventListener('load', function() {
+                                document.addEventListener("keypress", function(e) {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        window.editor.chain().focus().setHardBreak().run()
+                                    }
+                                });
+                            });
+                          </script>
+                        </body>
+                        </html>
                             `}}
                     keyboardDisplayRequiresUserAction={false}
                     showsHorizontalScrollIndicator={false}
@@ -181,20 +194,14 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                     automaticallyAdjustContentInsets={true}
                     decelerationRate={0.998}
                     injectedJavaScript={`(function() {
-                            window.addEventListener('load', function() {
-                                document.querySelector('#editor').addEventListener('input', (e) => {
-                                    e.preventDefault();
-                                    window.ReactNativeWebView.postMessage(e.target.innerHTML);
-                                });
-                            });
-                        })();`}
+                    })();`}
                     onMessage={(e) => {
                         setNote({ ...note, content: e.nativeEvent.data });
                     }}
                 />
                 {keyboardOpen && <InputAccessoryViewWebViewComponent injectJavascript={injectJavascript} />}
             </KeyboardAvoidingView >
-        </Animated.View>
+        </View>
     );
 }
 
