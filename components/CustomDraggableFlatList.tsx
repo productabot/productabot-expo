@@ -96,7 +96,7 @@ class CustomRenderItem extends React.PureComponent {
 
 
 
-export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true, delayDragOnWeb = false, activationConstraint = { distance: 5 }, virtualHeight = 800, virtualSize = 80, }: any) {
+export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true, delayDragOnWeb = false, activationConstraint = { distance: 5 }, virtualHeight = 800, virtualSize = 80, onEndReached = () => { } }: any) {
     if (Platform.OS === 'ios') {
         const dragRef = useRef(null);
         const [lik, setLik] = useState(`${0}`);
@@ -120,7 +120,7 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                 autoscrollSpeed={200}
                 renderItem={internalRenderItem}
                 keyExtractor={(item, index) => { return `draggable-item-${item ? item.id : new Date().toISOString()}` }}
-                onEndReached={() => { }}
+                onEndReached={() => { onEndReached(); }}
                 ListEmptyComponent={ListEmptyComponent}
                 dragItemOverflow={true}
                 onDragBegin={() => { if (Platform.OS !== 'web') { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } }}

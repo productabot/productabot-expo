@@ -29,6 +29,9 @@ button {
     border: none;
     border-radius:5px;
     margin:5px;
+    min-width: 25px;
+    cursor: pointer;
+    user-select: none;
 }
 
 button:hover {

@@ -34,6 +34,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
             tags(order_by: {order: asc}) {
               id
               title
+              order
             }
           }`));
         if (tagsData.data.tags.length === 0 && !addingTag) {
@@ -42,6 +43,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                 insert_tags_one(object: {title: "Journal", order: 0}) {
                     id
                     title
+                    order
                 }
             }`));
             tagsData.data.tags = [newTagData.data.insert_tags_one];
@@ -54,13 +56,25 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
         }
 
         let notesData = await API.graphql(graphqlOperation(`{
-            notes(order_by: {order: desc}, where: {tag_id: {_eq: "${tag.id ? tag.id : tagsData.data.tags.length > 0 ? tagsData.data.tags[0].id : 'bb1871eb-929a-4a96-90e1-1ee7789e8872'}"}}) {
+            notes(order_by: {order: desc}, limit: 20, where: {tag_id: {_eq: "${tag.id ? tag.id : tagsData.data.tags.length > 0 ? tagsData.data.tags[0].id : 'bb1871eb-929a-4a96-90e1-1ee7789e8872'}"}}) {
               id
               title
+              order
             }
           }`));
         setNotes(notesData.data.notes);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
+    }
+
+    const loadMore = async () => {
+        let notesData = await API.graphql(graphqlOperation(`{
+            notes(order_by: {order: desc}, limit: 20, offset: ${notes.length}, where: {tag_id: {_eq: "${tag.id ? tag.id : tagsData.data.tags.length > 0 ? tagsData.data.tags[0].id : 'bb1871eb-929a-4a96-90e1-1ee7789e8872'}"}}) {
+              id
+              title
+              order
+            }
+          }`));
+        setNotes([...notes, ...notesData.data.notes]);
     }
 
     useEffect(() => {
@@ -79,7 +93,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     let updateNotes = async () => {
         if (update && notes.length > 0) {
             await API.graphql(graphqlOperation(`mutation {
-                ${notes.map((note, noteIndex) => `notes${noteIndex}: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {order: ${(notes.length - 1) - noteIndex}, title: "${note.title}"}) {id}`)}
+                ${notes.map((note, noteIndex) => `notes${noteIndex}: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {order: ${notes[0].order - noteIndex}, title: "${note.title}"}) {id}`)}
             }`));
             setUpdate(false);
         }
@@ -162,6 +176,9 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                         titleColor="#ffffff"
                         title=""
                     />}
+                onEndReached={async () => {
+                    loadMore();
+                }}
             />
         </View>
     );

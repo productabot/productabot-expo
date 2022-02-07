@@ -6,52 +6,44 @@ import { InputAccessoryViewWebViewComponent } from '../components/InputAccessory
 import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
-import { useMutation, useSubscription, gql } from "@apollo/client";
-let timeout: any;
-
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function NoteScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
-    const [key, setKey] = useState('');
     const [note, setNote] = useState({});
-    const [keyboardOpen, setKeyboardOpen] = useState(false);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
     const inputRef = useRef(null);
 
-    useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', () => { setKeyboardOpen(true); });
-        const keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', () => { setKeyboardOpen(false); });
-        const async = async () => {
-            let e2eResult = await AsyncStorage.getItem('e2e');
-            setKey(e2eResult);
-        }
-        async();
-        return () => {
-            keyboardDidHideListener.remove();
-            keyboardDidShowListener.remove();
-        };
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            if (!route.params) { route.params = {}; }
+            const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (e) => { setKeyboardHeight(e.endCoordinates.height); });
+            const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => { setKeyboardHeight(0); });
+            onRefresh();
+            return () => {
+                keyboardWillHideListener.remove();
+                keyboardWillShowListener.remove();
+            };
+        }, [route.params])
+    );
 
-    useSubscription(
-        gql`subscription ($id: uuid!) {
-            notes_by_pk(id: $id) {
+    const onRefresh = async () => {
+        let data = (await API.graphql(graphqlOperation(`{
+            notes_by_pk(id: "${route.params.id}") {
                 id
                 title
                 content
             }
-        }`,
-        {
-            variables: { id: route.params.id },
-            onSubscriptionData: async ({ subscriptionData: { data, error, loading } }) => {
-                data.notes_by_pk.content = CryptoJS.AES.decrypt(data.notes_by_pk.content, key).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
-                setNote(data.notes_by_pk);
-                inputRef.current.injectJavaScript(`(function() {
-                    const { from, to } = editor.state.selection;
-                    editor.commands.setContent(\`${data.notes_by_pk.content.replace(/<div><br><\/div>/g, '<p></p>').replace(/<div>/g, '<p>').replace(/<\/div>/g, '</p>')}\`);
-                    editor.commands.setTextSelection({ from, to });
-                })();`);
-            }
-        });
-
+        }`))).data;
+        let e2eResult = await AsyncStorage.getItem('e2e');
+        data.notes_by_pk.content = CryptoJS.AES.decrypt(data.notes_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
+        setNote(data.notes_by_pk);
+        inputRef.current.injectJavaScript(`(function() {
+            const { from, to } = editor.state.selection;
+            editor.commands.setContent(\`${data.notes_by_pk.content.replace(/<div><br><\/div>/g, '<p></p>').replace(/<div>/g, '<p>').replace(/<\/div>/g, '</p>')}\`);
+            editor.commands.setTextSelection({ from, to });
+        })();`);
+    }
 
     const injectJavascript = async (javascript: string, content = null) => {
         if (content) {
@@ -72,16 +64,16 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
             let e2eResult = await AsyncStorage.getItem('e2e');
             let encrypted = CryptoJS.AES.encrypt(note.content, e2eResult).toString();
             await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
-            updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
-        }`, { content: encrypted, title: note.title }));
+                updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
+            }`, { content: encrypted, title: note.title }));
         }
     }
 
     useEffect(() => {
-        if (!keyboardOpen) {
+        if (!keyboardHeight) {
             updateNote();
         }
-    }, [keyboardOpen]);
+    }, [keyboardHeight]);
 
     return (
         <View style={[styles.container]}>
@@ -118,12 +110,9 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                     }}><Text style={{ fontSize: 30 }}>...</Text></TouchableOpacity>
                 </View>
             }
-            <KeyboardAvoidingView
-                behavior={"height"}
-                style={{ width: '100%', height: '100%', paddingBottom: 45 }}
-            >
+            <View style={{ width: '100%', height: keyboardHeight ? (window.height - keyboardHeight - 45) : '100%', paddingBottom: 45 }}>
                 <WebView
-                    style={{ backgroundColor: 'transparent', flex: 0, height: '100%' }}
+                    style={{ backgroundColor: 'transparent' }}
                     ref={inputRef}
                     hideKeyboardAccessoryView={true}
                     inputAccessoryViewID='main'
@@ -173,7 +162,6 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                                   window.ReactNativeWebView.postMessage(html);
                               },
                             })
-                            
                             window.addEventListener('load', function() {
                                 document.addEventListener("keypress", function(e) {
                                     if (e.key === 'Enter') {
@@ -199,8 +187,8 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                         setNote({ ...note, content: e.nativeEvent.data });
                     }}
                 />
-                {keyboardOpen && <InputAccessoryViewWebViewComponent injectJavascript={injectJavascript} />}
-            </KeyboardAvoidingView >
+                {keyboardHeight !== 0 && <InputAccessoryViewWebViewComponent injectJavascript={injectJavascript} />}
+            </View >
         </View>
     );
 }

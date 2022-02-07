@@ -37,7 +37,13 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
         content: '',
         onUpdate: async ({ editor }) => {
             const html = editor.getHTML();
-            setNoteContent(html);
+            clearTimeout(noteContentTimeout);
+            if (saved) {
+                setSaved(false);
+            }
+            noteContentTimeout = setTimeout(() => {
+                setNoteContent(html);
+            }, 5000);
         },
     })
 
@@ -148,13 +154,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                 setLoading(false);
             }
         }
-        clearTimeout(noteContentTimeout);
-        if (saved) {
-            setSaved(false);
-        }
-        noteContentTimeout = setTimeout(() => {
-            updateNoteContent();
-        }, 2500);
+        updateNoteContent();
     }, [noteContent]);
 
 
@@ -170,14 +170,26 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
             event.preventDefault();
             setLoading(true);
             try {
-                await API.graphql(graphqlOperation(`mutation($content: String) {
-                    updateNote: update_notes_by_pk(pk_columns: {id: "${noteId}"}, _set: {content: $content}) {id}
-                }`, { content: CryptoJS.AES.encrypt(noteContent, key).toString() }));
-                setLoading(false);
+                const html = editor.getHTML();
+                setNoteContent(html);
             }
             catch (err) {
                 console.log(err);
                 setLoading(false);
+            }
+        }
+        else if (event.shiftKey && event.key === "Tab") {
+            event.preventDefault();
+            document.execCommand('outdent', false);
+        }
+        else if (event.key === "Tab") {
+            event.preventDefault();
+            const { from, to } = editor.state.selection;
+            if (from === to) {
+                editor.chain().focus().insertContent(`	`).run();
+            }
+            else {
+                document.execCommand('indent', false);
             }
         }
     }
@@ -301,7 +313,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                             }} ><span style={{ color: '#aa0000', fontFamily: 'arial', fontSize: 12, marginRight: 10, cursor: 'pointer' }}>delete</span></TouchableOpacity>
                         </View>
                         <MenuBar editor={editor} />
-                        <EditorContent onKeyDown={handleKeyDown} editor={editor} />
+                        <EditorContent onKeyDown={handleKeyDown} spellcheck="false" editor={editor} />
                     </View>
                 </SplitPane>
             </View>
@@ -319,26 +331,35 @@ const MenuBar = ({ editor }) => {
             <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={editor.isActive('bold') ? 'is-active' : ''}
+                style={{ fontWeight: 800 }}
             >
-                bold
+                B
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 className={editor.isActive('italic') ? 'is-active' : ''}
+                style={{ fontStyle: 'italic' }}
             >
-                italic
+                I
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 className={editor.isActive('strike') ? 'is-active' : ''}
+                style={{ textDecorationLine: 'line-through' }}
             >
-                strike
+                S
             </button>
             <button
-                onClick={() => editor.chain().focus().toggleCode().run()}
-                className={editor.isActive('code') ? 'is-active' : ''}
+                onClick={() => document.execCommand('outdent', false)}
+                className={editor.isActive('codeBlock') ? 'is-active' : ''}
             >
-                code
+                {`←`}
+            </button>
+            <button
+                onClick={() => document.execCommand('indent', false)}
+                className={editor.isActive('codeBlock') ? 'is-active' : ''}
+            >
+                {`→`}
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -359,58 +380,40 @@ const MenuBar = ({ editor }) => {
                 h3
             </button>
             <button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
-                className={editor.isActive('heading', { level: 4 }) ? 'is-active' : ''}
-            >
-                h4
-            </button>
-            <button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
-                className={editor.isActive('heading', { level: 5 }) ? 'is-active' : ''}
-            >
-                h5
-            </button>
-            <button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()}
-                className={editor.isActive('heading', { level: 6 }) ? 'is-active' : ''}
-            >
-                h6
-            </button>
-            <button
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
                 className={editor.isActive('bulletList') ? 'is-active' : ''}
             >
-                bullet list
+                ≔
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
                 className={editor.isActive('orderedList') ? 'is-active' : ''}
             >
-                ordered list
+                #
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleCodeBlock().run()}
                 className={editor.isActive('codeBlock') ? 'is-active' : ''}
             >
-                code block
+                {`<>`}
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
                 className={editor.isActive('blockquote') ? 'is-active' : ''}
             >
-                block quote
+                ❝
             </button>
             <button onClick={() => editor.chain().focus().setHorizontalRule().run()}>
-                horizontal rule
+                ―
             </button>
             <button onClick={() => editor.chain().focus().setHardBreak().run()}>
-                hard break
+                ¶
             </button>
             <button onClick={() => editor.chain().focus().undo().run()}>
-                undo
+                undo ↺
             </button>
             <button onClick={() => editor.chain().focus().redo().run()}>
-                redo
+                redo ↻
             </button>
         </div>
     )
