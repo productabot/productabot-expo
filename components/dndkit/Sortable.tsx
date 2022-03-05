@@ -62,7 +62,7 @@ export function Sortable({
             modifiers={modifiers}
         >
             <SortableContext items={items} strategy={strategy}>
-                <div style={{ display: 'grid', gridGap: 25, gridTemplateColumns: `repeat(${window.width > 900 ? '5' : window.width > 750 ? '4' : window.width > 550 ? '3' : window.width > 330 ? '2' : '1'},auto)`, width: '100%' }}>
+                <div style={{ display: 'grid', gridGap: 25, gridTemplateColumns: `repeat(${window.width > 1900 ? '10' : window.width > 1800 ? '9' : window.width > 1650 ? '8' : window.width > 1500 ? '7' : window.width > 1200 ? '6' : window.width > 900 ? '5' : window.width > 750 ? '4' : window.width > 550 ? '3' : window.width > 330 ? '2' : '1'},auto)`, width: '100%' }}>
                     {items.map((value, index) => (
                         <SortableItem
                             key={value.id}

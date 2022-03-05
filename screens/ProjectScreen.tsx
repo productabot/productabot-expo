@@ -227,7 +227,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             justifyContent: 'center',
             marginTop: Platform.OS === 'web' ? -40 : 0
         }}>
-            <View style={{ maxWidth: Math.min(window.width, root.desktopWidth), width: '100%', padding: 10, height: '100%' }}>
+            <View style={{ maxWidth: window.width, width: '100%', padding: 10, height: '100%' }}>
                 {Platform.OS !== 'web' ? <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginTop: -5, marginBottom: 5 }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                     <TouchableOpacity onPress={() => { setSettings(!settings); }} ><Text style={{ fontSize: 30, marginTop: 3 }}>⚙️</Text></TouchableOpacity>

@@ -95,8 +95,8 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
       justifyContent: 'center'
     }}>
       {Platform.OS === 'web' ?
-        projects.length > 0 && <div style={{ width: Math.min(window.width, 1280), height: '100%', paddingTop: 50 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: (Platform.OS === 'web' && window.width > 1280) ? 55 : 20, paddingTop: 0, paddingBottom: 0, marginBottom: 15 }}>
+        projects.length > 0 && <div style={{ width: window.width, height: '100%', paddingTop: 50 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: 15 }}>
             <Text style={{ color: '#ffffff', fontSize: 20 }}>{greeting}</Text>
             <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
               <Text style={{ marginRight: 5 }}>archived</Text>
@@ -136,7 +136,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
               title=""
             />}
           renderHeaderView={
-            <View style={{ marginTop: Platform.OS === 'web' ? 30 : 0, flexDirection: 'row', justifyContent: 'space-between', padding: (Platform.OS === 'web' && window.width > 1280) ? 60 : 20, paddingTop: 0, paddingBottom: 0, marginBottom: -10, zIndex: 1 }}>
+            <View style={{ marginTop: Platform.OS === 'web' ? 30 : 0, flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: -10, zIndex: 1 }}>
               <Text style={{ color: '#ffffff', fontSize: 20 }}>{greeting}</Text>
               <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
                 <Text style={{ marginRight: 5 }}>archived</Text>
@@ -156,11 +156,11 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
           onDragEnd={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
           sortable={true}
           dataSource={projects}
-          parentWidth={root.desktopWeb ? Math.min(window.width, root.desktopWidth) : window.width}
+          parentWidth={window.width}
           marginChildrenTop={25}
           marginChildrenBottom={25}
-          marginChildrenLeft={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - ((window.width < 600 ? 3 : window.width < 800 ? 4 : 5) * 141)) / (window.width < 600 ? 6 : window.width < 800 ? 8 : 10) : (window.width - (2 * 140)) / 6}
-          marginChildrenRight={root.desktopWeb ? (Math.min(window.width, root.desktopWidth) - ((window.width < 600 ? 3 : window.width < 800 ? 4 : 5) * 141)) / (window.width < 600 ? 6 : window.width < 800 ? 8 : 10) : (window.width - (2 * 140)) / 6}
+          marginChildrenLeft={root.desktopWeb ? (window.width - ((window.width < 600 ? 3 : window.width < 800 ? 4 : 5) * 141)) / (window.width < 600 ? 6 : window.width < 800 ? 8 : 10) : (window.width - (2 * 140)) / 6}
+          marginChildrenRight={root.desktopWeb ? (window.width - ((window.width < 600 ? 3 : window.width < 800 ? 4 : 5) * 141)) / (window.width < 600 ? 6 : window.width < 800 ? 8 : 10) : (window.width - (2 * 140)) / 6}
           childrenWidth={140}
           childrenHeight={140}
           fixedItems={[projects.length - 1]}

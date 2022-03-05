@@ -156,7 +156,7 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
                     <Text style={{ fontSize: 30, opacity: 0 }}>←</Text>
                 </View>}
             <ScrollView
-                style={{ maxWidth: 600, width: '100%', height: '100%', padding: 10, overflow: 'visible' }}
+                style={{ maxWidth: 890, width: '100%', height: '100%', padding: 10, overflow: 'visible' }}
                 contentContainerStyle={{ display: 'flex', alignItems: 'center' }}
                 refreshControl={
                     <RefreshControl

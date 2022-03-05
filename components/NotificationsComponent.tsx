@@ -18,7 +18,7 @@ export default function NotificationsComponent({ route, navigation, loading }: a
         <Menu renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#ffffff', borderWidth: 1, borderStyle: 'solid' } }} >
             <MenuTrigger>
                 <View style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25 }} >
-                    <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: 'bold' }}>!</Text>
+                    <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: 800 }}>!</Text>
                     <Text style={{ position: 'absolute', top: -10, right: -10, backgroundColor: '#ffffff', color: '#000000', fontSize: 14, height: 20, width: 20, borderRadius: 10, textAlign: 'center' }}>0</Text>
                 </View>
             </MenuTrigger>

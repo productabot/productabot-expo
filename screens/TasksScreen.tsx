@@ -79,7 +79,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
 
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0, }}>
-            <View style={{ width: Math.min(600, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : 150) }}>
+            <View style={{ width: Math.min(950, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : 150) }}>
                 <SegmentedControl
                     appearance='dark'
                     style={{ width: '100%', marginTop: 10, marginBottom: 10 }}

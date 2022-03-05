@@ -170,7 +170,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
                         titleColor="#ffffff"
                         title=""
                     />}
-                    style={{ maxWidth: Math.min(windowDimensions.width, root.desktopWidth), width: root.desktopWeb ? 600 : windowDimensions.width, padding: 10, height: '100%' }}>
+                    style={{ width: root.desktopWeb ? Math.min(910, windowDimensions.width - 40) : windowDimensions.width, padding: root.desktopWeb ? 0 : 10, height: '100%' }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%' }}>
                         <TouchableOpacity onPress={() => { pickImage(); }}>
                             <Image
@@ -185,7 +185,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
                         </View>
                         <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
                             <TouchableOpacity onPress={logout}><Text style={{ textAlign: 'center' }}>log out →</Text></TouchableOpacity>
-                            <TouchableOpacity onPress={() => { navigation.navigate('test') }}><Text style={{ textAlign: 'center' }}>{root.desktopWeb ? `need help? talk to us` : `help`}</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { }}><Text style={{ textAlign: 'center' }}>{root.desktopWeb ? `need help? talk to us` : `help`}</Text></TouchableOpacity>
                         </View>
 
                     </View>

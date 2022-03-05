@@ -69,7 +69,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     const goToNextMonth = () => {
         if (!changingMonths) {
             changingMonths = true;
-            scrollRef.current && scrollRef.current.scrollTo({ x: Math.min(root.desktopWidth, windowDimensions.width) * 2, animated: true });
+            scrollRef.current && scrollRef.current.scrollTo({ x: windowDimensions.width * 2, animated: true });
             setTimeout(() => {
                 const innerMonth = new Date(month);
                 innerMonth.setMonth(innerMonth.getMonth() + 1);
@@ -131,7 +131,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         `));
         setEntries(data.data.entries);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
-        scrollRef.current && scrollRef.current.scrollTo({ x: Math.min(root.desktopWidth, windowDimensions.width), animated: false });
+        scrollRef.current && scrollRef.current.scrollTo({ x: windowDimensions.width, animated: false });
         for (let i = 0; i < 42; i++) {
             Animated.sequence([Animated.delay(10 * i), Animated.timing(opacity[i], { toValue: 1, duration: 100, easing: Easing.ease, useNativeDriver: false })]).start();
         }
@@ -141,7 +141,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     const CustomCalendar = ({ givenMonth }) => {
         return (
             <Calendar
-                style={{ width: Math.min(root.desktopWidth, windowDimensions.width) }}
+                style={{ width: windowDimensions.width }}
                 current={givenMonth}
                 theme={calendarTheme}
                 hideExtraDays={false}
@@ -157,14 +157,14 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     const GhostCalendar = ({ }) => {
         return (
             <Calendar
-                style={{ width: Math.min(root.desktopWidth, windowDimensions.width) }}
+                style={{ width: windowDimensions.width }}
                 current={'2020-01-01'}
                 theme={{ ...calendarTheme, monthTextColor: '#ffffff00' }}
                 hideExtraDays={false}
                 firstDay={0}
                 renderArrow={(direction) => (<Text>{direction === 'left' ? '←' : '→'}</Text>)}
                 dayComponent={({ date, state }) =>
-                    <View style={{ borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0, width: Math.min(root.desktopWidth, windowDimensions.width) / (Platform.OS === 'web' ? 7 : 7.5), height: Platform.OS === 'web' ? 130 : 100 }} />
+                    <View style={{ borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0, width: windowDimensions.width / (Platform.OS === 'web' ? 7 : 7.5), height: Platform.OS === 'web' ? 130 : 100 }} />
                 }
             />
         )
@@ -198,7 +198,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
             <ScrollView
                 style={[
                     { borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0 },
-                    root.desktopWeb ? { width: Math.min(root.desktopWidth, windowDimensions.width) / 7, height: 130 } :
+                    root.desktopWeb ? { width: windowDimensions.width / 7, height: 130 } :
                         { width: windowDimensions.width / 7.5, height: 100 }
                 ]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? '#333333' : 'unset' }}>
@@ -268,7 +268,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
             <View
                 style={[
                     { borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0 },
-                    root.desktopWeb ? { width: Math.min(root.desktopWidth, windowDimensions.width) / 7, height: 130 } :
+                    root.desktopWeb ? { width: windowDimensions.width / 7, height: 130 } :
                         { width: windowDimensions.width / 7.5, height: 100 }
                 ]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? '#333333' : 'unset' }}>
@@ -300,8 +300,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     ref={scrollRef}
                     pagingEnabled={true}
                     horizontal={true}
-                    style={{ width: Math.min(root.desktopWidth, windowDimensions.width), height: windowDimensions.height, alignSelf: 'center' }}
-                    contentContainerStyle={{ display: 'flex', alignItems: 'flex-start', width: Math.min(root.desktopWidth, windowDimensions.width) * 3 }}
+                    style={{ width: windowDimensions.width, height: windowDimensions.height, alignSelf: 'center' }}
+                    contentContainerStyle={{ display: 'flex', alignItems: 'flex-start', width: windowDimensions.width * 3 }}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshControl}
@@ -313,9 +313,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                         />}
                 >
                     <GhostCalendar />
-                    {/* <View style={{ width: Math.min(root.desktopWidth, windowDimensions.width) }} /> */}
+                    {/* <View style={{ width: windowDimensions.width }} /> */}
                     <CustomCalendar givenMonth={month} />
-                    {/* <View style={{ width: Math.min(root.desktopWidth, windowDimensions.width) }} /> */}
+                    {/* <View style={{ width: windowDimensions.width }} /> */}
                     <GhostCalendar />
                 </ScrollView>
             </View>

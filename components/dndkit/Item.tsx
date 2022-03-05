@@ -5,8 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { CSS } from '@dnd-kit/utilities';
 
-const oldDate = new Date();
-oldDate.setDate(oldDate.getDate() - 2);
 export interface Props {
   dragOverlay?: boolean;
   color?: string;
@@ -87,7 +85,7 @@ export const Item = React.memo(
               ...wrapperStyle,
               opacity: dragging ? '0' : '1',
               listStyleType: 'none',
-              transition: sorting ? 'transform ease-in-out 0.15s' : '',
+              transition: sorting ? transition : '',
               transform: CSS.Transform.toString(transform)
             } as React.CSSProperties
           }

@@ -54,7 +54,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
 
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0, }}>
-            <View style={{ width: Math.min(600, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 80 : 150) }}>
+            <View style={{ width: Math.min(850, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 80 : 150) }}>
                 {root.desktopWeb ?
                     <TouchableOpacity style={{ alignSelf: 'flex-start', marginLeft: -40, marginBottom: -60 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                     :
@@ -69,8 +69,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                             <Image style={{ height: 30, width: 30, borderRadius: 5, borderColor: '#ffffff', borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${task.project?.image}` }} />
                         </View>
                         <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
-                            <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left' }}>{task.created_at ? new Date(task.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : ''}</Text>
-                            <Text style={{ textDecorationLine: task.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{task.details}</Text>
+                            <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left' }}>{task.created_at ? new Date(task.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : ' '}</Text>
+                            <Text style={{ textDecorationLine: task.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{task.details ? task.details : ' '}</Text>
                             <Text style={{ fontSize: 10, color: '#aaaaaa' }}>{task?.comments_aggregate?.aggregate?.count} comments{task.category ? `, #${task.category}` : ``}</Text>
                         </View>
                     </View>

@@ -74,7 +74,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
 
     return (
         <View style={styles.container}>
-            <View style={{ padding: 10, paddingTop: root.desktopWeb ? 40 : 0, borderColor: '#444444', borderBottomWidth: root.desktopWeb ? 0 : 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%' }}>
+            <View style={{ padding: 10, paddingTop: root.desktopWeb ? 40 : 0, borderColor: '#444444', borderBottomWidth: root.desktopWeb ? 0 : 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <TouchableOpacity onPress={() => {
                     navigation.goBack()
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
@@ -126,7 +126,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                     }
                 }}
                 behavior={"height"}
-                style={[{ width: root.desktopWeb ? Math.min(window.width, root.desktopWidth) : '100%', height: '100%', paddingBottom: 45 }]}
+                style={[{ width: '100%', height: '100%', paddingBottom: 45 }]}
             >
                 <TextInput
                     spellCheck={false}

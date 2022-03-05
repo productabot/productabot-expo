@@ -71,7 +71,7 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
       <RootStack.Screen name="app" options={{ animationEnabled: false }}>
         {props =>
           <AppBottomTab.Navigator {...props} initialRouteName="projectsTab" backBehavior={'history'}
-            screenOptions={{ lazy: true, headerShown: false, tabBarActiveTintColor: '#ffffff', tabBarStyle: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: Math.min(window.width, root.desktopWidth), marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, tabBarLabelStyle: Platform.OS !== 'web' ? { top: -13, fontSize: 18 } : {}, tabBarIconStyle: { display: 'none' } }}>
+            screenOptions={{ lazy: true, headerShown: false, tabBarActiveTintColor: '#ffffff', tabBarStyle: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: '100%', marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, tabBarLabelStyle: Platform.OS !== 'web' ? { top: -13, fontSize: 18 } : {}, tabBarIconStyle: { display: 'none' } }}>
             {Platform.OS === 'web' &&
               <AppBottomTab.Screen name="logo"
                 options={{
@@ -80,9 +80,9 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
                     return (
                       <TouchableOpacity {...props}
                         onPress={() => { navigation.navigate('app', { screen: 'projectsTab', params: { screen: 'projects' } }); }}
-                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: window.width > 900 ? 160 : 30 }}>
+                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: window.width > 950 ? 160 : 30 }}>
                         <AnimatedLogo loading={loading} size={1} />
-                        {(window.width > 900) && <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>}
+                        {(window.width > 950) && <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>}
                       </TouchableOpacity>
                     )
                   }
@@ -93,7 +93,8 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
             }
             <AppBottomTab.Screen name="projectsTab" options={{
               title: `⧉ projects`,
-              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15, marginTop: 3 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>⧉</Text></Pressable> })
+              tabBarItemStyle: { maxWidth: 140, width: 140 },
+              ...((root.desktopWeb && window.width < 950) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15, marginTop: 3 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>⧉</Text></Pressable> })
             }}>
               {props => {
                 return (
@@ -122,7 +123,8 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="calendarTab" options={{
               title: `▦ calendar`,
-              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>▦</Text></Pressable> })
+              tabBarItemStyle: { maxWidth: 140, width: 140 },
+              ...((root.desktopWeb && window.width < 950) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>▦</Text></Pressable> })
             }}>
               {props => {
                 return (
@@ -139,12 +141,13 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="tasksTab" options={{
               title: `☉ tasks`,
-              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>☉</Text></Pressable> })
+              tabBarItemStyle: { maxWidth: 140, width: 140 },
+              ...((root.desktopWeb && window.width < 950) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>☉</Text></Pressable> })
             }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="tasks">
-                    {(window.width < 900) ?
+                    {(window.width < 950) ?
                       <AppStack.Screen name="tasks">
                         {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                       </AppStack.Screen>
@@ -164,7 +167,8 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="notesTab" options={{
               title: `≡ notes`,
-              ...((root.desktopWeb && window.width < 900) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 190) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>≡</Text></Pressable> })
+              tabBarItemStyle: { maxWidth: 140, width: 140 },
+              ...((root.desktopWeb && window.width < 950) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>≡</Text></Pressable> })
             }}>
               {props => {
                 return (
@@ -206,11 +210,13 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
                   tabBarButton: props => {
                     const navigation = useNavigation();
                     return (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, width: 130, marginRight: 20 }}>
-                        <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 10 }} onPress={() => { navigation.navigate('settingsTab') }} >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, marginRight: 20, marginLeft: 'auto' }}><TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} onPress={() => { navigation.navigate('settingsTab') }} >
+                        <Text style={{ color: '#ffffff', fontSize: 14 }}>upgrade ✦</Text>
+                      </TouchableOpacity>
+                        <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: 25 }} onPress={() => { navigation.navigate('settingsTab') }} >
                           <Text style={{ color: '#ffffff', fontSize: 14 }}>⚙️</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 10 }} onPress={() => { setRefresh(!refresh); }} >
+                        <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, width: 25 }} onPress={() => { setRefresh(!refresh); }} >
                           <Text style={{ color: '#ffffff', fontSize: 14 }}>↻</Text>
                         </TouchableOpacity>
                         <NotificationsComponent />

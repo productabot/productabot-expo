@@ -68,7 +68,7 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
     }
 
     return (
-        <div style={{ width: '100%', maxWidth: 1280, paddingTop: 50, marginLeft: 'auto', marginRight: 'auto', height: '100%' }}>
+        <div style={{ width: '100%', paddingTop: 50, marginLeft: 'auto', marginRight: 'auto', height: '100%' }}>
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', color: '#fff', fontFamily: 'arial', marginBottom: 10 }}>
                 filters:
                 <select style={{ width: 150, backgroundColor: '#000000', color: '#ffffff', padding: 5, borderRadius: 5, marginLeft: 5, marginRight: 5 }} onChange={(e) => { setProject(e.target.value) }}>
@@ -93,7 +93,7 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
                 <div>in progress ({tasks.in_progress.length}) <span onClick={() => { navigation.navigate('edit_task', { status: 'in_progress', project_id: project }) }} style={{ cursor: 'pointer', backgroundColor: '#0075ff', borderRadius: 5, padding: '2px 5px', color: '#ffffff', marginLeft: 5 }}>add +</span></div>
                 <div>done ({tasks.done.length}) <span onClick={() => { navigation.navigate('edit_task', { status: 'done', project_id: project }) }} style={{ cursor: 'pointer', backgroundColor: '#0075ff', borderRadius: 5, padding: '2px 5px', color: '#ffffff', marginLeft: 5 }}>add +</span></div>
             </div>
-            <MultipleContainers activationConstraint={{ distance: 2 }} scrollable items={tasks} setItems={setTasks} saveTasks={saveTasks} />
+            <MultipleContainers activationConstraint={{ distance: 1 }} scrollable items={tasks} setItems={setTasks} saveTasks={saveTasks} />
         </div>
     );
 }
