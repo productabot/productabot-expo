@@ -17,11 +17,11 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     const [update, setUpdate] = useState(true);
     const [addingTag, setAddingTag] = useState(false);
 
-    useFocusEffect(
-        React.useCallback(() => {
-            onRefresh();
-        }, [])
-    );
+    // useFocusEffect(
+    //     React.useCallback(() => {
+    //         onRefresh();
+    //     }, [])
+    // );
 
     useEffect(() => {
         onRefresh();
@@ -56,7 +56,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
         }
 
         let notesData = await API.graphql(graphqlOperation(`{
-            notes(order_by: {order: desc}, limit: 20, where: {tag_id: {_eq: "${tag.id ? tag.id : tagsData.data.tags.length > 0 ? tagsData.data.tags[0].id : 'bb1871eb-929a-4a96-90e1-1ee7789e8872'}"}}) {
+            notes(order_by: {order: desc}, limit: 12, where: {tag_id: {_eq: "${tag.id ? tag.id : tagsData.data.tags.length > 0 ? tagsData.data.tags[0].id : 'bb1871eb-929a-4a96-90e1-1ee7789e8872'}"}}) {
               id
               title
               order
@@ -68,7 +68,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
 
     const loadMore = async () => {
         let notesData = await API.graphql(graphqlOperation(`{
-            notes(order_by: {order: desc}, limit: 20, offset: ${notes.length}, where: {tag_id: {_eq: "${tag.id ? tag.id : tagsData.data.tags.length > 0 ? tagsData.data.tags[0].id : 'bb1871eb-929a-4a96-90e1-1ee7789e8872'}"}}) {
+            notes(order_by: {order: desc}, limit: 12, offset: ${notes.length}, where: {tag_id: {_eq: "${tag.id ? tag.id : tagsData.data.tags.length > 0 ? tagsData.data.tags[0].id : 'bb1871eb-929a-4a96-90e1-1ee7789e8872'}"}}) {
               id
               title
               order
@@ -189,6 +189,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000000',
         alignItems: 'center',
-        justifyContent: 'flex-start'
+        justifyContent: 'flex-start',
+        paddingBottom: 50
     }
 });

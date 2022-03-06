@@ -19,7 +19,6 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
             if (!route.params) { route.params = {}; }
             const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (e) => { setKeyboardHeight(e.endCoordinates.height); });
             const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => { setKeyboardHeight(0); });
-            onRefresh();
             return () => {
                 keyboardWillHideListener.remove();
                 keyboardWillShowListener.remove();
@@ -80,7 +79,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
             {
                 <View style={{ padding: 10, paddingTop: 0, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <TouchableOpacity onPress={() => {
-                        navigation.navigate('notesTab')
+                        navigation.goBack();
                     }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                     <TextInput spellCheck={false} style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
                         setNote({ ...note, title: value });
@@ -102,7 +101,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                                                 id
                                             }
                                         }`)).then((response) => {
-                                            navigation.navigate('notesTab');
+                                            navigation.goBack();
                                         });
                                     }
                                 }
@@ -186,6 +185,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                     onMessage={(e) => {
                         setNote({ ...note, content: e.nativeEvent.data });
                     }}
+                    onLoad={async () => { onRefresh(); }}
                 />
                 {keyboardHeight !== 0 && <InputAccessoryViewWebViewComponent injectJavascript={injectJavascript} />}
             </View >

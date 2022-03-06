@@ -78,7 +78,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
 
 
     return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0, }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0 }}>
             <View style={{ width: Math.min(950, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : 150) }}>
                 <SegmentedControl
                     appearance='dark'
@@ -87,7 +87,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                     selectedIndex={index}
                     onChange={(e) => { setChecked([]); setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                 />
-                <View style={{ width: '100%', height: 30, flexDirection: 'row', justifyContent: 'space-between' }}>
+                <View style={{ width: '100%', height: 40, flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10, marginBottom: -10 }}>
                     {(checked.length > 0 && index !== 0) ? <TouchableOpacity
                         style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
                         onPress={async () => {
@@ -117,15 +117,10 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                 <CustomDraggableFlatList
                     noBorder={true}
                     data={tasks}
-                    renderItem={({ item, itemIndex }) =>
+                    renderItem={({ item, index }) =>
                         <>
-                            {(!loading && index === 0 && item.root_order === 10000) && <View style={{ position: 'absolute', left: -7, top: -7, backgroundColor: '#3f91a1', borderRadius: 5, paddingLeft: 5, paddingRight: 5 }}><Text style={{ fontSize: 14 }}>new</Text></View>}
-                            {(!loading && index === 1 && new Date(item.created_at) < oldDate) && <View style={{ position: 'absolute', left: -7, top: -7, backgroundColor: (new Date(new Date().getTime() - new Date(item.created_at).getTime()).getDate() < 7) ? '#3F0054' : '#ff0000', borderRadius: 5, paddingLeft: 5, paddingRight: 5 }}><Text style={{ fontSize: 14 }}>{new Date(new Date().getTime() - new Date(item.created_at).getTime()).getDate()} days old</Text></View>}
                             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
-                                <TouchableOpacity onPress={() => {
-                                    Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                    navigation.navigate('task', { id: item.id });
-                                }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
                                     <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7 }}>
                                         <Image style={{ height: 30, width: 30, borderRadius: 5, borderColor: '#ffffff', borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${item.project.image}` }} />
                                     </View>
@@ -134,8 +129,8 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                                         <Text style={{ textDecorationLine: item.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
                                         <Text style={{ fontSize: 10, color: '#aaaaaa' }}>{item.comments_aggregate.aggregate.count} comment{item.comments_aggregate.aggregate.count !== 1 ? 's' : ''}{item.category ? `, #${item.category}` : ``}</Text>
                                     </View>
-                                </TouchableOpacity>
-                                <View onStartShouldSetResponder={() => true}>
+                                </View>
+                                <View>
                                     {Platform.OS === 'web' ?
                                         <input
                                             checked={checked.filter(obj => obj === item.id).length > 0 ? true : false}
@@ -204,7 +199,10 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                     }}
                     setContextPosition={setContextPosition}
                     menuRef={menuRef}
-                    onPress={async ({ item, index }) => { }}
+                    onPress={async ({ item, index }) => {
+                        Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        navigation.navigate('task', { id: item.id });
+                    }}
                     onDragEnd={async ({ data }) => {
                         setTasks(data);
                         await API.graphql(graphqlOperation(`mutation {${data.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {root_order: ${data.length - taskIndex - 1}}) {id}`)}}`));
@@ -218,6 +216,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                             titleColor="#ffffff"
                             title=""
                         />}
+                    style={{ height: windowDimensions.height - 230 }}
                 />
             </View>
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>

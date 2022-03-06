@@ -116,7 +116,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
         await Auth.signOut();
         setLoading(false);
         navigation.navigate('auth');
-        Platform.OS === 'web' && window.location.reload();
+        Platform.OS === 'web' && setTimeout(() => { window.location.reload() }, 250);
     }
 
     const cancelChanges = async () => {
@@ -214,7 +214,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading }: any)
                                     <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'paid' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'paid' ? '#3F0054' : '#000000' }}>
                                         <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
                                             <Text style={{ fontSize: 20, fontWeight: 'bold' }}>✦ premium</Text>
-                                            <Text style={{ fontSize: 20 }}>$2.99 per month</Text>
+                                            <Text style={{ fontSize: 20 }}>$1.99 per month</Text>
                                         </View>
                                         <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
                                             <Text>• 100 GB storage</Text>

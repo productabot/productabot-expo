@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, TextInput, useWindowDimensions, Platform } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from "@aws-amplify/api";
@@ -12,6 +12,8 @@ import 'react-native-get-random-values';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import './NotesDesktopScreen.css';
+import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
+import ContextMenuRenderer from '../components/ContextMenuRenderer';
 
 let noteContentTimeout;
 
@@ -29,6 +31,8 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     const [noteId, setNoteId] = useState('');
     const [noteContent, setNoteContent] = useState('');
     const [saved, setSaved] = useState(true);
+    const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
+    const menuRef = useRef(null);
 
     const editor = useEditor({
         extensions: [
@@ -168,14 +172,12 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
         let charCode = String.fromCharCode(event.which).toLowerCase();
         if ((event.ctrlKey || event.metaKey) && charCode === 's') {
             event.preventDefault();
-            setLoading(true);
             try {
                 const html = editor.getHTML();
                 setNoteContent(html);
             }
             catch (err) {
                 console.log(err);
-                setLoading(false);
             }
         }
         else if (event.shiftKey && event.key === "Tab") {
@@ -185,6 +187,9 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
         else if (event.key === "Tab") {
             event.preventDefault();
             const { from, to } = editor.state.selection;
+            if (editor.isActive('bulletList') || editor.isActive('orderedList')) {
+                return;
+            }
             if (from === to) {
                 editor.chain().focus().insertContent(`	`).run();
             }
@@ -201,12 +206,23 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                 <SplitPane split="vertical" pane1Style={hidePane && { display: 'none' }} defaultSize={paneSize} resizerStyle={{ width: 4, backgroundColor: '#444444', cursor: 'col-resize' }} onResizerDoubleClick={(e) => { setHidePane(!hidePane) }} onChange={(size) => { setPaneSize(size) }} >
                     <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: `100%`, borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', borderRightWidth: 0, borderLeftWidth: 0 }}>
                         <View style={{ height: 49, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
-                            <TextInput spellCheck={false} placeholder="search" style={{ backgroundColor: '#000000', color: '#ffffff', borderColor: '#444444', borderWidth: 1, padding: 5, borderRadius: 5, width: '100%', outlineWidth: 0, marginLeft: 10 }}
-                                value={search || ''}
-                                onChangeText={(value) => { setSearch(value); }}
-                            />
                             <TouchableOpacity
-                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 10, marginRight: 10 }}
+                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
+                                onPress={async () => {
+                                    let title = prompt('Folder title?');
+                                    let data = await API.graphql(graphqlOperation(`mutation {
+                                                insert_tags_one(object: {title: "${title}", order: ${tags.length}}) {
+                                                id
+                                                }
+                                            }`));
+                                    let newTags = tags;
+                                    newTags.push({ id: data.data.insert_tags_one.id, title: title });
+                                    setTags(newTags);
+                                    setTag(newTags[newTags.length - 1]);
+                                }}><Text numberOfLines={1} style={{ textAlign: 'center', color: '#ffffff' }}>add folder +</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
                                 onPress={async () => {
                                     let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
                                     await API.graphql(graphqlOperation(`mutation {
@@ -254,23 +270,10 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                         onDragEnd={({ data }) => {
                                             setTags(data);
                                         }}
-                                        ListFooterComponent={() => (
-                                            <TouchableOpacity
-                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10 }}
-                                                onPress={async () => {
-                                                    let title = prompt('Tag title?');
-                                                    let data = await API.graphql(graphqlOperation(`mutation {
-                                                insert_tags_one(object: {title: "${title}", order: ${tags.length}}) {
-                                                id
-                                                }
-                                            }`));
-                                                    let newTags = tags;
-                                                    newTags.push({ id: data.data.insert_tags_one.id, title: title });
-                                                    setTags(newTags);
-                                                    setTag(newTags[newTags.length - 1]);
-                                                }}><Text numberOfLines={1} style={{ textAlign: 'center', color: '#aaaaaa' }}>add new tag +</Text>
-                                            </TouchableOpacity>
-                                        )}
+                                        menuRef={menuRef}
+                                        setContextPosition={setContextPosition}
+                                        onDelete={(item) => { }}
+                                        onRename={(item) => { }}
                                     /></View>}
                             <CustomDraggableFlatList
                                 delayDragOnWeb={true}
@@ -293,6 +296,10 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                     setNotes(data);
                                     updateNotes();
                                 }}
+                                menuRef={menuRef}
+                                setContextPosition={setContextPosition}
+                                onDelete={(item) => { }}
+                                onRename={(item) => { }}
                             />
                         </View>
                     </View>
@@ -317,6 +324,24 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                     </View>
                 </SplitPane>
             </View>
+
+            <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
+                <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y - 40, left: contextPosition.x } }} />
+                <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#444444', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
+                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                        {contextPosition.rename && <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
+                            menuRef.current.close();
+                            await contextPosition.rename();
+                        }} ><Text>Rename</Text></TouchableOpacity>}
+                        {contextPosition.delete && <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
+                            menuRef.current.close();
+                            await contextPosition.delete();
+                        }}><Text>Delete</Text></TouchableOpacity>}
+                        <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
+                            onPress={() => { menuRef.current.close(); }}><Text>Cancel</Text></TouchableOpacity>
+                    </View>
+                </MenuOptions>
+            </Menu>
         </View>
     );
 }

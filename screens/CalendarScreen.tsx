@@ -62,7 +62,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 month = innerMonth.toLocaleDateString('fr-CA');
                 onRefresh();
                 changingMonths = false;
-            }, Platform.OS === 'web' ? 605 : 0);
+            }, Platform.OS === 'web' ? 700 : 0);
         }
     }
 
@@ -76,7 +76,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 month = innerMonth.toLocaleDateString('fr-CA');
                 onRefresh();
                 changingMonths = false;
-            }, Platform.OS === 'web' ? 605 : 0);
+            }, Platform.OS === 'web' ? 700 : 0);
         }
     }
     useFocusEffect(
@@ -104,8 +104,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         dateOpacity = false;
         const startMonth = new Date(month);
         const endMonth = new Date(month);
-        startMonth.setDate(1);
-        endMonth.setDate(1);
+        startMonth.setDate(0);
+        endMonth.setDate(0);
         startMonth.setDate(startMonth.getDate() - 6);
         endMonth.setMonth(endMonth.getMonth() + 1);
         endMonth.setDate(endMonth.getDate() + 6);
@@ -164,7 +164,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 firstDay={0}
                 renderArrow={(direction) => (<Text>{direction === 'left' ? '←' : '→'}</Text>)}
                 dayComponent={({ date, state }) =>
-                    <View style={{ borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0, width: windowDimensions.width / (Platform.OS === 'web' ? 7 : 7.5), height: Platform.OS === 'web' ? 130 : 100 }} />
+                    <View style={{ borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0, width: windowDimensions.width / 7, height: Platform.OS === 'web' ? 130 : 100 }} />
                 }
             />
         )
@@ -199,7 +199,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 style={[
                     { borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0 },
                     root.desktopWeb ? { width: windowDimensions.width / 7, height: 130 } :
-                        { width: windowDimensions.width / 7.5, height: 100 }
+                        { width: windowDimensions.width / 7, height: 100 }
                 ]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? '#333333' : 'unset' }}>
                     <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : '#ffffff', fontSize: 12 }}>
@@ -291,17 +291,36 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
             <GhostCalendar />
         </View>);
     }
-    else if (Platform.OS === 'web') {
+    else {
         return (
             <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginTop: root.desktopWeb ? 50 : 0 }}>
                 <ScrollView
-                    scrollEnabled={false}
+                    scrollEnabled={root.desktopWeb ? false : true}
                     showsHorizontalScrollIndicator={false}
+                    onMomentumScrollEnd={(e) => {
+                        if (Platform.OS !== 'web') {
+                            if (e.nativeEvent.contentOffset.x === 0) {
+                                const innerMonth = new Date(month);
+                                innerMonth.setMonth(innerMonth.getMonth() - 1);
+                                month = innerMonth.toLocaleDateString('fr-CA');
+                                onRefresh();
+                            }
+                            else if (e.nativeEvent.contentOffset.x >= windowDimensions.width * 2) {
+                                const innerMonth = new Date(month);
+                                innerMonth.setMonth(innerMonth.getMonth() + 1);
+                                month = innerMonth.toLocaleDateString('fr-CA');
+                                onRefresh();
+                            }
+                        }
+                    }}
                     ref={scrollRef}
                     pagingEnabled={true}
                     horizontal={true}
-                    style={{ width: windowDimensions.width, height: windowDimensions.height, alignSelf: 'center' }}
+                    style={{ width: windowDimensions.width, height: root.desktopWeb ? windowDimensions.height : '100%', alignSelf: 'center' }}
                     contentContainerStyle={{ display: 'flex', alignItems: 'flex-start', width: windowDimensions.width * 3 }}
+                    automaticallyAdjustContentInsets={false}
+                    directionalLockEnabled={true}
+                    decelerationRate={0.999999}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshControl}
@@ -313,30 +332,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                         />}
                 >
                     <GhostCalendar />
-                    {/* <View style={{ width: windowDimensions.width }} /> */}
                     <CustomCalendar givenMonth={month} />
-                    {/* <View style={{ width: windowDimensions.width }} /> */}
                     <GhostCalendar />
                 </ScrollView>
-            </View>
-        );
-    }
-    else {
-        return (
-            <View style={{ flexDirection: 'column', justifyContent: 'flex-start', height: '100%', width: '100%' }}>
-                <CalendarList
-                    markedDates={markedDates}
-                    horizontal={true}
-                    pagingEnabled={true}
-                    calendarWidth={windowDimensions.width}
-                    style={{ width: windowDimensions.width, height: '100%' }}
-                    current={month}
-                    onVisibleMonthsChange={(months) => { month = months[0].dateString; onRefresh(); }}
-                    theme={calendarTheme}
-                    hideExtraDays={false}
-                    firstDay={0}
-                    dayComponent={({ date, state }) => <DayComponent date={date} state={state} />}
-                />
             </View>
         );
     }

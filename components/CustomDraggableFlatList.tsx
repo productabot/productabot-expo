@@ -29,72 +29,68 @@ let pageX: number | null = null;
 let pageY: number | null = null;
 let dragged: boolean = false;
 class CustomRenderItem extends React.PureComponent {
+    onPressFunction = async () => { await this.props.onPress(this.props.item); }
+    styleFunction = (state) => [{ cursor: this.props.draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? '#000000' : this.props.item.isActive ? '#333333' : state.hovered ? '#202020' : '#161616' }, this.props.renderItemStyle]
+    onPressInFunction = async () => {
+        // if (Platform.OS === 'web') { setTimeout(() => { updateLik(); }, 10); }
+        if (Platform.OS === 'web' && this.props.draggable && !this.props.delayDragOnWeb) {
+            dragged = false;
+            setTimeout(() => { dragged = true; }, 100);
+            this.props.item.drag();
+        }
+        else if (Platform.OS !== 'web') {
+            const mobileContext = async () => {
+                // this.props.dragRef.current.resetHoverState();
+                let options = ['Cancel'];
+                this.props.onRename && options.push('Rename');
+                this.props.onDelete && options.push('Delete');
+                ActionSheetIOS.showActionSheetWithOptions(
+                    {
+                        options: options,
+                        cancelButtonIndex: 0,
+                        destructiveButtonIndex: options.indexOf('Delete')
+                    },
+                    async (buttonIndex) => {
+                        if (buttonIndex === options.indexOf('Rename')) {
+                            await this.props.onRename(this.props.item);
+                        }
+                        else if (buttonIndex === options.indexOf('Delete')) {
+                            await this.props.onDelete(this.props.item);
+                        }
+                    }
+                );
+            }
+            mobileContextTimeout = setTimeout(mobileContext, 1000);
+        }
+    }
+    onTouchMoveFunction = (e) => {
+        if (!pageX || !pageY) {
+            pageX = e.nativeEvent.pageX; pageY = e.nativeEvent.pageY;
+        }
+        else if (pageX !== e.nativeEvent.pageX || pageY !== e.nativeEvent.pageY) {
+            clearTimeout(mobileContextTimeout);
+            pageX = null;
+            pageY = null;
+        }
+    }
+    onPressOutFunction = async () => { if (Platform.OS === 'web') { if (!this.props.dragged && !this.props.delayDragOnWeb) { await this.props.onPress(this.props.item); } clearTimeout(dragRefTimeout); dragRefTimeout = setTimeout(() => { this.props.dragRef.current && this.props.dragRef.current.resetHoverState(); }, 750); } else { pageX = null; pageY = null; clearTimeout(mobileContextTimeout); } }
     render() {
-        const { item, renderItem, onPress, dragRef, updateLik, renderItemStyle, setContextPosition, menuRef, onRename, onDelete, draggable, delayDragOnWeb } = this.props;
         return (
             <Pressable
-                onContextMenu={async (e: any) => {
-                    e.preventDefault();
-                    setContextPosition({
-                        x: e.nativeEvent.pageX, y: e.nativeEvent.pageY + 40,
-                        ...(onRename && { rename: async () => onRename(item) }),
-                        ...(onDelete && { delete: async () => onDelete(item) })
-                    });
-                    setTimeout(() => { menuRef.current.open() }, 0);
-                }}
-                onPress={async () => { await onPress(item); }}
-                style={(state) => [{ cursor: draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? '#000000' : item.isActive ? '#333333' : state.hovered ? '#202020' : '#161616' }, renderItemStyle]}
-                onPressIn={async () => {
-                    // if (Platform.OS === 'web') { setTimeout(() => { updateLik(); }, 10); }
-                    if (Platform.OS === 'web' && draggable && !delayDragOnWeb) {
-                        dragged = false;
-                        setTimeout(() => { dragged = true; }, 100);
-                        item.drag();
-                    }
-                    else if (Platform.OS !== 'web') {
-                        const mobileContext = async () => {
-                            dragRef.current.resetHoverState();
-                            let options = ['Cancel'];
-                            onRename && options.push('Rename');
-                            onDelete && options.push('Delete');
-                            ActionSheetIOS.showActionSheetWithOptions(
-                                {
-                                    options: options,
-                                    cancelButtonIndex: 0,
-                                    destructiveButtonIndex: options.indexOf('Delete')
-                                },
-                                async (buttonIndex) => {
-                                    if (buttonIndex === options.indexOf('Rename')) {
-                                        await onRename(item);
-                                    }
-                                    else if (buttonIndex === options.indexOf('Delete')) {
-                                        await onDelete(item);
-                                    }
-                                }
-                            );
-                        }
-                        mobileContextTimeout = setTimeout(mobileContext, 1000);
-                    }
-                }}
-                onTouchMove={(e) => {
-                    if (!pageX || !pageY) {
-                        pageX = e.nativeEvent.pageX; pageY = e.nativeEvent.pageY;
-                    }
-                    else if (pageX !== e.nativeEvent.pageX || pageY !== e.nativeEvent.pageY) {
-                        clearTimeout(mobileContextTimeout);
-                        pageX = null;
-                        pageY = null;
-                    }
-                }}
-                onPressOut={async () => { if (Platform.OS === 'web') { if (!dragged && !delayDragOnWeb) { await onPress(item); } clearTimeout(dragRefTimeout); dragRefTimeout = setTimeout(() => { dragRef.current && dragRef.current.resetHoverState(); }, 750); } else { pageX = null; pageY = null; clearTimeout(mobileContextTimeout); } }}
-                disabled={item.isActive} delayLongPress={150} onLongPress={draggable ? item.drag : () => { }}>
-                {renderItem(item)}
+                onPress={this.onPressFunction}
+                style={this.styleFunction}
+                onPressIn={this.onPressInFunction}
+                onTouchMove={this.onTouchMoveFunction}
+                onPressOut={this.onPressOutFunction}
+                disabled={this.props.item.isActive}
+                delayLongPress={150}
+                onLongPress={this.props.draggable ? this.props.item.drag : null}
+            >
+                {this.props.renderItem(this.props.item)}
             </Pressable>
         );
     }
 }
-
-
 
 export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true, delayDragOnWeb = false, activationConstraint = { distance: 5 }, virtualHeight = 800, virtualSize = 80, onEndReached = () => { } }: any) {
     if (Platform.OS === 'ios') {
@@ -102,12 +98,6 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
         const [lik, setLik] = useState(`${0}`);
         const updateLik = () => { setLik(`${new Date().toISOString()}`) }
         const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} updateLik={updateLik} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} draggable={draggable} delayDragOnWeb={delayDragOnWeb} />
-
-        React.useEffect(() => {
-            const wheelListener = (e) => { setTimeout(() => { updateLik(); }, 20); }
-            Platform.OS === 'web' && window.addEventListener("wheel", wheelListener);
-            return () => { Platform.OS === 'web' && window.removeEventListener('wheel', wheelListener); }
-        }, []);
 
         return (
             <DraggableFlatList
@@ -127,9 +117,13 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                 onDragEnd={(props) => { onDragEnd(props); setTimeout(() => { updateLik(); }, 20); }}
                 ListFooterComponent={ListFooterComponent}
                 refreshControl={refreshControl}
-                initialNumToRender={11}
+                initialNumToRender={20}
                 activationDistance={5}
                 autoscrollThreshold={100}
+                removeClippedSubviews={true}
+                windowSize={20}
+                maxToRenderPerBatch={20}
+                updateCellsBatchingPeriod={20}
             />
         )
     }
@@ -227,8 +221,8 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                         e.preventDefault();
                         setContextPosition({
                             x: e.nativeEvent.pageX, y: e.nativeEvent.pageY + 40,
-                            ...(onRename && { rename: async () => onRename(item) }),
-                            ...(onDelete && { delete: async () => onDelete(item) })
+                            ...(onRename && { rename: async () => onRename({ item: item }) }),
+                            ...(onDelete && { delete: async () => onDelete({ item: item }) })
                         });
                         setTimeout(() => { menuRef.current.open() }, 0);
                     }}
