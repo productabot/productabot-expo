@@ -22,6 +22,7 @@ import {
 import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
 import VirtualList from 'react-tiny-virtual-list';
+import { useTheme } from '@react-navigation/native';
 
 let dragRefTimeout: any;
 let mobileContextTimeout: any;
@@ -93,6 +94,7 @@ class CustomRenderItem extends React.PureComponent {
 }
 
 export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true, delayDragOnWeb = false, activationConstraint = { distance: 5 }, virtualHeight = 800, virtualSize = 80, onEndReached = () => { } }: any) {
+    const { colors } = useTheme();
     if (Platform.OS === 'ios') {
         const dragRef = useRef(null);
         const [lik, setLik] = useState(`${0}`);
@@ -102,7 +104,7 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
         return (
             <DraggableFlatList
                 ref={dragRef}
-                style={[{ height: '100%' }, (Platform.OS === 'web' && !noBorder) && { borderColor: '#333333', borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }, style]}
+                style={[{ height: '100%' }, (Platform.OS === 'web' && !noBorder) && { borderColor: colors.card, borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }, style]}
                 data={data}
                 containerStyle={{ maxHeight: '100%' }}
                 contentContainerStyle={{ width: '100%' }}
@@ -167,7 +169,7 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                 >
                     {/* {data.map(item => <SortableItem key={item.id} id={item.id} item={item} renderItemStyle={renderItemStyle} draggable={draggable} menuRef={menuRef} onRename={onRename} onDelete={onDelete} setContextPosition={setContextPosition} RenderItem={renderItem} onPress={onPress} />)} */}
                     <VirtualList
-                        style={{ borderColor: '#333333', borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }}
+                        style={{ borderColor: colors.card, borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }}
                         height={virtualHeight}
                         itemCount={data.length}
                         itemSize={virtualSize}
@@ -195,14 +197,15 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                 transition,
                 isDragging
             } = useSortable({ id: id });
+            const { colors } = useTheme();
 
             const style = {
                 ...renderItemStyle,
                 transform: CSS.Transform.toString(transform),
                 transition,
-                color: '#fff',
+                color: colors.text,
                 opacity: isDragging ? 0 : 1,
-                cursor: draggable ? 'grab' : 'pointer', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 10, backgroundColor: '#161616',
+                cursor: draggable ? 'grab' : 'pointer', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 10, backgroundColor: colors.card,
                 ...virtualStyle,
                 margin: 10,
                 width: 'calc(100% - 50px)',
@@ -232,12 +235,13 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
             );
         }
         function NonSortableItem({ item, renderItemStyle, RenderItem, virtualSize }) {
+            const { colors } = useTheme();
             return (
                 <div
                     style={{
                         ...renderItemStyle,
-                        color: '#fff',
-                        cursor: draggable ? 'grab' : 'pointer', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 0, borderRadius: 10, backgroundColor: '#333333',
+                        color: colors.text,
+                        cursor: draggable ? 'grab' : 'pointer', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 0, borderRadius: 10, backgroundColor: colors.card,
                         height: virtualSize - 40,
                     }}
                 >

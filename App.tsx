@@ -1,13 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { MenuProvider } from 'react-native-popup-menu';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, useColorScheme } from 'react-native';
 import { LoadingComponent } from './components/LoadingComponent';
 import { AnimatedLogo } from './components/AnimatedLogo';
-
 import useCachedResources from './hooks/useCachedResources';
 import Navigation from './navigation';
-
 import { Environment } from './Environment';
 import Amplify from "@aws-amplify/core";
 import { Auth } from "@aws-amplify/auth";
@@ -16,6 +14,7 @@ import { Platform, LogBox } from 'react-native';
 import { WebSocketLink } from "@apollo/client/link/ws";
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
+import { useTheme } from '@react-navigation/native';
 import { enableScreens } from 'react-native-screens';
 enableScreens(true);
 
@@ -62,6 +61,8 @@ export default function App() {
   const isLoadingComplete = useCachedResources();
   const [authenticated, setAuthenticated] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
+  const { colors } = useTheme();
+
   React.useEffect(() => {
     const async = async () => {
       Platform.OS !== 'web' && LogBox.ignoreLogs([
@@ -94,7 +95,8 @@ export default function App() {
       }
     }
     async();
-  }, [])
+  }, []);
+
   if (!isLoadingComplete || authenticated === null) {
     // if (true) {
     return (

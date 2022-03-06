@@ -1,9 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { TouchableOpacity, RefreshControl, Image, useWindowDimensions, Platform, Alert, Animated, Easing } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { Auth } from "@aws-amplify/auth";
 import { API, graphqlOperation } from "@aws-amplify/api";
-import { StartupComponent } from '../components/StartupComponent';
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import AutoDragSortableView from '../components/AutoDragSortableViewComponent';
@@ -11,6 +9,7 @@ import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';
 import * as Haptics from 'expo-haptics';
 import { Sortable } from '../components/dndkit/Sortable';
+import { useTheme } from '@react-navigation/native';
 
 export default function ProjectsScreen({ route, navigation, refresh, setLoading }: any) {
   const window = useWindowDimensions();
@@ -21,6 +20,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
   const [archived, setArchived] = useState(false);
   const opacity = Array(20).fill(0).map(() => useRef(new Animated.Value(0)).current);
   const menuRef = useRef(null);
+  const { colors } = useTheme();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -64,14 +64,13 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
     `));
     setProjects(data.data.projects.concat({ id: null }));
     let currentHour = new Date().getHours();
-    let username = await (await Auth.currentSession()).getIdToken().payload.preferred_username;
     setGreeting(<View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
       {(Platform.OS === 'web' && window.width > 800) && <Text>{(currentHour < 12 && currentHour > 6) ? `good morning, ` : (currentHour < 18 && currentHour >= 12) ? `good afternoon, ` : (currentHour < 22 && currentHour >= 18) ? `good evening, ` : `good night, `}</Text>}
       <TouchableOpacity onPress={() => { navigation.navigate('settingsTab') }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }} >
-        <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: '#ffffff', borderRadius: 5, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${data.data.users[0].image}` }} />
+        <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.text, borderRadius: 5, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${data.data.users[0].image}` }} />
         <Text>{data.data.users[0].username}</Text>
       </TouchableOpacity>
-    </View>);
+    </View >);
     showRefreshControl ? setRefreshControl(false) : setLoading(false);
   }
 
@@ -97,15 +96,15 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
       {Platform.OS === 'web' ?
         projects.length > 0 && <div style={{ width: window.width, height: '100%', paddingTop: 50 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: 15 }}>
-            <Text style={{ color: '#ffffff', fontSize: 20 }}>{greeting}</Text>
+            <Text style={{ color: colors.text, fontSize: 20 }}>{greeting}</Text>
             <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
               <Text style={{ marginRight: 5 }}>archived</Text>
               {Platform.OS === 'web' ?
                 <input checked={archived} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" />
                 :
                 <View
-                  style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20, backgroundColor: archived ? '#0075ff' : '#ffffff' }}>
-                  {archived && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
+                  style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20, backgroundColor: archived ? '#0075ff' : colors.text }}>
+                  {archived && <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
                 </View>
               }
             </TouchableOpacity>
@@ -130,22 +129,22 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
             <RefreshControl
               refreshing={refreshControl}
               onRefresh={() => onRefresh(true)}
-              colors={["#ffffff"]}
-              tintColor='#ffffff'
-              titleColor="#ffffff"
+              colors={[colors.text]}
+              tintColor={colors.text}
+              titleColor={colors.text}
               title=""
             />}
           renderHeaderView={
             <View style={{ marginTop: Platform.OS === 'web' ? 30 : 0, flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: -10, zIndex: 1 }}>
-              <Text style={{ color: '#ffffff', fontSize: 20 }}>{greeting}</Text>
+              <Text style={{ color: colors.text, fontSize: 20 }}>{greeting}</Text>
               <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
                 <Text style={{ marginRight: 5 }}>archived</Text>
                 {Platform.OS === 'web' ?
                   <input checked={archived} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" />
                   :
                   <View
-                    style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20, backgroundColor: archived ? '#0075ff' : '#ffffff' }}>
-                    {archived && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
+                    style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20, backgroundColor: archived ? '#0075ff' : colors.text }}>
+                    {archived && <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
                   </View>
                 }
               </TouchableOpacity>
@@ -230,7 +229,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
                 onPress={() => { navigation.navigate('project', { id: item.id }) }}
                 style={{ alignItems: 'center', width: 140, cursor: 'grab' }}
                 key={item.id}>
-                <View style={{ width: 140, height: 140, borderColor: '#ffffff', borderWidth: 1, borderRadius: 20 }}>
+                <View style={{ width: 140, height: 140, borderColor: colors.text, borderWidth: 1, borderRadius: 20 }}>
                   <Animated.Image
                     onLoad={() => { Animated.timing(opacity[index], { toValue: 1, duration: 100, useNativeDriver: false }).start(); }}
                     style={{ opacity: opacity[index], width: 138, height: 138, borderRadius: 19 }}
@@ -239,7 +238,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
                 </View>
                 {item.goal &&
                   <View style={{ position: 'absolute', flexDirection: 'row', width: '80%', height: 5, bottom: -8, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
-                    <View style={{ height: '100%', backgroundColor: item.color === '#000000' ? '#ffffff' : item.color, width: `${(Math.min(item.entries_aggregate.aggregate.sum.hours / item.goal, 1) * 100).toFixed(0)}%`, borderRadius: 3 }} />
+                    <View style={{ height: '100%', backgroundColor: item.color === '#000000' ? colors.text : item.color, width: `${(Math.min(item.entries_aggregate.aggregate.sum.hours / item.goal, 1) * 100).toFixed(0)}%`, borderRadius: 3 }} />
                   </View>}
                 <Text numberOfLines={1} ellipsizeMode='tail'>{item.public ? '' : '🔒'}{item.name}</Text>
               </View>

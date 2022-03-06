@@ -1,4 +1,4 @@
-import { NavigationContainer, DarkTheme, useNavigation, useRoute } from '@react-navigation/native';
+import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import * as React from 'react';
@@ -28,18 +28,56 @@ import TasksScreen from '../screens/TasksScreen';
 import TaskScreen from '../screens/TaskScreen';
 import EditTaskScreen from '../screens/EditTaskScreen';
 import TasksDesktopScreen from '../screens/TasksDesktopScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '@react-navigation/native';
 
 export default function Navigation({ navigation, authenticated, setLoading, loading }: any) {
+  const [theme, setTheme] = React.useState('dark');
+  
+  React.useEffect(() => {
+    const async = async () => {
+      let result = await AsyncStorage.getItem('theme');
+      if (result) {
+        setTheme(result);
+      }
+    }
+    async();
+  }, []);
+
+  const darkTheme = {
+    dark: true,
+    colors: {
+      primary: '#ffffff',
+      background: '#000000',
+      card: '#161616',
+      text: '#ffffff',
+      border: '#666666',
+      notification: '#ffffff',
+    },
+  };
+
+  const lightTheme = {
+    dark: false,
+    colors: {
+      primary: '#000000',
+      background: '#ffffff',
+      card: '#aaaaaa',
+      text: '#000000',
+      border: '#666666',
+      notification: '#000000',
+    },
+  };
+
   return (
     <NavigationContainer
-      theme={DarkTheme}
+      theme={theme === 'dark' ? darkTheme : lightTheme}
       linking={LinkingConfiguration}
       documentTitle={{
         formatter: (options, route) =>
           `productabot • ${options?.title ?? route?.name.replace('_', ' ')}`,
       }}
     >
-      <RootNavigator authenticated={authenticated} setLoading={setLoading} loading={loading} />
+      <RootNavigator authenticated={authenticated} setLoading={setLoading} loading={loading} setTheme={setTheme} theme={theme} />
     </NavigationContainer>
   );
 }
@@ -50,9 +88,10 @@ const AppBottomTab = createBottomTabNavigator<any>();
 const AppStack = createStackNavigator<any>();
 // const MobileNotesStack = createDrawerNavigator<any>();
 
-function RootNavigator({ authenticated, setLoading, loading }: any) {
+function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: any) {
   const window = useWindowDimensions();
   const [refresh, setRefresh] = React.useState(false);
+  const { colors } = useTheme();
   return (
     <RootStack.Navigator initialRouteName={authenticated ? 'app' : 'auth'} screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="auth" options={{ animationEnabled: false }}>
@@ -71,7 +110,7 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
       <RootStack.Screen name="app" options={{ animationEnabled: false }}>
         {props =>
           <AppBottomTab.Navigator {...props} initialRouteName="projectsTab" backBehavior={'history'}
-            screenOptions={{ lazy: true, headerShown: false, tabBarActiveTintColor: '#ffffff', tabBarStyle: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: '100%', marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#000000', borderTopWidth: 0 } : { backgroundColor: '#000000', borderTopWidth: 0 }, tabBarLabelStyle: Platform.OS !== 'web' ? { top: -13, fontSize: 18 } : {}, tabBarIconStyle: { display: 'none' } }}>
+            screenOptions={{ lazy: true, headerShown: false, tabBarActiveTintColor: colors.text, tabBarStyle: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: '100%', marginLeft: 'auto', marginRight: 'auto', backgroundColor: colors.background, borderTopWidth: 0 } : { backgroundColor: colors.background, borderTopWidth: 0 }, tabBarLabelStyle: Platform.OS !== 'web' ? { top: -13, fontSize: 18 } : {}, tabBarIconStyle: { display: 'none' } }}>
             {Platform.OS === 'web' &&
               <AppBottomTab.Screen name="logo"
                 options={{
@@ -82,7 +121,7 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
                         onPress={() => { navigation.navigate('app', { screen: 'projectsTab', params: { screen: 'projects' } }); }}
                         style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: window.width > 950 ? 160 : 30 }}>
                         <AnimatedLogo loading={loading} size={1} />
-                        {(window.width > 950) && <Text style={{ color: '#ffffff', fontSize: 20 }}>productabot</Text>}
+                        {(window.width > 950) && <Text style={{ color: colors.text, fontSize: 20 }}>productabot</Text>}
                       </TouchableOpacity>
                     )
                   }
@@ -210,16 +249,27 @@ function RootNavigator({ authenticated, setLoading, loading }: any) {
                   tabBarButton: props => {
                     const navigation = useNavigation();
                     return (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, marginRight: 20, marginLeft: 'auto' }}><TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} onPress={() => { navigation.navigate('settingsTab') }} >
-                        <Text style={{ color: '#ffffff', fontSize: 14 }}>upgrade ✦</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, marginRight: 20, marginLeft: 'auto' }}><TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} onPress={() => { navigation.navigate('settingsTab') }} >
+                        <Text style={{ color: colors.text, fontSize: 14 }}>upgrade ✦</Text>
                       </TouchableOpacity>
-                        <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: 25 }} onPress={() => { navigation.navigate('settingsTab') }} >
-                          <Text style={{ color: '#ffffff', fontSize: 14 }}>⚙️</Text>
+                        <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: 25 }} onPress={async () => {
+                          let currentTheme = await AsyncStorage.getItem('theme');
+                          let nextTheme = 'dark';
+                          if (!currentTheme || currentTheme === 'dark') {
+                            nextTheme = 'light';
+                          }
+                          await AsyncStorage.setItem('theme', nextTheme);
+                          setTheme(nextTheme);
+                        }} >
+                          <Text style={{ color: colors.text, fontSize: 14 }}>{theme === 'dark' ? '☀' : '◗*'}</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={{ borderColor: '#ffffff', borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, width: 25 }} onPress={() => { setRefresh(!refresh); }} >
-                          <Text style={{ color: '#ffffff', fontSize: 14 }}>↻</Text>
+                        <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: 25 }} onPress={() => { navigation.navigate('settingsTab') }} >
+                          <Text style={{ color: colors.text, fontSize: 14 }}>⚙️</Text>
                         </TouchableOpacity>
-                        <NotificationsComponent />
+                        <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 0, width: 25 }} onPress={() => { setRefresh(!refresh); }} >
+                          <Text style={{ color: colors.text, fontSize: 14 }}>↻</Text>
+                        </TouchableOpacity>
+                        {/* <NotificationsComponent /> */}
                       </View>
                     )
                   }

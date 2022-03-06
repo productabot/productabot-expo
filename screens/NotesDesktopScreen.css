@@ -1,6 +1,5 @@
 .ProseMirror {
     padding: 10px;
-    color: #ffffff;
     font-family: monospace;
     outline: none;
     height: calc(100vh - 165px);

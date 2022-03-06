@@ -14,6 +14,7 @@ import StarterKit from '@tiptap/starter-kit';
 import './NotesDesktopScreen.css';
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';
+import { useTheme } from '@react-navigation/native';
 
 let noteContentTimeout;
 
@@ -33,6 +34,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     const [saved, setSaved] = useState(true);
     const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
     const menuRef = useRef(null);
+    const { colors } = useTheme();
 
     const editor = useEditor({
         extensions: [
@@ -200,7 +202,12 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     }
 
     return (
-        <View style={styles.container}>
+        <View style={{
+            flex: 1,
+            backgroundColor: colors.background,
+            alignItems: 'center',
+            justifyContent: 'flex-start'
+        }}>
             <View style={{ height: 50 }} />
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: windowDimensions.width, height: windowDimensions.height - 49, maxWidth: windowDimensions.width }}>
                 <SplitPane split="vertical" pane1Style={hidePane && { display: 'none' }} defaultSize={paneSize} resizerStyle={{ width: 4, backgroundColor: '#444444', cursor: 'col-resize' }} onResizerDoubleClick={(e) => { setHidePane(!hidePane) }} onChange={(size) => { setPaneSize(size) }} >
@@ -219,7 +226,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                     newTags.push({ id: data.data.insert_tags_one.id, title: title });
                                     setTags(newTags);
                                     setTag(newTags[newTags.length - 1]);
-                                }}><Text numberOfLines={1} style={{ textAlign: 'center', color: '#ffffff' }}>add folder +</Text>
+                                }}><Text numberOfLines={1} style={{ textAlign: 'center', color: colors.text }}>add folder +</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
@@ -306,7 +313,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                     <View style={[{ width: `100%`, height: '100%', borderWidth: 1, borderColor: '#444444', borderLeftWidth: 0, borderRightWidth: 0 }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                             <TextInput spellCheck={false}
-                                style={[{ width: '100%', height: 49, color: '#ffffff', padding: 10 }, root.desktopWeb && { outlineWidth: 0 }]}
+                                style={[{ width: '100%', height: 49, color: colors.text, padding: 10 }, root.desktopWeb && { outlineWidth: 0 }]}
                                 numberOfLines={1}
                                 value={noteTitle || ''}
                                 onChangeText={async (value) => { setNoteTitle(value) }}
@@ -320,14 +327,14 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                             }} ><span style={{ color: '#aa0000', fontFamily: 'arial', fontSize: 12, marginRight: 10, cursor: 'pointer' }}>delete</span></TouchableOpacity>
                         </View>
                         <MenuBar editor={editor} />
-                        <EditorContent onKeyDown={handleKeyDown} spellcheck="false" editor={editor} />
+                        <EditorContent onKeyDown={handleKeyDown} spellcheck="false" editor={editor} style={{ color: colors.text }} />
                     </View>
                 </SplitPane>
             </View>
 
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
                 <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y - 40, left: contextPosition.x } }} />
-                <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#444444', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
+                <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: colors.background, borderColor: '#444444', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
                     <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                         {contextPosition.rename && <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
                             menuRef.current.close();
@@ -337,7 +344,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                             menuRef.current.close();
                             await contextPosition.delete();
                         }}><Text>Delete</Text></TouchableOpacity>}
-                        <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
+                        <TouchableOpacity style={{ backgroundColor: colors.background, padding: 5, paddingLeft: 20, width: '100%' }}
                             onPress={() => { menuRef.current.close(); }}><Text>Cancel</Text></TouchableOpacity>
                     </View>
                 </MenuOptions>
@@ -443,14 +450,4 @@ const MenuBar = ({ editor }) => {
         </div>
     )
 }
-
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#000000',
-        alignItems: 'center',
-        justifyContent: 'flex-start'
-    }
-});
 

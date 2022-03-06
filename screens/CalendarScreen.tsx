@@ -6,6 +6,7 @@ import * as root from '../Root';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { useFocusEffect } from '@react-navigation/native';
 import Popover from '../components/PopoverMenuRenderer';
+import { useTheme } from '@react-navigation/native';
 
 LocaleConfig.locales['en'] = {
     monthNames: ['january', 'februrary', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'],
@@ -21,27 +22,6 @@ let changingMonths = false;
 let month = new Date().toLocaleDateString();
 let menuOpen = false;
 
-const calendarTheme = {
-    backgroundColor: '#ffffff00',
-    calendarBackground: '#ffffff00',
-    textSectionTitleColor: '#ffffff',
-    selectedDayBackgroundColor: '#ffffff00',
-    selectedDayTextColor: '#ffffff',
-    todayTextColor: '#ffffff',
-    dayTextColor: '#ffffff',
-    textDisabledColor: '#aaaaaa',
-    dotColor: '#ffffff',
-    selectedDotColor: '#ffffff',
-    arrowColor: '#ffffff',
-    monthTextColor: '#ffffff',
-    indicatorColor: '#ffffff',
-    textDayFontFamily: 'Arial',
-    textMonthFontFamily: 'Arial',
-    textDayHeaderFontFamily: 'Arial',
-    textMonthFontSize: 18,
-    textDayHeaderFontSize: 14,
-};
-
 export default function CalendarScreen({ route, navigation, refresh, setLoading }: any) {
     const windowDimensions = useWindowDimensions();
     const [refreshControl, setRefreshControl] = useState(false);
@@ -51,6 +31,27 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     const [markedDates, setMakedDates] = useState({});
     const [hide, setHide] = React.useState(true);
     const scrollRef = useRef();
+    const { colors } = useTheme();
+    const calendarTheme = {
+        backgroundColor: '#ffffff00',
+        calendarBackground: '#ffffff00',
+        textSectionTitleColor: colors.text,
+        selectedDayBackgroundColor: '#ffffff00',
+        selectedDayTextColor: colors.text,
+        todayTextColor: colors.text,
+        dayTextColor: colors.text,
+        textDisabledColor: '#aaaaaa',
+        dotColor: colors.text,
+        selectedDotColor: colors.text,
+        arrowColor: colors.text,
+        monthTextColor: colors.text,
+        indicatorColor: colors.text,
+        textDayFontFamily: 'Arial',
+        textMonthFontFamily: 'Arial',
+        textDayHeaderFontFamily: 'Arial',
+        textMonthFontSize: 18,
+        textDayHeaderFontSize: 14,
+    };
 
     const goToPreviousMonth = () => {
         if (!changingMonths) {
@@ -202,28 +203,28 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                         { width: windowDimensions.width / 7, height: 100 }
                 ]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? '#333333' : 'unset' }}>
-                    <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : '#ffffff', fontSize: 12 }}>
+                    <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : colors.text, fontSize: 12 }}>
                         {date.day}
                     </Text>
                     <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
                 </View>
                 {entries.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
-                    <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
+                    <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                         <MenuTrigger>
                             <Animated.View style={{ opacity: dateOpacity[date.dateString] !== -1 ? opacity[dateOpacity[date.dateString]] : 1, paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Text numberOfLines={1} style={{ fontSize: 12 }}>{root.desktopWeb ? obj.project.name : obj.project.key}</Text>
-                                <Text numberOfLines={1} style={{ fontSize: 12, minWidth: obj.hours.toString().length * 6 }}>{obj.hours}</Text>
+                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>{root.desktopWeb ? obj.project.name : obj.project.key}</Text>
+                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff', minWidth: obj.hours.toString().length * 6 }}>{obj.hours}</Text>
                             </Animated.View>
                         </MenuTrigger>
                         <MenuOptions customStyles={{
                             optionsWrapper: { backgroundColor: 'transparent', width: 250 },
                             optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
                         }}>
-                            <View style={{ backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 250, borderRadius: 10 }}>
+                            <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 250, borderRadius: 10 }}>
                                 <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
                                         <TouchableOpacity onPress={() => { navigation.navigate('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
-                                            <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: '#ffffff', borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
+                                            <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
                                             <View style={{ flexDirection: 'column', marginLeft: 5 }}>
                                                 <Text numberOfLines={1} style={{ marginLeft: 3 }}>{obj.project.name}</Text>
                                                 <View style={{ flexDirection: 'row' }}>
@@ -250,7 +251,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                                 [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
                                         }
                                         else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
-                                    }}><Text>Delete</Text></TouchableOpacity>
+                                    }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
                                     <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
                                         onRefresh(); navigation.navigate('entry', { id: obj.id, date: undefined })
                                     }} ><Text>Edit</Text></TouchableOpacity>
@@ -272,7 +273,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                         { width: windowDimensions.width / 7.5, height: 100 }
                 ]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? '#333333' : 'unset' }}>
-                    <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : '#ffffff', fontSize: 12 }}>
+                    <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : colors.text, fontSize: 12 }}>
                         {date.day}
                     </Text>
                     <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
@@ -325,9 +326,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                         <RefreshControl
                             refreshing={refreshControl}
                             onRefresh={() => onRefresh(true)}
-                            colors={["#ffffff"]}
-                            tintColor='#ffffff'
-                            titleColor="#ffffff"
+                            colors={[colors.text]}
+                            tintColor={colors.text}
+                            titleColor={colors.text}
                             title=""
                         />}
                 >
@@ -335,7 +336,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <CustomCalendar givenMonth={month} />
                     <GhostCalendar />
                 </ScrollView>
-            </View>
+            </View >
         );
     }
 }

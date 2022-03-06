@@ -5,6 +5,7 @@ import { arrayMove, useSortable, SortableContext, sortableKeyboardCoordinates, r
 import { useNavigation } from '@react-navigation/native';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { Platform, Alert } from 'react-native';
+import { useTheme } from '@react-navigation/native';
 
 export function Sortable({
     activationConstraint,
@@ -181,6 +182,7 @@ const Item = React.memo(
             ref
         ) => {
             const navigation = useNavigation();
+            const { colors } = useTheme();
             return renderItem ? (
                 renderItem({
                     dragOverlay: Boolean(dragOverlay),
@@ -257,11 +259,11 @@ const Item = React.memo(
                                 }}
                                 onClick={() => { navigation.navigate('project', { id: value.id }) }}
                                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', cursor: dragging ? 'grabbing' : 'grab' }}>
-                                <div style={{ height: 140, width: 140, border: '1px solid #ffffff', borderRadius: 20 }}>
+                                <div style={{ height: 140, width: 140, border: `1px solid ${colors.text}`, borderRadius: 20 }}>
                                     <img style={{ width: 140, height: 140, borderRadius: 19 }} src={`https://files.productabot.com/public/${value.image}`} />
                                 </div>
                                 <div style={{ marginBottom: 3 }}>
-                                    <span>{value.public ? '' : '🔒'}{value.name}</span>
+                                    <span style={{ color: colors.text }}>{value.public ? '' : '🔒'}{value.name}</span>
                                 </div>
                                 {value.goal &&
                                     <div style={{ flexDirection: 'row', width: 120, height: 5, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
@@ -276,7 +278,7 @@ const Item = React.memo(
                                     setLoading(false);
                                     navigation.navigate('project', { id: data.data.insert_projects_one.id });
                                 }}
-                                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 160, cursor: 'pointer', fontSize: 40 }}><span>+</span></div>}
+                                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 160, cursor: 'pointer', fontSize: 40 }}><span style={{ color: colors.text }}>+</span></div>}
                     </div>
                 </div>
             );
