@@ -20,6 +20,7 @@ import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 import Popover from '../components/PopoverMenuRenderer';
 import { PieChart } from "react-native-chart-kit";
 import * as Haptics from 'expo-haptics';
+import { useTheme } from '@react-navigation/native';
 const chartColors = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6',
     '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
     '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A',
@@ -65,6 +66,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
     const inputRef = useRef(null);
     const [settings, setSettings] = useState(false);
     const [count, setCount] = useState({});
+    const { colors } = useTheme();
     const opacity = useRef(new Animated.Value(0)).current;
 
     useFocusEffect(
@@ -238,15 +240,15 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         <TouchableOpacity onPress={() => { pickImage(); }}>
                             {project.image ?
                                 <Image
-                                    style={{ width: 80, height: 80, marginRight: 10, borderColor: '#ffffff', borderWidth: 1, borderRadius: 10 }}
+                                    style={{ width: 80, height: 80, marginRight: 10, borderColor: colors.text, borderWidth: 1, borderRadius: 10 }}
                                     source={{ uri: `https://files.productabot.com/public/${project.image}` }}
                                 />
                                 :
-                                <View style={{ width: 80, height: 80, marginRight: 10, borderColor: '#ffffff', borderWidth: 1, borderRadius: 10 }} />
+                                <View style={{ width: 80, height: 80, marginRight: 10, borderColor: colors.text, borderWidth: 1, borderRadius: 10 }} />
                             }
                         </TouchableOpacity>
                         <Animated.View style={{ opacity: opacity }}>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
+                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: colors.text }, root.desktopWeb && { outlineWidth: 0 }]}
                                 onChangeText={(value) => { setProject({ ...project, name: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`mutation {
@@ -256,7 +258,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                   }`));
                                 }}
                             />
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.description} numberOfLines={2} style={[{ fontSize: 20, color: '#ffffff' }, root.desktopWeb && { outlineWidth: 0 }]}
+                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.description} numberOfLines={2} style={[{ fontSize: 20, color: colors.text }, root.desktopWeb && { outlineWidth: 0 }]}
                                 onChangeText={(value) => { setProject({ ...project, description: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`
@@ -274,14 +276,14 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                 {settings ?
                     <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: 10, width: root.desktopWeb ? 600 : '100%', alignSelf: 'center' }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>key: </Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.key} numberOfLines={2} style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 80 }}
+                            <Text style={{ fontSize: 20, color: colors.text, width: '22%', textAlign: 'center' }}>key: </Text>
+                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.key} numberOfLines={2} style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 80 }}
                                 onChangeText={(value) => { setProject({ ...project, key: value }); }}
                                 onBlur={async () => { await API.graphql(graphqlOperation(`mutation {update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {key: "${project.key}"}) {id} }`)); }}
                             />
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>color: </Text>
+                            <Text style={{ fontSize: 20, color: colors.text, width: '22%', textAlign: 'center' }}>color: </Text>
                             {Platform.OS === 'web' ?
                                 <input style={{ border: 'none' }} type="color" value={project.color} onChange={(e) => {
                                     let value = e.target.value;
@@ -331,8 +333,8 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             }
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>goal:</Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={`${project.goal ? project.goal : ''}`} numberOfLines={2} style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 50 }}
+                            <Text style={{ fontSize: 20, color: colors.text, width: '22%', textAlign: 'center' }}>goal:</Text>
+                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={`${project.goal ? project.goal : ''}`} numberOfLines={2} style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 50 }}
                                 onChangeText={(value) => { setProject({ ...project, goal: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`
@@ -343,11 +345,11 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         }`));
                                 }}
                             />
-                            <Text style={{ fontSize: 20, color: '#ffffff', width: '40%', textAlign: 'left', marginLeft: 10 }}>hours per month</Text>
+                            <Text style={{ fontSize: 20, color: colors.text, width: '40%', textAlign: 'left', marginLeft: 10 }}>hours per month</Text>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>website: </Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.website} numberOfLines={2} style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: '78%' }}
+                            <Text style={{ fontSize: 20, color: colors.text, width: '22%', textAlign: 'center' }}>website: </Text>
+                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.website} numberOfLines={2} style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: '78%' }}
                                 onChangeText={(value) => { setProject({ ...project, website: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`
@@ -360,12 +362,12 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             />
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
-                            <Text style={{ fontSize: 20, color: '#ffffff', width: '22%', textAlign: 'center' }}>public: </Text>
+                            <Text style={{ fontSize: 20, color: colors.text, width: '22%', textAlign: 'center' }}>public: </Text>
                             <TouchableOpacity onPress={async () => {
                                 setProject({ ...project, public: !project.public });
                                 await API.graphql(graphqlOperation(`mutation {update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {public: ${project.public ? 'false' : 'true'}}) {id}}`));
                             }} style={{ flexDirection: 'row' }}>
-                                <View style={{ borderWidth: 1, borderColor: '#ffffff', borderRadius: 5, height: 20, width: 20, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontWeight: 'bold' }}>{project.public ? '✓' : ''}</Text></View>
+                                <View style={{ borderWidth: 1, borderColor: colors.text, borderRadius: 5, height: 20, width: 20, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: colors.text, textAlign: 'center', fontWeight: 'bold' }}>{project.public ? '✓' : ''}</Text></View>
                             </TouchableOpacity>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
@@ -387,7 +389,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     }
                                 }
 
-                            }} style={{ textAlign: 'center', color: '#ffffff' }}>
+                            }} style={{ textAlign: 'center', color: colors.text }}>
                                 archive project
                             </Text>
                         </View>
@@ -419,7 +421,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                     :
                     <>
                         <SegmentedControl
-                            appearance='dark'
+                            appearance={colors.background === '#000000' ? 'dark' : 'light'}
                             style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
                             values={[`docs (${count.documents ?? 0})`, `files (${count.files ?? 0})`, `entries (${count.entries ?? 0})`, `tasks (${count.tasks ?? 0})`]}
                             selectedIndex={index}
@@ -431,7 +433,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
                                     <MenuTrigger onPress={() => { goalRef.current.open(); }} onMouseEnter={(e) => { clearTimeout(goalTimeout); goalTimeout = setTimeout(() => { goalRef.current.open(); }, 750); }} onMouseLeave={(e) => { clearTimeout(goalTimeout) }} style={{ flexDirection: 'row', width: 320, alignSelf: 'center', alignItems: 'center', marginBottom: -15, marginRight: -40 }}>
                                         <View style={{ flexDirection: 'row', width: 200, height: 15, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center' }}>
-                                            <View style={{ height: '100%', backgroundColor: project.color === '#000000' ? '#ffffff' : project.color, width: `${Math.min(count.weeklyGoal, 100)}%`, borderRadius: 3 }} />
+                                            <View style={{ height: '100%', backgroundColor: project.color === '#000000' ? colors.text : project.color, width: `${Math.min(count.weeklyGoal, 100)}%`, borderRadius: 3 }} />
                                         </View>
                                         <Text style={{ alignSelf: 'center', marginLeft: 5 }}>{`${count.weeklyGoal}% of goal`}</Text>
                                     </MenuTrigger>
@@ -455,7 +457,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                                                 name: obj[0],
                                                                 hours: obj[1],
                                                                 color: chartColors[index],
-                                                                legendFontColor: '#ffffff',
+                                                                legendFontColor: colors.text,
                                                                 legendFontFamily: 'arial'
                                                             })
                                                         })}
@@ -754,14 +756,14 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             menuRef.current.close();
                             await contextPosition.rename();
                             await onRefresh();
-                        }} ><Text>Rename</Text></TouchableOpacity>}
+                        }} ><Text style={{ color: '#ffffff' }}>Rename</Text></TouchableOpacity>}
                         {contextPosition.delete && <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
                             menuRef.current.close();
                             await contextPosition.delete();
                             await onRefresh();
-                        }}><Text>Delete</Text></TouchableOpacity>}
+                        }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>}
                         <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
-                            onPress={() => { menuRef.current.close(); }}><Text>Cancel</Text></TouchableOpacity>
+                            onPress={() => { menuRef.current.close(); }}><Text style={{ color: '#ffffff' }}>Cancel</Text></TouchableOpacity>
                     </View>
                 </MenuOptions>
             </Menu>

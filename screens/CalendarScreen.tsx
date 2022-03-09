@@ -32,6 +32,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     const [hide, setHide] = React.useState(true);
     const scrollRef = useRef();
     const { colors } = useTheme();
+
     const calendarTheme = {
         backgroundColor: '#ffffff00',
         calendarBackground: '#ffffff00',
@@ -202,8 +203,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     root.desktopWeb ? { width: windowDimensions.width / 7, height: 130 } :
                         { width: windowDimensions.width / 7, height: 100 }
                 ]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? '#333333' : 'unset' }}>
-                    <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : colors.text, fontSize: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? colors.card : 'unset' }}>
+                    <Text style={{ margin: 5, textAlign: 'left', color: colors.text, fontSize: 12 }}>
                         {date.day}
                     </Text>
                     <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
@@ -226,17 +227,17 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                         <TouchableOpacity onPress={() => { navigation.navigate('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
                                             <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
                                             <View style={{ flexDirection: 'column', marginLeft: 5 }}>
-                                                <Text numberOfLines={1} style={{ marginLeft: 3 }}>{obj.project.name}</Text>
+                                                <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
                                                 <View style={{ flexDirection: 'row' }}>
                                                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
-                                                        <Text numberOfLines={1} style={{ fontSize: 12 }}>{obj.category}</Text>
+                                                        <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 12 }}>{obj.category}</Text>
                                                     </View>
                                                 </View>
                                             </View>
                                         </TouchableOpacity>
-                                        <Text numberOfLines={1} style={{ fontSize: 30, fontWeight: 'bold' }}>{obj.hours}<Text numberOfLines={1} style={{ fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
+                                        <Text numberOfLines={1} style={{ color: colors.text, fontSize: 30, fontWeight: 'bold' }}>{obj.hours}<Text numberOfLines={1} style={{ color: colors.text, fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
                                     </View>
-                                    <Text style={{ margin: 5 }}>{obj.details}</Text>
+                                    <Text style={{ color: colors.text, margin: 5 }}>{obj.details}</Text>
                                 </ScrollView>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                                     <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
@@ -254,7 +255,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                     }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
                                     <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
                                         onRefresh(); navigation.navigate('entry', { id: obj.id, date: undefined })
-                                    }} ><Text>Edit</Text></TouchableOpacity>
+                                    }} ><Text style={{ color: '#ffffff' }}>Edit</Text></TouchableOpacity>
                                 </View>
                             </View>
                         </MenuOptions>

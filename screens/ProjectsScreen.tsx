@@ -271,14 +271,14 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
               menuRef.current.close();
               await contextPosition.rename();
               await onRefresh();
-            }} ><Text>Rename</Text></TouchableOpacity>
+            }} ><Text style={{ color: '#ffffff' }}>Rename</Text></TouchableOpacity>
             <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
               menuRef.current.close();
               await contextPosition.archive();
               await onRefresh();
-            }}><Text>{archived ? 'Unarchive' : 'Archive'}</Text></TouchableOpacity>
+            }}><Text style={{ color: '#ffffff' }}>{archived ? 'Unarchive' : 'Archive'}</Text></TouchableOpacity>
             <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
-              onPress={() => { menuRef.current.close(); }}><Text>Cancel</Text></TouchableOpacity>
+              onPress={() => { menuRef.current.close(); }}><Text style={{ color: '#ffffff' }}>Cancel</Text></TouchableOpacity>
           </View>
         </MenuOptions>
       </Menu>

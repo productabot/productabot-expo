@@ -2,7 +2,7 @@ import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import * as React from 'react';
-import { View, Platform, Text, TouchableOpacity, useWindowDimensions, Pressable } from 'react-native';
+import { View, Platform, Text, TouchableOpacity, useWindowDimensions, Pressable, StatusBar } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -31,9 +31,9 @@ import TasksDesktopScreen from '../screens/TasksDesktopScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@react-navigation/native';
 
-export default function Navigation({ navigation, authenticated, setLoading, loading }: any) {
+export default function Navigation({ navigation, authenticated, setLoading, loading, setBackgroundColor }: any) {
   const [theme, setTheme] = React.useState('dark');
-  
+
   React.useEffect(() => {
     const async = async () => {
       let result = await AsyncStorage.getItem('theme');
@@ -44,15 +44,19 @@ export default function Navigation({ navigation, authenticated, setLoading, load
     async();
   }, []);
 
+  React.useEffect(() => { StatusBar.setBarStyle(theme === 'light' ? 'dark-content' : 'light-content'); setBackgroundColor(theme === 'light' ? 'dark' : 'light') }, [theme]);
+
   const darkTheme = {
     dark: true,
     colors: {
       primary: '#ffffff',
       background: '#000000',
       card: '#161616',
+      hover: '#333333',
       text: '#ffffff',
       border: '#666666',
       notification: '#ffffff',
+      subtitle: '#aaaaaa'
     },
   };
 
@@ -61,10 +65,12 @@ export default function Navigation({ navigation, authenticated, setLoading, load
     colors: {
       primary: '#000000',
       background: '#ffffff',
-      card: '#aaaaaa',
+      card: '#E9E9E9',
+      hover: '#333333',
       text: '#000000',
       border: '#666666',
       notification: '#000000',
+      subtitle: '#666666'
     },
   };
 
@@ -234,7 +240,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="settings">
                     <AppStack.Screen name="settings">
-                      {props => <SettingsScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                      {props => <SettingsScreen {...props} refresh={refresh} setLoading={setLoading} setTheme={setTheme} theme={theme} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="test">
                       {props => <TestScreen {...props} refresh={refresh} setLoading={setLoading} />}
@@ -250,7 +256,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     const navigation = useNavigation();
                     return (
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, marginRight: 20, marginLeft: 'auto' }}><TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} onPress={() => { navigation.navigate('settingsTab') }} >
-                        <Text style={{ color: colors.text, fontSize: 14 }}>upgrade ✦</Text>
+                        <Text style={{ color: colors.text, fontSize: 14 }}>{window.width > 400 ? 'upgrade ' : ''}✦</Text>
                       </TouchableOpacity>
                         <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: 25 }} onPress={async () => {
                           let currentTheme = await AsyncStorage.getItem('theme');

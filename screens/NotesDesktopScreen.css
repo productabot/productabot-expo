@@ -23,8 +23,6 @@ code {
 }
 
 button {
-    background-color: #222222;
-    color: #ffffff;
     border: none;
     border-radius:5px;
     margin:5px;
@@ -34,9 +32,9 @@ button {
 }
 
 button:hover {
-    background-color: #999999;
+    background-color: #99999977 !important;
 }
 
 .is-active {
-    background-color: #666666;
+    background-color: #66666677 !important;
 }

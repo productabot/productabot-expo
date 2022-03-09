@@ -7,6 +7,7 @@ import * as root from '../Root';
 import RNPickerSelect from 'react-native-picker-select';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { WebView } from 'react-native-webview';
+import { useTheme } from '@react-navigation/native';
 
 export default function TaskScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
@@ -22,6 +23,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
     const [webViewLag, setWebViewLag] = useState('none');
     const [uri, setUri] = useState('https://productabot.com/blank.png');
     const inputRef = useRef(null);
+    const { colors } = useTheme();
+    const styles = makeStyles(colors);
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
@@ -144,9 +147,9 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                     <RefreshControl
                         refreshing={refreshControl}
                         onRefresh={() => { onRefresh(true) }}
-                        colors={["#ffffff"]}
-                        tintColor='#ffffff'
-                        titleColor="#ffffff"
+                        colors={[colors.text]}
+                        tintColor={colors.text}
+                        titleColor={colors.text}
                         title=""
                     />}
                 keyboardShouldPersistTaps="always"
@@ -154,7 +157,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                 {Platform.OS === 'web' && <TouchableOpacity style={{ alignSelf: 'flex-start', marginLeft: -40, marginBottom: -40 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>}
                 <RNPickerSelect
                     placeholder={{}}
-                    Icon={() => <Image style={{ height: 25, width: 25, borderRadius: 5, borderColor: '#ffffff', borderWidth: 1 }} source={{ uri: uri }} />}
+                    Icon={() => <Image style={{ height: 25, width: 25, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: uri }} />}
                     style={{
                         inputWeb: styles.picker,
                         inputIOS: styles.picker,
@@ -172,10 +175,10 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                     <Text style={{ width: 80, textAlign: 'center' }}>due date</Text>
                     {Platform.OS === 'web' ?
                         <input id="date" type="date" value={task.date} onChange={(e) => { setTask({ ...task, date: e.target.value }) }}
-                            style={{ backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(100% - 12px)', fontFamily: 'arial', borderRadius: 10 }}
+                            style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(100% - 12px)', fontFamily: 'arial', borderRadius: 10 }}
                         />
                         :
-                        <View style={{ backgroundColor: '#000000', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 0, marginTop: 5, marginBottom: 5, height: 30, width: '75%', borderRadius: 10 }}>
+                        <View style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 0, marginTop: 5, marginBottom: 5, height: 30, width: '75%', borderRadius: 10 }}>
                             {task.date ?
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
                                     <WebView
@@ -215,7 +218,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
 
                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>
-                    <TouchableOpacity onPress={submit} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ textAlign: 'center' }}>{route.params.id ? `save` : `add`}</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={submit} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{route.params.id ? `save` : `add`}</Text></TouchableOpacity>
                 </View>
                 {route.params.id && <Text style={{ color: '#ff0000', marginTop: 40 }} onPress={async () => { if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${route.params.id}") {id}}`)); navigation.navigate('tasks'); } }}>delete task</Text>}
             </ScrollView>
@@ -228,16 +231,16 @@ const isWeb = Platform.OS === 'web';
 function s(number: number, factor = 0.6) {
     return isWeb ? number * factor : number;
 }
-const styles = StyleSheet.create({
+const makeStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000',
+        backgroundColor: colors.background,
         alignItems: 'center',
         justifyContent: 'center'
     },
     baseText: {
         fontFamily: 'Arial',
-        color: '#ffffff'
+        color: colors.text
     },
     touchableOpacity: {
         backgroundColor: '#3F0054',
@@ -250,6 +253,6 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: s(30)
     },
-    textInput: { backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: '100%', borderRadius: 10 },
-    picker: { backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, paddingLeft: 35 }
+    textInput: { backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: '100%', borderRadius: 10 },
+    picker: { backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, paddingLeft: 35 }
 });

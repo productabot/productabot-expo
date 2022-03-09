@@ -8,6 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '@react-navigation/native';
 
 export default function DocumentScreen({ route, navigation, setLoading }: any) {
     const window = useWindowDimensions();
@@ -16,6 +17,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
     const [editable, setEditable] = useState(Platform.OS === 'web' ? true : false);
     const [touch, setTouch] = useState({});
     const inputRef = useRef(null);
+    const { colors } = useTheme();
 
     useFocusEffect(
         React.useCallback(() => {
@@ -73,12 +75,16 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
     }
 
     return (
-        <View style={styles.container}>
+        <View style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'flex-start'
+        }}>
             <View style={{ padding: 10, paddingTop: root.desktopWeb ? 40 : 0, borderColor: '#444444', borderBottomWidth: root.desktopWeb ? 0 : 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <TouchableOpacity onPress={() => {
                     navigation.goBack()
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                <TextInput spellCheck={false} inputAccessoryViewID='main' style={[{ color: '#ffffff', fontSize: 20, textAlign: 'center', width: '80%' }, root.desktopWeb && { outlineWidth: 0 }]} value={document.title} onChangeText={(value) => {
+                <TextInput spellCheck={false} inputAccessoryViewID='main' style={[{ color: colors.text, fontSize: 20, textAlign: 'center', width: '80%' }, root.desktopWeb && { outlineWidth: 0 }]} value={document.title} onChangeText={(value) => {
                     setUpdate(false);
                     setDocument({ ...document, title: value });
                 }} onBlur={() => {
@@ -135,7 +141,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                     //dataDetectorTypes={'all'}
                     editable={editable}
                     inputAccessoryViewID='main'
-                    style={[{ width: '100%', height: '100%', color: '#ffffff', padding: 10, fontSize: root.desktopWeb ? 13 : 16, paddingTop: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }, root.desktopWeb && { outlineWidth: 0, borderColor: '#333333', borderWidth: 1, borderStyle: 'solid' }]}
+                    style={[{ width: '100%', height: '100%', color: colors.text, padding: 10, fontSize: root.desktopWeb ? 13 : 16, paddingTop: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }, root.desktopWeb && { outlineWidth: 0, borderColor: '#333333', borderWidth: 1, borderStyle: 'solid' }]}
                     multiline={true}
                     value={document.content}
                     onChangeText={(value) => {
@@ -153,12 +159,3 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
         </View >
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#000000',
-        alignItems: 'center',
-        justifyContent: 'flex-start'
-    }
-});

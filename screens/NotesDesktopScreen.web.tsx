@@ -339,13 +339,13 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                         {contextPosition.rename && <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
                             menuRef.current.close();
                             await contextPosition.rename();
-                        }} ><Text>Rename</Text></TouchableOpacity>}
+                        }} ><Text style={{ color: '#ffffff' }}>Rename</Text></TouchableOpacity>}
                         {contextPosition.delete && <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
                             menuRef.current.close();
                             await contextPosition.delete();
-                        }}><Text>Delete</Text></TouchableOpacity>}
-                        <TouchableOpacity style={{ backgroundColor: colors.background, padding: 5, paddingLeft: 20, width: '100%' }}
-                            onPress={() => { menuRef.current.close(); }}><Text>Cancel</Text></TouchableOpacity>
+                        }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>}
+                        <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
+                            onPress={() => { menuRef.current.close(); }}><Text style={{ color: '#ffffff' }}>Cancel</Text></TouchableOpacity>
                     </View>
                 </MenuOptions>
             </Menu>
@@ -357,94 +357,108 @@ const MenuBar = ({ editor }) => {
     if (!editor) {
         return null
     }
+    const { colors } = useTheme();
 
     return (
         <div style={{ display: 'flex', flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#444444', borderTopStyle: 'solid' }}>
             <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={editor.isActive('bold') ? 'is-active' : ''}
-                style={{ fontWeight: 800 }}
+                style={{ color: colors.text, backgroundColor: colors.card, fontWeight: 800 }}
             >
                 B
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 className={editor.isActive('italic') ? 'is-active' : ''}
-                style={{ fontStyle: 'italic' }}
+                style={{ color: colors.text, backgroundColor: colors.card, fontStyle: 'italic' }}
             >
                 I
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 className={editor.isActive('strike') ? 'is-active' : ''}
-                style={{ textDecorationLine: 'line-through' }}
+                style={{ color: colors.text, backgroundColor: colors.card, textDecorationLine: 'line-through' }}
             >
                 S
             </button>
             <button
                 onClick={() => document.execCommand('outdent', false)}
                 className={editor.isActive('codeBlock') ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
             >
                 {`←`}
             </button>
             <button
                 onClick={() => document.execCommand('indent', false)}
                 className={editor.isActive('codeBlock') ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
             >
                 {`→`}
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                 className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
             >
                 h1
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                 className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
             >
                 h2
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
                 className={editor.isActive('heading', { level: 3 }) ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
             >
                 h3
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
                 className={editor.isActive('bulletList') ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
             >
                 ≔
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
                 className={editor.isActive('orderedList') ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
             >
                 #
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleCodeBlock().run()}
                 className={editor.isActive('codeBlock') ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
             >
                 {`<>`}
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
                 className={editor.isActive('blockquote') ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
             >
                 ❝
             </button>
-            <button onClick={() => editor.chain().focus().setHorizontalRule().run()}>
+            <button onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                style={{ color: colors.text, backgroundColor: colors.card }}>
                 ―
             </button>
-            <button onClick={() => editor.chain().focus().setHardBreak().run()}>
+            <button onClick={() => editor.chain().focus().setHardBreak().run()}
+                style={{ color: colors.text, backgroundColor: colors.card }}>
                 ¶
             </button>
-            <button onClick={() => editor.chain().focus().undo().run()}>
+            <button onClick={() => editor.chain().focus().undo().run()}
+                style={{ color: colors.text, backgroundColor: colors.card }}>
                 undo ↺
             </button>
-            <button onClick={() => editor.chain().focus().redo().run()}>
+            <button onClick={() => editor.chain().focus().redo().run()}
+                style={{ color: colors.text, backgroundColor: colors.card }}>
                 redo ↻
             </button>
         </div>

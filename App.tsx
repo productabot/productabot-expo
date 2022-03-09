@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { MenuProvider } from 'react-native-popup-menu';
-import { SafeAreaView, useColorScheme } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import { LoadingComponent } from './components/LoadingComponent';
 import { AnimatedLogo } from './components/AnimatedLogo';
 import useCachedResources from './hooks/useCachedResources';
@@ -14,7 +14,6 @@ import { Platform, LogBox } from 'react-native';
 import { WebSocketLink } from "@apollo/client/link/ws";
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
-import { useTheme } from '@react-navigation/native';
 import { enableScreens } from 'react-native-screens';
 enableScreens(true);
 
@@ -61,7 +60,11 @@ export default function App() {
   const isLoadingComplete = useCachedResources();
   const [authenticated, setAuthenticated] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
-  const { colors } = useTheme();
+  const [backgroundColor, setBackgroundColor] = React.useState('dark');
+
+  React.useEffect(() => {
+    console.log(backgroundColor);
+  }, [backgroundColor]);
 
   React.useEffect(() => {
     const async = async () => {
@@ -100,7 +103,7 @@ export default function App() {
   if (!isLoadingComplete || authenticated === null) {
     // if (true) {
     return (
-      <SafeAreaView style={{ backgroundColor: '#000000', flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <AnimatedLogo size={2.5} />
       </SafeAreaView>
     );
@@ -108,12 +111,8 @@ export default function App() {
     return (
       <ApolloProvider client={client}>
         <MenuProvider>
-          <SafeAreaView style={{
-            backgroundColor: '#000000',
-            height: '100%',
-            width: '100%'
-          }}>
-            <Navigation authenticated={authenticated} setLoading={setLoading} loading={loading} />
+          <SafeAreaView style={{ backgroundColor: backgroundColor === 'light' ? '#000000' : '#ffffff', height: '100%', width: '100%' }}>
+            <Navigation authenticated={authenticated} setLoading={setLoading} loading={loading} setBackgroundColor={setBackgroundColor} />
           </SafeAreaView>
           <LoadingComponent loading={loading} />
           <StatusBar />

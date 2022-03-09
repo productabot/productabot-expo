@@ -4,6 +4,7 @@ import type { Transform } from '@dnd-kit/utilities';
 import { useNavigation } from '@react-navigation/native';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { CSS } from '@dnd-kit/utilities';
+import { useTheme } from '@react-navigation/native';
 
 export interface Props {
   dragOverlay?: boolean;
@@ -63,6 +64,7 @@ export const Item = React.memo(
       ref
     ) => {
       const navigation = useNavigation();
+      const { colors } = useTheme();
 
       return renderItem ? (
         renderItem({
@@ -97,18 +99,18 @@ export const Item = React.memo(
           }}
         >
           <div
-            style={{ ...style, color: '#fff', fontFamily: 'arial', width: '100%' }}
+            style={{ ...style, color: colors.text, fontFamily: 'arial', width: '100%' }}
             data-cypress="draggable-item"
             {...(!handle ? listeners : undefined)}
             {...props}
             tabIndex={!handle ? 0 : undefined}
           >
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', cursor: dragOverlay ? 'grabbing' : 'grab', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: dragOverlay ? '#333333' : '#161616' }}>{/*, height: 90*/}
-              <div style={{ width: 45, }}><img style={{ width: 30, height: 30, borderRadius: 5, borderWidth: 1, borderColor: '#fff', borderStyle: 'solid' }} src={`https://files.productabot.com/public/${value.image}`} /></div>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', cursor: dragOverlay ? 'grabbing' : 'grab', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: dragOverlay ? colors.hover : colors.card }}>{/*, height: 90*/}
+              <div style={{ width: 45, }}><img style={{ width: 30, height: 30, borderRadius: 5, borderWidth: 1, borderColor: colors.text, borderStyle: 'solid' }} src={`https://files.productabot.com/public/${value.image}`} /></div>
               <div style={{ width: '90%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-                <div style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(value.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</div>
-                <div style={{ fontSize: 14 }}>{value.details}</div>
-                <div style={{ fontSize: 10, color: '#aaaaaa' }}>{value.count} comment{value.count !== 1 ? 's' : ''}{value.category ? `, #${value.category}` : ``}</div>
+                <div style={{ color: colors.subtitle, fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(value.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</div>
+                <div style={{ fontSize: 14, color: colors.text }}>{value.details}</div>
+                <div style={{ fontSize: 10, color: colors.subtitle }}>{value.count} comment{value.count !== 1 ? 's' : ''}{value.category ? `, #${value.category}` : ``}</div>
               </div>
             </div>
           </div>
