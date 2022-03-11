@@ -31,7 +31,7 @@ let pageY: number | null = null;
 let dragged: boolean = false;
 class CustomRenderItem extends React.PureComponent {
     onPressFunction = async () => { await this.props.onPress(this.props.item); }
-    styleFunction = (state) => [{ cursor: this.props.draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? '#000000' : this.props.item.isActive ? '#333333' : state.hovered ? '#202020' : '#161616' }, this.props.renderItemStyle]
+    styleFunction = (state) => [{ cursor: this.props.draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? this.props.colors.background : this.props.item.isActive ? this.props.colors.hover : state.hovered ? this.props.colors.hover : this.props.colors.card }, this.props.renderItemStyle]
     onPressInFunction = async () => {
         // if (Platform.OS === 'web') { setTimeout(() => { updateLik(); }, 10); }
         if (Platform.OS === 'web' && this.props.draggable && !this.props.delayDragOnWeb) {
@@ -99,7 +99,7 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
         const dragRef = useRef(null);
         const [lik, setLik] = useState(`${0}`);
         const updateLik = () => { setLik(`${new Date().toISOString()}`) }
-        const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} updateLik={updateLik} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} draggable={draggable} delayDragOnWeb={delayDragOnWeb} />
+        const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} updateLik={updateLik} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} draggable={draggable} delayDragOnWeb={delayDragOnWeb} colors={colors} />
 
         return (
             <DraggableFlatList

@@ -7,12 +7,14 @@ import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '@react-navigation/native';
 
 export default function NoteScreen({ route, navigation, refresh }: any) {
     const window = useWindowDimensions();
     const [note, setNote] = useState({});
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const inputRef = useRef(null);
+    const { colors } = useTheme();
 
     useFocusEffect(
         React.useCallback(() => {
@@ -75,13 +77,18 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
     }, [keyboardHeight]);
 
     return (
-        <View style={[styles.container]}>
+        <View style={{
+            flex: 1,
+            backgroundColor: colors.background,
+            alignItems: 'center',
+            justifyContent: 'flex-start'
+        }}>
             {
                 <View style={{ padding: 10, paddingTop: 0, borderColor: '#444444', borderBottomWidth: 1, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <TouchableOpacity onPress={() => {
                         navigation.goBack();
                     }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                    <TextInput spellCheck={false} style={{ color: '#ffffff', fontSize: 20 }} value={note.title} onChangeText={(value) => {
+                    <TextInput spellCheck={false} style={{ color: colors.text, fontSize: 20 }} value={note.title} onChangeText={(value) => {
                         setNote({ ...note, title: value });
                     }} onBlur={() => {
                         setNote({ ...note });
@@ -126,7 +133,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
                           <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
                           <style>
                           .ProseMirror {
-                            outline:none;font-family:Menlo, monospace;color:#ffffff;font-size:13px;height: 100vh;
+                            outline:none;font-family:Menlo, monospace;color:${colors.text};font-size:13px;height: 100vh;
                           }
                           .ProseMirror p {
                             margin: 0px;
@@ -192,12 +199,3 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#000000',
-        alignItems: 'center',
-        justifyContent: 'flex-start'
-    }
-});

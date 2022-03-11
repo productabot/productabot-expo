@@ -47,7 +47,6 @@ function formatBytes(bytes, decimals = 2) {
 let timeout: any;
 let goalTimeout: any;
 
-
 let dateFrom = new Date();
 dateFrom.setDate(1);
 const dateFromString = dateFrom.toISOString().split('T')[0];
@@ -55,6 +54,9 @@ let dateTo = new Date();
 dateTo.setMonth(dateTo.getMonth() + 1);
 dateTo.setDate(0);
 const dateToString = dateTo.toISOString().split('T')[0];
+
+let uploadTimeout: any;
+let dropFunction = async (e) => { };
 
 export default function ProjectScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
@@ -69,10 +71,45 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
     const { colors } = useTheme();
     const opacity = useRef(new Animated.Value(0)).current;
 
+    React.useEffect(() => {
+        if (Platform.OS === 'web') {
+            dropFunction = async (e) => {
+                let files = e.dataTransfer.files;
+                clearTimeout(uploadTimeout);
+                uploadTimeout = setTimeout(async () => {
+                    setLoading(true);
+                    for (const file of files) {
+                        // const blob = new Blob([file], { type: file.type });
+                        await Storage.put(`${project.id}/${file.name}`, file, { contentType: file.type, level: 'private' });
+                        await API.graphql(graphqlOperation(`mutation {
+                        insert_files_one(object: {name: "${file.name}", type: "${file.type}", size: "${file.size}", order: ${project.files.length}, project_id: "${project.id}"}) {id}
+                        }`));
+                    }
+                    setLoading(false);
+                    onRefresh();
+                }, 100);
+            }
+            const dropzone = document.getElementById('root');
+            ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach(function (event) {
+                dropzone.addEventListener(event, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            dropzone.addEventListener('drop', dropFunction, false);
+        }
+    }, [project]);
+
     useFocusEffect(
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
             onRefresh();
+            return () => {
+                // if (Platform.OS === 'web') {
+                //     const dropzone = document.getElementById('root');
+                //     dropzone.removeEventListener('drop', dropFunction, false);
+                // }
+            }
         }, [refresh, route.params])
     );
 
@@ -438,8 +475,8 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                         <Text style={{ alignSelf: 'center', marginLeft: 5 }}>{`${count.weeklyGoal}% of goal`}</Text>
                                     </MenuTrigger>
                                     <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: 'transparent', width: 600, height: 300 }, optionsContainer: { backgroundColor: 'transparent' } }}>
-                                        <View style={{ backgroundColor: '#000000', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderColor: '#444444', borderWidth: 1, borderRadius: 10, borderStyle: 'solid', }}>
-                                            <Text>{`You worked ${count.weeklyGoalHours ? count.weeklyGoalHours : 0} out of ${project.goal} hours this month`}</Text>
+                                        <View style={{ backgroundColor: colors.background, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderColor: '#444444', borderWidth: 1, borderRadius: 10, borderStyle: 'solid', }}>
+                                            <Text style={{ color: colors.text }}>{`You worked ${count.weeklyGoalHours ? count.weeklyGoalHours : 0} out of ${project.goal} hours this month`}</Text>
                                             <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%', height: 200 }}>
                                                 {/* {project.entries.map(obj => <View style={{ backgroundColor: project.color, height: `${(obj.hours/8) * 100}%`, width: 5 }} />)} */}
                                                 <PieChart
@@ -490,7 +527,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                                 <View style={{ width: '30%', flexDirection: 'column', justifyContent: 'flex-start' }}>
                                                     <Text style={{ fontSize: 14 }}>{`⏱️ ${date.toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
                                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                        <View style={{ backgroundColor: '#444444', borderRadius: 10, paddingLeft: 7.5, paddingRight: 7.5, paddingTop: 2.5, paddingBottom: 2.5, marginTop: 5, marginLeft: root.desktopWeb ? 15 : 0 }}>
+                                                        <View style={{ backgroundColor: colors.hover, borderRadius: 10, paddingLeft: 7.5, paddingRight: 7.5, paddingTop: 2.5, paddingBottom: 2.5, marginTop: 5, marginLeft: root.desktopWeb ? 15 : 0 }}>
                                                             <Text style={{ fontSize: 14 }}>{item.item.category ? item.item.category : ''}</Text>
                                                         </View>
                                                         <View />

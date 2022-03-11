@@ -219,6 +219,7 @@ const Item = React.memo(
                     >
                         {value.id ?
                             <div
+                                className='projectTile'
                                 onContextMenu={(e) => {
                                     e.preventDefault(); setContextPosition({
                                         x: e.pageX, y: e.pageY,
@@ -266,12 +267,13 @@ const Item = React.memo(
                                     <span style={{ color: colors.text }}>{value.public ? '' : '🔒'}{value.name}</span>
                                 </div>
                                 {value.goal &&
-                                    <div style={{ flexDirection: 'row', width: 120, height: 5, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
+                                    <div style={{ flexDirection: 'row', width: 120, height: 5, backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
                                         <div style={{ height: '100%', backgroundColor: value.color === '#000000' ? '#ffffff' : value.color, width: `${(Math.min(value.entries_aggregate.aggregate.sum.hours / value.goal, 1) * 100).toFixed(0)}%`, borderRadius: 3 }} />
                                     </div>}
                             </div>
                             :
                             <div
+                                className='projectTile'
                                 onClick={async () => {
                                     setLoading(true);
                                     let data = await API.graphql(graphqlOperation(`mutation {insert_projects_one(object: {name: "new project", key: "NP", description: "Add a description to your new project", color: "#ff0000", order: 1000}) {id}}`));

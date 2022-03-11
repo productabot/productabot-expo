@@ -7,11 +7,13 @@ import { useApolloClient } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AnimatedLogo } from '../components/AnimatedLogo';
+import { useTheme } from '@react-navigation/native';
 
-export default function LoginScreen({ route, navigation, setLoading }: any) {
+export default function LoginScreen({ route, navigation, setLoading, loading }: any) {
     const client = useApolloClient();
     const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false });
-    const [internalLoading, setInternalLoading] = useState(false);
+    const { colors } = useTheme();
+    const styles = makeStyles(colors);
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
@@ -42,7 +44,6 @@ export default function LoginScreen({ route, navigation, setLoading }: any) {
     const login = async () => {
         Keyboard.dismiss();
         setLoading(true);
-        setInternalLoading(true);
         try {
             await Auth.signIn({
                 username: state.email,
@@ -51,14 +52,12 @@ export default function LoginScreen({ route, navigation, setLoading }: any) {
             await AsyncStorage.setItem('e2e', state.password);
             connectWebsocket();
             setLoading(false);
-            setInternalLoading(false);
             setState({ ...state, errorMessage: '', success: false, email: '', password: '' });
             navigation.navigate('app');
         }
         catch (err) {
             console.log(err);
             setLoading(false);
-            setInternalLoading(false);
             setState({ ...state, success: false, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
         }
     }
@@ -85,8 +84,7 @@ export default function LoginScreen({ route, navigation, setLoading }: any) {
                 keyboardVerticalOffset={-200}
             >
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                    {/* <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10, borderWidth: 1, borderColor: '#ffffff', borderRadius: 10, borderStyle: 'solid' }} /> */}
-                    <AnimatedLogo loading={internalLoading} size={1.5} />
+                    <AnimatedLogo loading={loading} size={1.5} />
                     <Text style={[styles.baseText, { fontSize: s(50, 0.85), marginLeft: 5 }]}>productabot</Text>
                 </TouchableOpacity>
                 <View style={{ margin: 30 }}>
@@ -107,7 +105,7 @@ export default function LoginScreen({ route, navigation, setLoading }: any) {
                     <Text style={[styles.baseText, styles.buttonText]}>signup</Text>
                 </TouchableOpacity>
                 <View>
-                    <Text style={{ color: '#ffffff', textDecorationLine: 'underline', marginTop: 10 }} onPress={() => { navigation.navigate('reset') }}>forgot password?</Text>
+                    <Text style={{ color: colors.text, textDecorationLine: 'underline', marginTop: 10 }} onPress={() => { navigation.navigate('reset') }}>forgot password?</Text>
                     <Text style={[styles.baseText, { fontSize: 10, color: '#aaaaaa', marginTop: 30, textAlign: 'center' }]}>© {new Date().getFullYear()} productabot</Text>
                 </View>
             </KeyboardAvoidingView>
@@ -119,7 +117,7 @@ const isWeb = Platform.OS === 'web';
 function s(number: number, factor = 0.6) {
     return isWeb ? number * factor : number;
 }
-const styles = StyleSheet.create({
+const makeStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
@@ -127,7 +125,7 @@ const styles = StyleSheet.create({
     },
     baseText: {
         fontFamily: 'Arial',
-        color: '#ffffff'
+        color: colors.text
     },
     touchableOpacity: {
         backgroundColor: '#3F0054',
@@ -137,14 +135,15 @@ const styles = StyleSheet.create({
         margin: s(10)
     },
     buttonText: {
-        fontSize: isWeb ? s(30) : 22
+        fontSize: isWeb ? s(30) : 22,
+        color: '#ffffff'
     },
     textInput: {
         fontSize: isWeb ? s(30) : 22,
         width: 275,
-        borderBottomColor: '#ffffff',
+        borderBottomColor: colors.text,
         borderBottomWidth: 1,
-        color: '#ffffff',
+        color: colors.text,
         margin: s(10)
     },
 });

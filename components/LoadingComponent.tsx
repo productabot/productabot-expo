@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { View, Animated, Easing, useWindowDimensions, Platform } from 'react-native';
 import { LoadingComponentMobile } from './LoadingComponentMobile';
+import { useTheme } from '@react-navigation/native';
 export function LoadingComponent({ loading }) {
     const window = useWindowDimensions();
     const [width, setWidth] = React.useState(new Animated.Value(0));
     const [opacity, setOpacity] = React.useState(new Animated.Value(0));
+    const { colors } = useTheme();
     React.useEffect(() => {
         if (loading) {
             opacity.setValue(0);
@@ -22,7 +24,7 @@ export function LoadingComponent({ loading }) {
     return (
         Platform.OS === 'web' ?
             <View style={{ position: 'absolute', width: '100%', height: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
-                <Animated.View style={{ height: 1, width: widthAnim, backgroundColor: '#ffffff', opacity: opacityAnim }} />
+                <Animated.View style={{ height: 1, width: widthAnim, backgroundColor: colors.text, opacity: opacityAnim }} />
             </View>
             :
             loading ? <LoadingComponentMobile /> : <View />

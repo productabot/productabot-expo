@@ -67,7 +67,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
     setGreeting(<View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
       {(Platform.OS === 'web' && window.width > 800) && <Text>{(currentHour < 12 && currentHour > 6) ? `good morning, ` : (currentHour < 18 && currentHour >= 12) ? `good afternoon, ` : (currentHour < 22 && currentHour >= 18) ? `good evening, ` : `good night, `}</Text>}
       <TouchableOpacity onPress={() => { navigation.navigate('settingsTab') }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }} >
-        <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.text, borderRadius: 5, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${data.data.users[0].image}` }} />
+        <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.border, borderRadius: 5, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${data.data.users[0].image}` }} />
         <Text>{data.data.users[0].username}</Text>
       </TouchableOpacity>
     </View >);
@@ -99,14 +99,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
             <Text style={{ color: colors.text, fontSize: 20 }}>{greeting}</Text>
             <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
               <Text style={{ marginRight: 5 }}>archived</Text>
-              {Platform.OS === 'web' ?
-                <input checked={archived} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" />
-                :
-                <View
-                  style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20, backgroundColor: archived ? '#0075ff' : colors.text }}>
-                  {archived && <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
-                </View>
-              }
+              <input checked={archived} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" />
             </TouchableOpacity>
           </View>
           <Sortable
@@ -143,8 +136,8 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
                   <input checked={archived} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" />
                   :
                   <View
-                    style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20, backgroundColor: archived ? '#0075ff' : colors.text }}>
-                    {archived && <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
+                    style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20, backgroundColor: archived ? '#0075ff' : '#ffffff' }}>
+                    {archived && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
                   </View>
                 }
               </TouchableOpacity>
@@ -237,7 +230,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
                   />
                 </View>
                 {item.goal &&
-                  <View style={{ position: 'absolute', flexDirection: 'row', width: '80%', height: 5, bottom: -8, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
+                  <View style={{ position: 'absolute', flexDirection: 'row', width: '80%', height: 5, bottom: -8, backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
                     <View style={{ height: '100%', backgroundColor: item.color === '#000000' ? colors.text : item.color, width: `${(Math.min(item.entries_aggregate.aggregate.sum.hours / item.goal, 1) * 100).toFixed(0)}%`, borderRadius: 3 }} />
                   </View>}
                 <Text numberOfLines={1} ellipsizeMode='tail'>{item.public ? '' : '🔒'}{item.name}</Text>

@@ -103,8 +103,8 @@ export default function App() {
   if (!isLoadingComplete || authenticated === null) {
     // if (true) {
     return (
-      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <AnimatedLogo size={2.5} />
+      <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' }}>
+        <AnimatedLogo size={2.5} startup={true} />
       </SafeAreaView>
     );
   } else {

@@ -3,12 +3,16 @@ import { StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Platform, K
 import { Auth } from "@aws-amplify/auth";
 import LogoSvg from "../svgs/logo";
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
+import { useTheme } from '@react-navigation/native';
+import { AnimatedLogo } from '../components/AnimatedLogo';
 import * as root from '../Root';
 
-export default function ResetScreen({ route, navigation, setLoading }: any) {
+export default function ResetScreen({ route, navigation, setLoading, loading }: any) {
     const [state, setState] = useState({
         email: '', errorMessage: ''
     });
+    const { colors } = useTheme();
+    const styles = makeStyles(colors);
     const reset = async () => {
         Keyboard.dismiss();
         if (state.email.length === 0) {
@@ -39,7 +43,7 @@ export default function ResetScreen({ route, navigation, setLoading }: any) {
                 keyboardVerticalOffset={-200}
             >
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                    <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10, borderWidth: 1, borderColor: '#ffffff', borderRadius: 10, borderStyle: 'solid' }} />
+                    <AnimatedLogo loading={loading} size={1.5} />
                     <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
                 </TouchableOpacity>
 
@@ -67,7 +71,7 @@ const isWeb = Platform.OS === 'web';
 function s(number: number, factor = 0.6) {
     return isWeb ? number * factor : number;
 }
-const styles = StyleSheet.create({
+const makeStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
@@ -75,7 +79,7 @@ const styles = StyleSheet.create({
     },
     baseText: {
         fontFamily: 'Arial',
-        color: '#ffffff'
+        color: colors.text
     },
     touchableOpacity: {
         backgroundColor: '#3F0054',
@@ -85,14 +89,15 @@ const styles = StyleSheet.create({
         margin: s(10)
     },
     buttonText: {
-        fontSize: s(30)
+        fontSize: s(30),
+        color: '#ffffff'
     },
     textInput: {
         fontSize: s(30),
         width: 275,
-        borderBottomColor: '#ffffff',
+        borderBottomColor: colors.text,
         borderBottomWidth: 1,
-        color: '#ffffff',
+        color: colors.text,
         margin: s(10)
     },
 });

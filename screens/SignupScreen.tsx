@@ -10,11 +10,15 @@ import { WebSocketLink } from "@apollo/client/link/ws";
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '@react-navigation/native';
+import { AnimatedLogo } from '../components/AnimatedLogo';
 
-export default function SignupScreen({ route, navigation, setLoading }: any) {
+export default function SignupScreen({ route, navigation, setLoading, loading }: any) {
     const client = useApolloClient();
     const defaultState = { email: '', username: '', password: '', confirmPassword: '', errorMessage: '', successMessage: '', checkbox: false };
     const [state, setState] = useState(defaultState);
+    const { colors } = useTheme();
+    const styles = makeStyles(colors);
     const connectWebsocket = () => {
         client.setLink(new WebSocketLink({
             uri: "wss://api.pbot.it/v1/graphql",
@@ -77,7 +81,7 @@ export default function SignupScreen({ route, navigation, setLoading }: any) {
                 style={[styles.container, { width: '100%', height: '100%' }]}
             >
                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                    <LogoSvg width={s(50, 0.85)} height={s(50, 0.85)} style={{ marginRight: 10, borderWidth: 1, borderColor: '#ffffff', borderRadius: 10, borderStyle: 'solid' }} />
+                    <AnimatedLogo loading={loading} size={1.5} />
                     <Text style={[styles.baseText, { fontSize: s(50, 0.85) }]}>productabot</Text>
                 </TouchableOpacity>
                 <View style={{ margin: 30 }}>
@@ -92,8 +96,10 @@ export default function SignupScreen({ route, navigation, setLoading }: any) {
                         <Text style={[styles.baseText]}>{`Your password will be the key used to encrypt your documents and notes.\n\n`}<Text style={{ fontWeight: 'bold', color: '#ff3333' }}>{`▲ DO NOT FORGET YOUR PASSWORD!`}</Text>{`\nWrite it down and keep it somewhere safe.`}</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', margin: 5, marginBottom: 0 }}>
-                        <TouchableOpacity onPress={() => { setState({ ...state, checkbox: !state.checkbox }) }} style={{ borderWidth: 1, borderColor: '#ffffff', borderRadius: 2, height: 20, width: 20, marginRight: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontWeight: 'bold' }}>{state.checkbox && '✓'}</Text></TouchableOpacity>
-                        <Text style={{ color: '#ffffff', fontSize: root.desktopWeb ? 11 : 12 }}>I agree to the <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/terms'); }} >Terms of Service</Text> & <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/privacy'); }}>Privacy Policy</Text></Text>
+                        {Platform.OS === 'web' ?
+                            <input onClick={() => { setState({ ...state, checkbox: !state.checkbox }) }} checked={state.checkbox} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> :
+                            <TouchableOpacity onPress={() => { setState({ ...state, checkbox: !state.checkbox }) }} style={{ borderWidth: 1, borderColor: colors.text, borderRadius: 2, height: 20, width: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: colors.text, textAlign: 'center', fontWeight: 'bold' }}>{state.checkbox && '✓'}</Text></TouchableOpacity>}
+                        <Text style={{ marginLeft: 10, color: colors.text, fontSize: root.desktopWeb ? 11 : 12 }}>I agree to the <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/terms'); }} >Terms of Service</Text> & <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/privacy'); }}>Privacy Policy</Text></Text>
                     </View>
                 </View>
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]} onPress={signup}>
@@ -105,15 +111,15 @@ export default function SignupScreen({ route, navigation, setLoading }: any) {
                     <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
                 </TouchableOpacity>
                 <InputAccessoryViewComponent />
-            </KeyboardAvoidingView>
-        </View>
+            </KeyboardAvoidingView >
+        </View >
     );
 }
 const isWeb = Platform.OS === 'web';
 function s(number: number, factor = 0.6) {
     return isWeb ? number * factor : number;
 }
-const styles = StyleSheet.create({
+const makeStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
@@ -121,7 +127,7 @@ const styles = StyleSheet.create({
     },
     baseText: {
         fontFamily: 'Arial',
-        color: '#ffffff'
+        color: colors.text
     },
     touchableOpacity: {
         backgroundColor: '#3F0054',
@@ -131,14 +137,15 @@ const styles = StyleSheet.create({
         margin: s(10)
     },
     buttonText: {
-        fontSize: isWeb ? s(30) : 22
+        fontSize: isWeb ? s(30) : 22,
+        color: '#ffffff'
     },
     textInput: {
         fontSize: isWeb ? s(30) : 22,
         width: 275,
-        borderBottomColor: '#ffffff',
+        borderBottomColor: colors.text,
         borderBottomWidth: 1,
-        color: '#ffffff',
+        color: colors.text,
         margin: s(10)
     },
 });

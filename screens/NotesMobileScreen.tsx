@@ -8,6 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import RNPickerSelect from 'react-native-picker-select';
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 import { DrawerActions } from '@react-navigation/native';
+import { useTheme } from '@react-navigation/native';
 
 export default function NotesScreen({ route, navigation, refresh, setLoading }: any) {
     const [refreshControl, setRefreshControl] = useState(false);
@@ -16,6 +17,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     const [notes, setNotes] = useState([]);
     const [update, setUpdate] = useState(true);
     const [addingTag, setAddingTag] = useState(false);
+    const { colors } = useTheme();
 
     // useFocusEffect(
     //     React.useCallback(() => {
@@ -130,7 +132,13 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     }
 
     return (
-        <View style={styles.container}>
+        <View style={{
+            flex: 1,
+            backgroundColor: colors.background,
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            paddingBottom: 50
+        }}>
             <View style={{ padding: 10, paddingTop: 0, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Text style={{ fontSize: 30, opacity: 0 }}>☰</Text>
@@ -138,7 +146,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                 <RNPickerSelect
                     placeholder={{}}
                     style={{
-                        inputIOS: { backgroundColor: '#000000', color: '#ffffff', borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10 }
+                        inputIOS: { backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10 }
                     }}
                     value={tag.id}
                     onValueChange={(value) => setTag({ title: tags.filter(obj => obj.id === value).length > 0 ? tags.filter(obj => obj.id === value)[0].title : 'null', id: value })}
@@ -171,9 +179,9 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                     <RefreshControl
                         refreshing={refreshControl}
                         onRefresh={() => { onRefresh(true) }}
-                        colors={["#ffffff"]}
-                        tintColor='#ffffff'
-                        titleColor="#ffffff"
+                        colors={[colors.text]}
+                        tintColor={colors.text}
+                        titleColor={colors.text}
                         title=""
                     />}
                 onEndReached={async () => {
@@ -183,13 +191,3 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#000000',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        paddingBottom: 50
-    }
-});

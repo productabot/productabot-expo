@@ -302,7 +302,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                                             Alert.alert('Warning', `Are you sure you want to disconnect GitHub?`,
                                                 [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: () => console.log("yes") }])
                                         }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 140, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: colors.background, marginBottom: 10 }}>
-                                            <Image style={{ height: 80, width: 80 }} source={require('../assets/images/github.png')} />
+                                            <Image style={{ height: 80, width: 80, borderRadius: 80, marginRight: 10 }} source={require('../assets/images/github.png')} />
                                             <View style={{ flexDirection: 'column', width: '70%', alignItems: 'flex-start' }}>
                                                 <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
                                                     <Text style={{ fontSize: 20, fontWeight: 'bold' }}>disconnect from github</Text>

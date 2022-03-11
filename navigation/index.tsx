@@ -66,7 +66,7 @@ export default function Navigation({ navigation, authenticated, setLoading, load
       primary: '#000000',
       background: '#ffffff',
       card: '#E9E9E9',
-      hover: '#333333',
+      hover: '#aaaaaa',
       text: '#000000',
       border: '#666666',
       notification: '#000000',
@@ -103,13 +103,13 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
       <RootStack.Screen name="auth" options={{ animationEnabled: false }}>
         {props => <AuthStack.Navigator {...props} initialRouteName="login" screenOptions={{ headerShown: false }} >
           <AuthStack.Screen name="login" options={{ animationEnabled: false }}>
-            {props => <LoginScreen {...props} setLoading={setLoading} />}
+            {props => <LoginScreen {...props} setLoading={setLoading} loading={loading} />}
           </AuthStack.Screen>
           <AuthStack.Screen name="signup" options={{ animationEnabled: false }} >
-            {props => <SignupScreen {...props} setLoading={setLoading} />}
+            {props => <SignupScreen {...props} setLoading={setLoading} loading={loading} />}
           </AuthStack.Screen>
           <AuthStack.Screen name="reset" options={{ animationEnabled: false }} >
-            {props => <ResetScreen {...props} setLoading={setLoading} />}
+            {props => <ResetScreen {...props} setLoading={setLoading} loading={loading} />}
           </AuthStack.Screen>
         </AuthStack.Navigator>}
       </RootStack.Screen>

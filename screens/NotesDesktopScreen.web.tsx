@@ -17,6 +17,7 @@ import ContextMenuRenderer from '../components/ContextMenuRenderer';
 import { useTheme } from '@react-navigation/native';
 
 let noteContentTimeout;
+let originalEditorState;
 
 export default function NotesScreen({ route, navigation, refresh, setLoading }: any) {
     const windowDimensions = useWindowDimensions();
@@ -51,6 +52,9 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                 setNoteContent(html);
             }, 5000);
         },
+        onCreate: async ({ editor }) => {
+            originalEditorState = editor?.view.state;
+        }
     })
 
     useEffect(() => {
@@ -103,12 +107,21 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                 catch (err) {
                     console.log(err);
                 }
+
                 setNoteTitle(data.notes_by_pk.title);
 
                 const { from, to } = editor.state.selection;
                 //the regexes are a temporary fix for interpreting old notes saved with a plain contenteditable
                 editor.commands.setContent(data.notes_by_pk.content.replace(/<div><br><\/div>/g, '<p></p>').replace(/<div>/g, '<p>').replace(/<\/div>/g, '</p>'));
                 editor.commands.setTextSelection({ from, to });
+
+                //are we seeing a new note? if so, let's delete the previous history
+                if (noteTitle !== '' && noteTitle !== data.notes_by_pk.title) {
+                    let newState = originalEditorState;
+                    newState.doc = editor?.view.state.doc;
+                    editor.view.updateState(newState);
+                }
+
                 setSaved(true);
             }
         });
@@ -298,7 +311,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                         </View>
                                     )
                                 }}
-                                onPress={(item) => { setNoteId(item.item.id); }}
+                                onPress={(item) => { clearTimeout(noteContentTimeout); setNoteId(item.item.id); }}
                                 onDragEnd={({ data }) => {
                                     setNotes(data);
                                     updateNotes();

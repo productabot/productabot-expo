@@ -10,6 +10,7 @@ import ContextMenuRenderer from '../components/ContextMenuRenderer';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import * as Haptics from 'expo-haptics';
+import { useTheme } from '@react-navigation/native';
 
 const oldDate = new Date();
 oldDate.setDate(oldDate.getDate() - 2);
@@ -23,6 +24,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
     const [contextPosition, setContextPosition] = React.useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
     const menuRef = React.useRef(null);
     const [confetti, setConfetti] = React.useState(false);
+    const { colors } = useTheme();
 
     useFocusEffect(
         React.useCallback(() => {
@@ -81,7 +83,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0 }}>
             <View style={{ width: Math.min(950, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : 150) }}>
                 <SegmentedControl
-                    appearance='dark'
+                    appearance={colors.background === '#000000' ? 'dark' : 'light'}
                     style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
                     values={[`backlog (${count.backlog})`, `in progress (${count.in_progress})`, `done (${count.done})`]}
                     selectedIndex={index}
@@ -94,9 +96,9 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                             Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
                             await API.graphql(graphqlOperation(`mutation {${checked.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task}"}, _set: {status: "${index === 1 ? 'backlog' : index === 2 ? 'in_progress' : 'done'}", root_order: 10000}) {id}`)}}`));
                             await onRefresh();
-                        }}><Text>{`move to `}<Text style={{ fontWeight: 'bold' }}>{index === 1 ? 'backlog' : index === 2 ? 'in progress' : 'done'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
+                        }}><Text style={{ color: '#ffffff' }}>{`move to `}<Text style={{ color:'#ffffff', fontWeight: 'bold' }}>{index === 1 ? 'backlog' : index === 2 ? 'in progress' : 'done'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
                     {checked.length !== 0 &&
-                        <View style={{ alignSelf: 'center', backgroundColor: '#000000', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}><Text>{`${checked.length} selected`}</Text></View>
+                        <View style={{ alignSelf: 'center', backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}><Text>{`${checked.length} selected`}</Text></View>
                     }
                     {(checked.length > 0 && index !== 2) ? <TouchableOpacity
                         style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
@@ -107,10 +109,10 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                                 Platform.OS !== 'web' && [...Array(25).keys()].map(i => setTimeout(() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }, i * 25));
                                 setConfetti(true); setTimeout(() => { setConfetti(false) }, 2500);
                             }
-                        }}><Text>{`move to `}<Text style={{ fontWeight: 'bold' }}>{index === 0 ? 'in progress' : index === 1 ? 'done' : 'backlog'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
+                        }}><Text style={{ color: '#ffffff' }}>{`move to `}<Text style={{ color:'#ffffff', fontWeight: 'bold' }}>{index === 0 ? 'in progress' : index === 1 ? 'done' : 'backlog'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
                     {checked.length === 0 &&
                         <TouchableOpacity
-                            style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
+                            style={{ backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
                             onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.navigate('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'in_progress' : 'done' }) }}><Text>{`add task +`}</Text></TouchableOpacity>
                     }
                 </View>
@@ -122,7 +124,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
                                     <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7 }}>
-                                        <Image style={{ height: 30, width: 30, borderRadius: 5, borderColor: '#ffffff', borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${item.project.image}` }} />
+                                        <Image style={{ height: 30, width: 30, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${item.project.image}` }} />
                                     </View>
                                     <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
                                         <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
@@ -211,9 +213,9 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                         <RefreshControl
                             refreshing={refreshControl}
                             onRefresh={() => { onRefresh(true) }}
-                            colors={["#ffffff"]}
-                            tintColor='#ffffff'
-                            titleColor="#ffffff"
+                            colors={[colors.text]}
+                            tintColor={colors.text}
+                            titleColor={colors.text}
                             title=""
                         />}
                     style={{ height: windowDimensions.height - 230 }}
@@ -221,7 +223,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
             </View>
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
                 <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y - 40, left: contextPosition.x } }} />
-                <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#444444', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
+                <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: colors.background, borderColor: '#444444', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
                     <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                         {contextPosition.rename && <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
                             menuRef.current.close();
@@ -233,7 +235,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                             await contextPosition.delete();
                             await onRefresh();
                         }}><Text>Delete</Text></TouchableOpacity>}
-                        <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
+                        <TouchableOpacity style={{ backgroundColor: colors.background, padding: 5, paddingLeft: 20, width: '100%' }}
                             onPress={() => { menuRef.current.close(); }}><Text>Cancel</Text></TouchableOpacity>
                     </View>
                 </MenuOptions>
