@@ -115,7 +115,7 @@ export default function App() {
             <Navigation authenticated={authenticated} setLoading={setLoading} loading={loading} setBackgroundColor={setBackgroundColor} />
           </SafeAreaView>
           <LoadingComponent loading={loading} />
-          <StatusBar />
+          <StatusBar style={'dark'} />
         </MenuProvider>
       </ApolloProvider>
     );

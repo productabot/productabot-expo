@@ -239,17 +239,20 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                     newTags.push({ id: data.data.insert_tags_one.id, title: title });
                                     setTags(newTags);
                                     setTag(newTags[newTags.length - 1]);
+                                    setTimeout(() => { setLoading(false); }, 500);
                                 }}><Text numberOfLines={1} style={{ textAlign: 'center', color: colors.text }}>add folder +</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
                                 onPress={async () => {
                                     let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                                    await API.graphql(graphqlOperation(`mutation {
-                                insert_notes_one(object: {tag_id: "${tag.id}", title: "${dateString}", content: "", order: ${notes.length}}) {
+                                    let newNoteId = await API.graphql(graphqlOperation(`mutation {
+                                insert_notes_one(object: {tag_id: "${tag.id}", title: "${tag.title === 'journal' ? dateString : 'untitled'}", content: "", order: ${notes.length}}) {
                                   id
                                 }
                               }`));
+                                    clearTimeout(noteContentTimeout);
+                                    setNoteId(newNoteId.data.insert_notes_one.id);
                                 }}><Text style={{ textAlign: 'center' }}>add note +</Text></TouchableOpacity>
                         </View>
                         <View style={{ flexDirection: 'row', width: '100%', height: '100%', marginBottom: -49, borderTopColor: '#444444', borderTopWidth: 1, borderStyle: 'solid', flexGrow: 1 }}>
@@ -292,8 +295,22 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                         }}
                                         menuRef={menuRef}
                                         setContextPosition={setContextPosition}
-                                        onDelete={(item) => { }}
-                                        onRename={(item) => { }}
+                                        onDelete={async (item) => {
+                                            if (confirm('Are you sure you want to delete this folder?')) {
+                                                if (tagId === item.item.id) {
+                                                    setTagId('');
+                                                }
+                                                await API.graphql(graphqlOperation(`mutation {delete_tags_by_pk(id: "${item.item.id}") {id}}`));
+                                            }
+                                            setTimeout(() => { setLoading(false); }, 500);
+                                        }}
+                                        onRename={async (item) => {
+                                            let title = prompt('What would you like to rename this folder to?', item.item.title);
+                                            if (title) {
+                                                await API.graphql(graphqlOperation(`mutation {update_tags_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${title}"}) {id}}`));
+                                            }
+                                            setTimeout(() => { setLoading(false); }, 500);
+                                        }}
                                     /></View>}
                             <CustomDraggableFlatList
                                 delayDragOnWeb={true}
@@ -318,8 +335,23 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                 }}
                                 menuRef={menuRef}
                                 setContextPosition={setContextPosition}
-                                onDelete={(item) => { }}
-                                onRename={(item) => { }}
+                                onDelete={async (item) => {
+                                    if (confirm('Are you sure you want to delete this note?')) {
+                                        if (item.item.id === noteId) {
+                                            let filteredNotes = notes.filter(obj => obj.id !== noteId);
+                                            setNoteId(filteredNotes.length > 0 ? filteredNotes[0].id : '');
+                                        }
+                                        await API.graphql(graphqlOperation(`mutation {delete_notes_by_pk(id: "${item.item.id}") {id}}`));
+                                        setTimeout(() => { setLoading(false); }, 500);
+                                    }
+                                }}
+                                onRename={async (item) => {
+                                    let title = prompt('What would you like to rename this note to?', item.item.title);
+                                    if (title) {
+                                        await API.graphql(graphqlOperation(`mutation {update_notes_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${title}"}) {id}}`));
+                                        setTimeout(() => { setLoading(false); }, 500);
+                                    }
+                                }}
                             />
                         </View>
                     </View>
@@ -335,6 +367,8 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                             {<span style={{ color: '#cccccc', fontFamily: 'arial', fontSize: 12, marginRight: 20 }}>{saved ? '' : 'unsaved'}</span>}
                             <TouchableOpacity onPress={async () => {
                                 if (confirm('Are you sure you want to delete this note?')) {
+                                    let filteredNotes = notes.filter(obj => obj.id !== noteId);
+                                    setNoteId(filteredNotes.length > 0 ? filteredNotes[0].id : '');
                                     await API.graphql(graphqlOperation(`mutation {delete_notes_by_pk(id: "${noteId}") {id}}`));
                                 }
                             }} ><span style={{ color: '#aa0000', fontFamily: 'arial', fontSize: 12, marginRight: 10, cursor: 'pointer' }}>delete</span></TouchableOpacity>

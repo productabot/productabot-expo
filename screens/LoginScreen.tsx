@@ -90,8 +90,8 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
                 <View style={{ margin: 30 }}>
                     {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
                     {state.success && <Text style={[styles.baseText, { color: '#006600', textAlign: 'center', marginTop: -16 }]}>{state.successMessage}</Text>}
-                    <TextInput spellCheck={false} inputAccessoryViewID='main' value={state.email} onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address'></TextInput>
-                    <TextInput spellCheck={false} inputAccessoryViewID='main' value={state.password} onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
+                    <TextInput placeholderTextColor={colors.subtitle} spellCheck={false} inputAccessoryViewID='main' value={state.email} onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address'></TextInput>
+                    <TextInput placeholderTextColor={colors.subtitle} spellCheck={false} inputAccessoryViewID='main' value={state.password} onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                         onSubmitEditing={login}></TextInput>
                 </View>
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F0054' }]}
@@ -132,7 +132,8 @@ const makeStyles = (colors: any) => StyleSheet.create({
         padding: s(10),
         width: 275,
         alignItems: 'center',
-        margin: s(10)
+        margin: s(10),
+        borderRadius: 10
     },
     buttonText: {
         fontSize: isWeb ? s(30) : 22,

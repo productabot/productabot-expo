@@ -52,7 +52,7 @@ export default function ResetScreen({ route, navigation, setLoading, loading }: 
                 </View>
                 <View style={{ margin: 30 }}>
                     {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
-                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' onSubmitEditing={reset} />
+                    <TextInput placeholderTextColor={colors.subtitle} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' onSubmitEditing={reset} />
                 </View>
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]} onPress={reset}>
                     <Text style={[styles.baseText, styles.buttonText]}>reset password</Text>
@@ -86,14 +86,15 @@ const makeStyles = (colors: any) => StyleSheet.create({
         padding: s(10),
         width: 275,
         alignItems: 'center',
-        margin: s(10)
+        margin: s(10),
+        borderRadius: 10
     },
     buttonText: {
-        fontSize: s(30),
+        fontSize: isWeb ? s(30) : 22,
         color: '#ffffff'
     },
     textInput: {
-        fontSize: s(30),
+        fontSize: isWeb ? s(30) : 22,
         width: 275,
         borderBottomColor: colors.text,
         borderBottomWidth: 1,

@@ -80,7 +80,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
             alignItems: 'center',
             justifyContent: 'flex-start'
         }}>
-            <View style={{ padding: 10, paddingTop: root.desktopWeb ? 40 : 0, borderColor: '#444444', borderBottomWidth: root.desktopWeb ? 0 : 1, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <View style={{ padding: 10, paddingTop: root.desktopWeb ? 40 : 0, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <TouchableOpacity onPress={() => {
                     navigation.goBack()
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
@@ -141,7 +141,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                     //dataDetectorTypes={'all'}
                     editable={editable}
                     inputAccessoryViewID='main'
-                    style={[{ width: '100%', height: '100%', color: colors.text, padding: 10, fontSize: root.desktopWeb ? 13 : 16, paddingTop: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }, root.desktopWeb && { outlineWidth: 0, borderColor: '#333333', borderWidth: 1, borderStyle: 'solid' }]}
+                    style={[{ width: '100%', height: '100%', color: colors.text, padding: 10, fontSize: root.desktopWeb ? 13 : 16, paddingTop: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }, root.desktopWeb && { outlineWidth: 0 }]}
                     multiline={true}
                     value={document.content}
                     onChangeText={(value) => {

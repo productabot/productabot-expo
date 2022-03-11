@@ -86,11 +86,11 @@ export default function SignupScreen({ route, navigation, setLoading, loading }:
                 </TouchableOpacity>
                 <View style={{ margin: 30 }}>
                     {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
-                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' />
+                    <TextInput placeholderTextColor={colors.subtitle} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' />
                     {/* <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, phone: value }); }} placeholder='phone' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='phone-pad' /> */}
-                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, username: value }); }} placeholder='username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
-                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }); }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send' />
-                    <TextInput spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, confirmPassword: value }); }} placeholder='confirm password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
+                    <TextInput placeholderTextColor={colors.subtitle} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, username: value }); }} placeholder='username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
+                    <TextInput placeholderTextColor={colors.subtitle} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }); }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send' />
+                    <TextInput placeholderTextColor={colors.subtitle} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, confirmPassword: value }); }} placeholder='confirm password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                         onSubmitEditing={signup} />
                     <View style={{ marginBottom: 20, marginTop: 20, maxWidth: 280, alignSelf: 'center' }}>
                         <Text style={[styles.baseText]}>{`Your password will be the key used to encrypt your documents and notes.\n\n`}<Text style={{ fontWeight: 'bold', color: '#ff3333' }}>{`▲ DO NOT FORGET YOUR PASSWORD!`}</Text>{`\nWrite it down and keep it somewhere safe.`}</Text>
@@ -98,7 +98,7 @@ export default function SignupScreen({ route, navigation, setLoading, loading }:
                     <View style={{ flexDirection: 'row', alignItems: 'center', margin: 5, marginBottom: 0 }}>
                         {Platform.OS === 'web' ?
                             <input onClick={() => { setState({ ...state, checkbox: !state.checkbox }) }} checked={state.checkbox} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> :
-                            <TouchableOpacity onPress={() => { setState({ ...state, checkbox: !state.checkbox }) }} style={{ borderWidth: 1, borderColor: colors.text, borderRadius: 2, height: 20, width: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: colors.text, textAlign: 'center', fontWeight: 'bold' }}>{state.checkbox && '✓'}</Text></TouchableOpacity>}
+                            <TouchableOpacity onPress={() => { setState({ ...state, checkbox: !state.checkbox }) }} style={{ borderWidth: 1, borderColor: colors.text, borderRadius: 2, height: 20, width: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 5 }}><Text style={{ color: colors.text, textAlign: 'center', fontWeight: 'bold' }}>{state.checkbox && '✓'}</Text></TouchableOpacity>}
                         <Text style={{ marginLeft: 10, color: colors.text, fontSize: root.desktopWeb ? 11 : 12 }}>I agree to the <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/terms'); }} >Terms of Service</Text> & <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/privacy'); }}>Privacy Policy</Text></Text>
                     </View>
                 </View>
@@ -134,7 +134,8 @@ const makeStyles = (colors: any) => StyleSheet.create({
         padding: s(10),
         width: 275,
         alignItems: 'center',
-        margin: s(10)
+        margin: s(10),
+        borderRadius: 10
     },
     buttonText: {
         fontSize: isWeb ? s(30) : 22,

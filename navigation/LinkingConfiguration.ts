@@ -40,7 +40,10 @@ export default {
                 path: 'calendar',
               },
               entry: {
-                path: 'entry/:id?'
+                path: 'calendar/entry/:id?'
+              },
+              task: {
+                path: 'calendar/task/:id?'
               },
             }
           },

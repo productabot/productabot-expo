@@ -2,8 +2,8 @@ import { I18nManager, Animated, Easing, StyleSheet, View, Platform } from 'react
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export const OPEN_ANIM_DURATION = 5;
-export const CLOSE_ANIM_DURATION = 5;
+export const OPEN_ANIM_DURATION = 25;
+export const CLOSE_ANIM_DURATION = 25;
 export const USE_NATIVE_DRIVER = (Platform.OS !== "web");
 
 const popoverPadding = 7;
@@ -205,7 +205,7 @@ export default class Popover extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            scaleAnim: new Animated.Value(1),
+            scaleAnim: new Animated.Value(0),
         };
     }
 
@@ -213,7 +213,7 @@ export default class Popover extends React.Component {
         Animated.timing(this.state.scaleAnim, {
             duration: OPEN_ANIM_DURATION,
             toValue: 1,
-            easing: Easing.out(Easing.cubic),
+            easing: Easing.in(Easing.cubic),
             useNativeDriver: USE_NATIVE_DRIVER,
         }).start();
     }

@@ -180,6 +180,12 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     <AppStack.Screen name="entry">
                       {props => <EntryScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
+                    <AppStack.Screen name="task">
+                      {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="edit_task">
+                      {props => <EditTaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
+                    </AppStack.Screen>
                   </AppStack.Navigator>
                 )
               }}

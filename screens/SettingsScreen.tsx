@@ -186,7 +186,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                         <View style={{ flexDirection: 'column' }}>
                             <Text style={{ fontSize: 30 }}>{oldUser.username}</Text>
                             <Text style={{ fontSize: 15 }}>{user.created_at ? `productive since ${new Date(user.created_at).toLocaleDateString()}` : ``}</Text>
-                            <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${oldUser.plan === 'free' ? `100 MB` : `100 GB`} used`}</Text>
+                            <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${oldUser.plan === 'free' ? `25 MB` : `250 GB`} used`}</Text>
                         </View>
                         <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
                             <TouchableOpacity onPress={logout}><Text style={{ textAlign: 'center' }}>log out →</Text></TouchableOpacity>
@@ -208,7 +208,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                     <SegmentedControl
                         appearance={colors.background === '#000000' ? 'dark' : 'light'}
                         style={{ marginTop: 10 }}
-                        values={[`account`, `cards/invoices`, `integrations`]}
+                        values={[`account`, `payment`, `integrations`]}
                         selectedIndex={index}
                         onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                     />
@@ -216,26 +216,32 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                         {index == 0 &&
                             <>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'free' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'free' ? '#3F0054' : colors.background }}>
-                                        <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
-                                            <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 20, fontWeight: 'bold' }}>free</Text>
-                                            <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 20 }}>$0.00 per month</Text>
-                                        </View>
-                                        <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                            <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text }}>• 100 MB storage</Text>
-                                            <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text }}>• 4 projects</Text>
+                                    <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'free' }) }} style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 200, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'free' ? '#3F0054' : colors.background }}>
+                                        <Image style={{ height: Platform.OS === 'web' ? 150 : 80, width: Platform.OS === 'web' ? 150 : 80, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === 'free' ? '#ffffff' : colors.text }} source={require('../assets/images/free.png')} />
+                                        <View style={{ flexDirection: 'column' }}>
+                                            <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
+                                                <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 20, fontWeight: 'bold' }}>free</Text>
+                                                <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 20 }}>$0.00 per month</Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
+                                                <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 14 }}>• 25 MB storage</Text>
+                                                <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 14 }}>• 4 projects</Text>
+                                            </View>
                                         </View>
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'paid' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'paid' ? '#3F0054' : colors.background }}>
-                                        <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
-                                            <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 20, fontWeight: 'bold' }}>✦ premium</Text>
-                                            <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 20 }}>$1.99 per month</Text>
-                                        </View>
-                                        <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                            <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text }}>• 100 GB storage</Text>
-                                            <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text }}>• unlimited projects</Text>
-                                            <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text }}>• website & blog</Text>
-                                            <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text }}>• api integrations</Text>
+                                    <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'paid' }) }} style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 200, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'paid' ? '#3F0054' : colors.background }}>
+                                        <Image style={{ height: Platform.OS === 'web' ? 150 : 80, width: Platform.OS === 'web' ? 150 : 80, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === 'paid' ? '#ffffff' : colors.text }} source={require('../assets/images/premium.png')} />
+                                        <View style={{ flexDirection: 'column' }}>
+                                            <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
+                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 20, fontWeight: 'bold' }}>✦ premium</Text>
+                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 20 }}>$2.49 per month</Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
+                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 14 }}>• 250 GB storage</Text>
+                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 14 }}>• unlimited projects</Text>
+                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 14 }}>• website & blog</Text>
+                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 14 }}>• API integrations</Text>
+                                            </View>
                                         </View>
                                     </TouchableOpacity>
                                 </View>
@@ -266,13 +272,8 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                                 </View>
 
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>first name</Text>
+                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>full name</Text>
                                     <TextInput inputAccessoryViewID='main' value={user.first_name} onChangeText={(value) => { setUser({ ...user, first_name: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                                </View>
-
-                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>last name</Text>
-                                    <TextInput inputAccessoryViewID='main' value={user.last_name} onChangeText={(value) => { setUser({ ...user, last_name: value }) }} style={[styles.textInput, { width: '78%' }]} />
                                 </View>
 
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
@@ -314,7 +315,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                                             </View>
                                         </TouchableOpacity>
                                         {/* <Text>{JSON.stringify(github)}</Text> */}
-                                        <FlatList style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 20 }} data={github} renderItem={(item) => <Text style={{ color: colors.text, padding: 10 }}>{item.item}</Text>} />
+                                        <FlatList style={{ width: '100%', height: 300, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 20 }} data={github} renderItem={(item) => <Text style={{ color: colors.text, padding: 10 }}>{item.item}</Text>} />
                                     </>
                                     :
                                     <TouchableOpacity onPress={async () => {
@@ -333,14 +334,20 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                                         </View>
                                     </TouchableOpacity>
                                 }
-                                {/* <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'paid' }) }} style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: 160, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: colors.background }}>
-                                    <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
-                                        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>connect with google</Text>
-                                    </View>
-                                    <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                        <Text>• sync files to google drive</Text>
-                                        <Text>• sync entries to google calendar</Text>
-                                        <Text>• sync docs to google docs</Text>
+                                {/* <TouchableOpacity onPress={async () => {
+                                    let user = await Auth.currentSession();
+                                    await WebBrowser.openBrowserAsync(``);
+                                }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 140, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: colors.background, marginBottom: 10 }}>
+                                    <Image style={{ height: 80, width: 80, borderRadius: 80, marginRight: 10 }} source={require('../assets/images/github.png')} />
+                                    <View style={{ flexDirection: 'column', width: '70%', alignItems: 'flex-start' }}>
+                                        <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
+                                            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>connect to google</Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
+                                            <Text>• sync files to google drive</Text>
+                                            <Text>• sync entries to google calendar</Text>
+                                            <Text>• sync docs to google docs</Text>
+                                        </View>
                                     </View>
                                 </TouchableOpacity> */}
                             </View>}

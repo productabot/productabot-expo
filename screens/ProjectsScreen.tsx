@@ -143,7 +143,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
               </TouchableOpacity>
             </View>}
           minOpacity={100}
-          delayLongPress={Platform.OS !== 'web' ? 200 : 85}
+          delayLongPress={75}
           onDragStart={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
           onDragEnd={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
           sortable={true}
