@@ -9599,7 +9599,7 @@ optimize-css-assets-webpack-plugin@^5.0.3:
 options@>=0.0.5:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/options/-/options-0.0.6.tgz#ec22d310016bb53e731773e7cdaefcf1c643128f"
-  integrity sha1-7CLTEoBrtT5zF3Pnza788cZDEo8=
+  integrity "sha1-7CLTEoBrtT5zF3Pnza788cZDEo8= sha512-bOj3L1ypm++N+n7CEbbe473A414AB7z+amKYshRb//iuL3MpdDCLhPnw6aVTdKB9g5ZRVHIEp8eUln6L2NUStg=="
 
 ora@^3.4.0:
   version "3.4.0"

@@ -28,6 +28,7 @@ import TasksScreen from '../screens/TasksScreen';
 import TaskScreen from '../screens/TaskScreen';
 import EditTaskScreen from '../screens/EditTaskScreen';
 import TasksDesktopScreen from '../screens/TasksDesktopScreen';
+import SheetScreen from '../screens/SheetScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@react-navigation/native';
 
@@ -152,6 +153,9 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     </AppStack.Screen>
                     <AppStack.Screen name="document">
                       {props => <DocumentScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="sheet">
+                      {props => <SheetScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="entry">
                       {props => <EntryScreen {...props} refresh={refresh} setLoading={setLoading} />}

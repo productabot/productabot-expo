@@ -148,6 +148,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             documents(order_by: {order: asc}) {
               id
               title
+              type
             }
             files(order_by: {order: asc}) {
               id
@@ -510,9 +511,23 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             }
                             {(index === 3 && project.goal && !root.desktopWeb) && <Text style={{ alignSelf: 'center', marginBottom: -20, marginLeft: 5 }}>{`${count.weeklyGoal}%`}</Text>}
                             {(index === 1 && count.fileSize) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>storage used: {formatBytes(count.fileSize)}</Text>}
-                            <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5 }}
-                                onPress={async () => { addAction(); }}
-                            ><Text>{index === 2 ? 'add time entry' : index === 3 ? 'add task' : index === 0 ? 'add project doc' : index === 1 ? 'upload a file' : ''} +</Text></TouchableOpacity>
+                            <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                {index === 0 &&
+                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                        onPress={async () => {
+
+                                            setLoading(true);
+                                            let data = await API.graphql(graphqlOperation(`mutation {
+                                                insert_documents_one(object: {title: "New Sheet", content: "", order: ${project.documents.length}, project_id: "${project.id}", type: "sheet"}) {id}
+                                            }`));
+                                            setLoading(false);
+                                            navigation.navigate('sheet', { id: data.data.insert_documents_one.id })
+                                        }}
+                                    ><Text>{'add sheet'} +</Text></TouchableOpacity>}
+                                <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                    onPress={async () => { addAction(); }}
+                                ><Text>{index === 2 ? 'add time entry' : index === 3 ? 'add task' : index === 0 ? 'add doc' : index === 1 ? 'upload a file' : ''} +</Text></TouchableOpacity>
+                            </View>
                             {index === 2 &&
                                 <CustomDraggableFlatList
                                     data={project.entries}
@@ -644,7 +659,12 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                         </>
                                     }
                                     onPress={async (item) => {
-                                        navigation.navigate('document', { id: item.item.id })
+                                        if (item.item.type === 'sheet') {
+                                            navigation.navigate('sheet', { id: item.item.id });
+                                        }
+                                        else {
+                                            navigation.navigate('document', { id: item.item.id });
+                                        }
                                     }}
                                     onRename={async (item) => {
                                         const renameFunction = async (rename) => {

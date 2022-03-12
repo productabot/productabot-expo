@@ -23,6 +23,12 @@ export default {
               project: {
                 path: 'project/:id?'
               },
+              document: {
+                path: 'document/:id?'
+              },
+              sheet: {
+                path: 'sheet/:id?'
+              },
               entry: {
                 path: 'projects/entry/:id?'
               },
