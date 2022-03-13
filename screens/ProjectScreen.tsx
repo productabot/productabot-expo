@@ -60,7 +60,7 @@ let dropFunction = async (e) => { };
 
 export default function ProjectScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
-    const [project, setProject] = useState({ tasks: [], documents: [], entries: [], files: [] });
+    const [project, setProject] = useState({ tasks: [], files: [], entries: [], files: [] });
     const [index, setIndex] = useState(0);
     const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
     const menuRef = useRef(null);
@@ -82,7 +82,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         // const blob = new Blob([file], { type: file.type });
                         await Storage.put(`${project.id}/${file.name}`, file, { contentType: file.type, level: 'private' });
                         await API.graphql(graphqlOperation(`mutation {
-                        insert_files_one(object: {name: "${file.name}", type: "${file.type}", size: "${file.size}", order: ${project.files.length}, project_id: "${project.id}"}) {id}
+                        insert_files_one(object: {title: "${file.name}", type: "${file.type}", size: "${file.size}", order: ${project.files.length}, project_id: "${project.id}"}) {id}
                         }`));
                     }
                     setLoading(false);
@@ -145,17 +145,19 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                   }
               }
             }
-            documents(order_by: {order: asc}) {
+            files(order_by: {order: asc}) {
               id
               title
               type
-            }
-            files(order_by: {order: asc}) {
-              id
-              name
-              type
               size
               order
+            }
+            events(order_by: {date_from: desc}, limit: 50) {
+              id
+              date_from
+              date_to
+              category
+              details
             }
         }
         entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
@@ -169,15 +171,15 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
               count
             }
         }
-        documents_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-            aggregate {
-              count
-            }
-        }
         files_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
             aggregate {
               count
               sum { size }
+            }
+        }
+        events_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+            aggregate {
+              count
             }
         }
         goal_aggregate: entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}, date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
@@ -188,7 +190,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         }
         }`));
         setProject(data.data.projects_by_pk);
-        setCount({ entries: data.data.entries_aggregate.aggregate.count, tasks: data.data.tasks_aggregate.aggregate.count, documents: data.data.documents_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.entries_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
+        setCount({ events: data.data.events_aggregate.aggregate.count, entries: data.data.entries_aggregate.aggregate.count, tasks: data.data.tasks_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.entries_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
         setLoading(false);
         Animated.sequence([Animated.timing(opacity, { toValue: 1, duration: Platform.OS === 'web' ? 1 : 100, easing: Easing.linear, useNativeDriver: true })]).start();
     }
@@ -227,36 +229,50 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         }
     };
 
-    const addAction = async () => {
-        if (index === 2) {
+    const addAction = async (type) => {
+        if (type === 'entry') {
             navigation.navigate('entry', { project_id: project.id })
         }
-        else if (index === 3) {
+        else if (type === 'task') {
             navigation.navigate('edit_task', { project_id: project.id })
         }
-        else if (index === 0) {
+        else if (type === 'document') {
             setLoading(true);
             let data = await API.graphql(graphqlOperation(`mutation {
-            insert_documents_one(object: {title: "New Document", content: "", order: ${project.documents.length}, project_id: "${project.id}"}) {id}
+            insert_files_one(object: {title: "New Document", content: "", order: ${project.files.length}, project_id: "${project.id}"}) {id}
           }`));
-            console.log(data);
             setLoading(false);
-            navigation.navigate('document', { id: data.data.insert_documents_one.id })
+            navigation.navigate('document', { id: data.data.insert_files_one.id })
         }
-        else if (index === 1) {
+        else if (type === 'sheet') {
+            if (Platform.OS === 'web') {
+                setLoading(true);
+                let data = await API.graphql(graphqlOperation(`mutation {
+                    insert_files_one(object: {title: "New Sheet", content: "", order: ${project.files.length}, project_id: "${project.id}", type: "sheet"}) {id}
+                }`));
+                setLoading(false);
+                navigation.navigate('sheet', { id: data.data.insert_files_one.id })
+            }
+            else {
+                alert('Sorry! Sheets are not supported on the mobile app at this time');
+            }
+        }
+        else if (type === 'file') {
             let file = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: false, multiple: false });
-            console.log(file);
             if (file.type === 'success') {
                 setLoading(true);
                 let response = await fetch(file.uri);
                 let blob = await response.blob();
                 await Storage.put(`${project.id}/${file.name}`, blob, { contentType: blob.type, level: 'private' });
                 await API.graphql(graphqlOperation(`mutation {
-                    insert_files_one(object: {name: "${file.name}", type: "${blob.type}", size: "${file.size}", order: ${project.files.length}, project_id: "${project.id}"}) {id}
+                    insert_files_one(object: {title: "${file.name}", type: "${blob.type}", size: "${file.size}", order: ${project.files.length}, project_id: "${project.id}"}) {id}
                 }`));
                 setLoading(false);
                 onRefresh();
             }
+        }
+        else if (type === 'event') {
+            navigation.navigate('event', { project_id: project.id })
         }
     }
 
@@ -461,346 +477,367 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         <SegmentedControl
                             appearance={colors.background === '#000000' ? 'dark' : 'light'}
                             style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
-                            values={[`docs (${count.documents ?? 0})`, `files (${count.files ?? 0})`, `entries (${count.entries ?? 0})`, `tasks (${count.tasks ?? 0})`]}
+                            values={[`files (${count.files ?? 0})`, `entries (${count.entries ?? 0})`, `tasks (${count.tasks ?? 0})`, `events (${count.events ?? 0})`]}
                             selectedIndex={index}
                             onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                         />
-                        <Animated.View style={{ opacity: opacity, width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 300) }}>
-                            {(index === 2 && count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}
-                            {(index === 2 && project.goal && root.desktopWeb) &&
-                                <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
-                                    <MenuTrigger onPress={() => { goalRef.current.open(); }} onMouseEnter={(e) => { clearTimeout(goalTimeout); goalTimeout = setTimeout(() => { goalRef.current.open(); }, 750); }} onMouseLeave={(e) => { clearTimeout(goalTimeout) }} style={{ flexDirection: 'row', width: 320, alignSelf: 'center', alignItems: 'center', marginBottom: -15, marginRight: -40 }}>
-                                        <View style={{ flexDirection: 'row', width: 200, height: 15, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center' }}>
-                                            <View style={{ height: '100%', backgroundColor: project.color === '#000000' ? colors.text : project.color, width: `${Math.min(count.weeklyGoal, 100)}%`, borderRadius: 3 }} />
-                                        </View>
-                                        <Text style={{ alignSelf: 'center', marginLeft: 5 }}>{`${count.weeklyGoal}% of goal`}</Text>
-                                    </MenuTrigger>
-                                    <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: 'transparent', width: 600, height: 300 }, optionsContainer: { backgroundColor: 'transparent' } }}>
-                                        <View style={{ backgroundColor: colors.background, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderColor: '#444444', borderWidth: 1, borderRadius: 10, borderStyle: 'solid', }}>
-                                            <Text style={{ color: colors.text }}>{`You worked ${count.weeklyGoalHours ? count.weeklyGoalHours : 0} out of ${project.goal} hours this month`}</Text>
-                                            <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%', height: 200 }}>
-                                                {/* {project.entries.map(obj => <View style={{ backgroundColor: project.color, height: `${(obj.hours/8) * 100}%`, width: 5 }} />)} */}
-                                                <PieChart
-                                                    chartConfig={{
-                                                        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`
-                                                    }}
-                                                    data={Object.entries(project.entries.filter(obj => obj.date >= dateFromString && obj.date <= dateToString).reduce((acc, obj) => {
-                                                        !acc ? acc = {} : null;
-                                                        !acc[obj.category] ? acc[obj.category] = 0 : null;
-                                                        acc[obj.category] += obj.hours;
-                                                        return acc;
-                                                    }
-                                                        , {})).map((obj, index) => {
-                                                            return ({
-                                                                name: obj[0],
-                                                                hours: obj[1],
-                                                                color: chartColors[index],
-                                                                legendFontColor: colors.text,
-                                                                legendFontFamily: 'arial'
-                                                            })
-                                                        })}
-                                                    width={400}
-                                                    height={200}
-                                                    accessor={"hours"}
-                                                    backgroundColor={"transparent"}
-                                                />
-                                            </View>
-                                        </View>
-                                    </MenuOptions>
-                                </Menu>
-                            }
-                            {(index === 3 && project.goal && !root.desktopWeb) && <Text style={{ alignSelf: 'center', marginBottom: -20, marginLeft: 5 }}>{`${count.weeklyGoal}%`}</Text>}
-                            {(index === 1 && count.fileSize) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>storage used: {formatBytes(count.fileSize)}</Text>}
-                            <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                {index === 0 &&
-                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                        onPress={async () => {
-
-                                            setLoading(true);
-                                            let data = await API.graphql(graphqlOperation(`mutation {
-                                                insert_documents_one(object: {title: "New Sheet", content: "", order: ${project.documents.length}, project_id: "${project.id}", type: "sheet"}) {id}
-                                            }`));
-                                            setLoading(false);
-                                            navigation.navigate('sheet', { id: data.data.insert_documents_one.id })
-                                        }}
-                                    ><Text>{'add sheet'} +</Text></TouchableOpacity>}
-                                <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                    onPress={async () => { addAction(); }}
-                                ><Text>{index === 2 ? 'add time entry' : index === 3 ? 'add task' : index === 0 ? 'add doc' : index === 1 ? 'upload a file' : ''} +</Text></TouchableOpacity>
-                            </View>
-                            {index === 2 &&
-                                <CustomDraggableFlatList
-                                    data={project.entries}
-                                    draggable={false}
-                                    virtualSize={120}
-                                    virtualHeight={window.height - 240}
-                                    renderItem={(item) => {
-                                        let date = new Date(item.item.date);
-                                        date.setDate(date.getDate() + 1);
-                                        return (
+                        <Animated.View style={{ opacity: opacity, width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 330) }}>
+                            {index === 0 &&
+                                <>
+                                    <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                        <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                            onPress={async () => { addAction('sheet'); }}
+                                        ><Text>{'add sheet'} +</Text></TouchableOpacity>
+                                        <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                            onPress={async () => { addAction('document'); }}
+                                        ><Text>{'add doc'} +</Text></TouchableOpacity>
+                                        <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                            onPress={async () => { addAction('file'); }}
+                                        ><Text>{'upload file'} +</Text></TouchableOpacity>
+                                    </View>
+                                    <CustomDraggableFlatList
+                                        data={project.files}
+                                        virtualHeight={window.height - 240}
+                                        renderItem={(item) =>
                                             <>
-                                                <View style={{ width: '30%', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                                                    <Text style={{ fontSize: 14 }}>{`⏱️ ${date.toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
-                                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                        <View style={{ backgroundColor: colors.hover, borderRadius: 10, paddingLeft: 7.5, paddingRight: 7.5, paddingTop: 2.5, paddingBottom: 2.5, marginTop: 5, marginLeft: root.desktopWeb ? 15 : 0 }}>
-                                                            <Text style={{ fontSize: 14 }}>{item.item.category ? item.item.category : ''}</Text>
-                                                        </View>
-                                                        <View />
+                                                <Text style={{ fontSize: 14, width: '75%' }}>{item.item.type === 'document' ? '📄' : item.item.type === 'sheet' ? '📈' : item.item.type.startsWith('image') ? '🖼️' : item.item.type.endsWith('pdf') ? '📃' : '💻'} {`${item.item.title}`}</Text>
+                                                {item.item.size && <Text style={{ fontSize: 14, width: '20%' }}>{`${formatBytes(item.item.size)}`}</Text>}
+                                                <Text style={{ fontSize: 14, width: '5%' }}>☰</Text>
+                                            </>
+                                        }
+                                        onPress={async (item) => {
+                                            if (item.item.type === 'sheet') {
+                                                if (Platform.OS === 'web') {
+                                                    navigation.navigate('sheet', { id: item.item.id });
+                                                }
+                                                else {
+                                                    alert('Sorry! Sheets are not supported on the mobile app at this time');
+                                                }
+                                            }
+                                            else if (item.item.type === 'document') {
+                                                navigation.navigate('document', { id: item.item.id });
+                                            }
+                                            else {
+                                                let link = await Storage.get(`${project.id}/${item.item.title}`, { level: 'private', expires: 10 });
+                                                await WebBrowser.openBrowserAsync(link.replace('https://pbot-prod-files.s3.us-east-2.amazonaws.com', 'https://files.productabot.com'));
+                                            }
+                                        }}
+                                        onRename={async (item) => {
+                                            const renameFunction = async (rename, extension) => {
+                                                setLoading(true);
+                                                if (rename) {
+                                                    if (['document', 'sheet'].includes(item.item.type)) {
+                                                        await API.graphql(graphqlOperation(`mutation{update_files_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${rename}"}) {id}}`));
+                                                    }
+                                                    else {
+                                                        try {
+                                                            await Storage.copy({ key: `${project.id}/${item.item.title}`, level: 'private' }, { key: `${project.id}/${rename}${extension}`, level: 'private' });
+                                                            await Storage.remove(`${project.id}/${item.item.title}`, { level: 'private' });
+                                                            await API.graphql(graphqlOperation(`mutation{update_files_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${rename}${extension}"}) {id}}`));
+                                                        }
+                                                        catch (err) {
+                                                            console.log(err);
+                                                        }
+                                                    }
+                                                }
+                                                await onRefresh();
+                                                setLoading(false);
+                                            }
+
+
+                                            let originalName = item.item.title;
+                                            let extension = '';
+                                            if (['document', 'sheet'].includes(item.item.type)) {
+                                                let nameSplit = item.item.title.split('.');
+                                                if (nameSplit.length > 0) {
+                                                    originalName = nameSplit[0];
+                                                    extension = '.' + nameSplit[1];
+                                                }
+                                            }
+                                            if (Platform.OS !== 'web') {
+                                                Alert.prompt('Rename', '', async (text) => {
+                                                    await renameFunction(text, extension);
+                                                }, 'plain-text', originalName);
+                                            }
+                                            else {
+                                                let rename = prompt('Rename', originalName);
+                                                await renameFunction(rename, extension);
+                                            }
+                                        }}
+                                        onDelete={async (item) => {
+                                            const deleteFunction = async () => {
+                                                if (['sheet', 'document'].includes(item.item.type)) {
+                                                    setLoading(true);
+                                                    await API.graphql(graphqlOperation(`mutation {delete_files_by_pk(id: "${item.item.id}") {id}}`));
+                                                    await onRefresh();
+                                                    setLoading(false);
+                                                }
+                                                else {
+
+                                                    try {
+                                                        await Storage.remove(`${project.id}/${item.item.name}`, { level: 'private' });
+                                                        await API.graphql(graphqlOperation(`mutation {delete_files_by_pk(id: "${item.item.id}") {id}}`));
+                                                        await onRefresh();
+                                                    }
+                                                    catch (err) {
+                                                        console.log(err);
+                                                    }
+                                                }
+                                            }
+                                            if (Platform.OS !== 'web') {
+                                                Alert.alert('Warning', 'Are you sure you want to delete this document?',
+                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                            }
+                                            else if (confirm('Are you sure you want to delete this document?')) { await deleteFunction() }
+                                        }}
+                                        setContextPosition={setContextPosition}
+                                        menuRef={menuRef}
+                                        ListEmptyComponent={
+                                            <TouchableOpacity
+                                                onPress={async () => { addAction('document'); }}
+                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
+                                                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add a document +`}</Text>
+                                            </TouchableOpacity>}
+                                        onDragEnd={async ({ data }) => {
+                                            setProject({ ...project, files: data });
+                                            await API.graphql(graphqlOperation(`mutation {
+                                    ${data.map((document, documentIndex) => `data${documentIndex}: update_files_by_pk(pk_columns: {id: "${document.id}"}, _set: {order: ${documentIndex}}) {id}`)}
+                                }`));
+                                        }}
+                                    />
+                                </>
+                            }
+                            {index === 1 &&
+                                <>
+                                    {(count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}
+                                    {(project.goal && root.desktopWeb) &&
+                                        <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
+                                            <MenuTrigger onPress={() => { goalRef.current.open(); }} onMouseEnter={(e) => { clearTimeout(goalTimeout); goalTimeout = setTimeout(() => { goalRef.current.open(); }, 750); }} onMouseLeave={(e) => { clearTimeout(goalTimeout) }} style={{ flexDirection: 'row', width: 320, alignSelf: 'center', alignItems: 'center', marginBottom: -15, marginRight: -40 }}>
+                                                <View style={{ flexDirection: 'row', width: 200, height: 15, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center' }}>
+                                                    <View style={{ height: '100%', backgroundColor: project.color === '#000000' ? colors.text : project.color, width: `${Math.min(count.weeklyGoal, 100)}%`, borderRadius: 3 }} />
+                                                </View>
+                                                <Text style={{ alignSelf: 'center', marginLeft: 5 }}>{`${count.weeklyGoal}% of goal`}</Text>
+                                            </MenuTrigger>
+                                            <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: 'transparent', width: 600, height: 300 }, optionsContainer: { backgroundColor: 'transparent' } }}>
+                                                <View style={{ backgroundColor: colors.background, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderColor: '#444444', borderWidth: 1, borderRadius: 10, borderStyle: 'solid', }}>
+                                                    <Text style={{ color: colors.text }}>{`You worked ${count.weeklyGoalHours ? count.weeklyGoalHours : 0} out of ${project.goal} hours this month`}</Text>
+                                                    <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%', height: 200 }}>
+                                                        {/* {project.entries.map(obj => <View style={{ backgroundColor: project.color, height: `${(obj.hours/8) * 100}%`, width: 5 }} />)} */}
+                                                        <PieChart
+                                                            chartConfig={{
+                                                                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`
+                                                            }}
+                                                            data={Object.entries(project.entries.filter(obj => obj.date >= dateFromString && obj.date <= dateToString).reduce((acc, obj) => {
+                                                                !acc ? acc = {} : null;
+                                                                !acc[obj.category] ? acc[obj.category] = 0 : null;
+                                                                acc[obj.category] += obj.hours;
+                                                                return acc;
+                                                            }
+                                                                , {})).map((obj, index) => {
+                                                                    return ({
+                                                                        name: obj[0],
+                                                                        hours: obj[1],
+                                                                        color: chartColors[index],
+                                                                        legendFontColor: colors.text,
+                                                                        legendFontFamily: 'arial'
+                                                                    })
+                                                                })}
+                                                            width={400}
+                                                            height={200}
+                                                            accessor={"hours"}
+                                                            backgroundColor={"transparent"}
+                                                        />
                                                     </View>
                                                 </View>
-                                                <Text style={{ fontSize: 14, width: '50%' }}>{`${item.item.details}`}</Text>
-                                                <Text numberOfLines={1} style={{ fontSize: 30, fontWeight: 'bold', width: '20%', textAlign: 'center' }}>{item.item.hours}<Text numberOfLines={1} style={{ fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
-                                            </>
-                                        );
-                                    }}
-                                    onPress={(item) => {
-                                        navigation.navigate('entry', { id: item.item.id })
-                                    }}
-                                    onDelete={async (item) => {
-                                        const deleteFunction = async () => {
-                                            setLoading(true);
-                                            await API.graphql(graphqlOperation(`mutation {delete_entries_by_pk(id: "${item.item.id}") {id}}`));
-                                            await onRefresh();
-                                            setLoading(false);
-                                        }
-                                        if (Platform.OS !== 'web') {
-                                            Alert.alert('Warning', 'Are you sure you want to delete this time entry?',
-                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                        }
-                                        else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
-                                    }}
-                                    setContextPosition={setContextPosition}
-                                    menuRef={menuRef}
-                                    ListEmptyComponent={
-                                        <TouchableOpacity
-                                            onPress={async () => { addAction(); }}
-                                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: '#161616' }}>
-                                            <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add an entry +`}</Text>
-                                        </TouchableOpacity>}
-                                />
+                                            </MenuOptions>
+                                        </Menu>
+                                    }
+                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                        onPress={async () => { addAction('entry'); }}
+                                    ><Text>{'add time entry'} +</Text></TouchableOpacity>
+                                    <CustomDraggableFlatList
+                                        data={project.entries}
+                                        draggable={false}
+                                        virtualSize={120}
+                                        virtualHeight={window.height - 240}
+                                        renderItem={(item) => {
+                                            let date = new Date(item.item.date);
+                                            date.setDate(date.getDate() + 1);
+                                            return (
+                                                <>
+                                                    <View style={{ width: '30%', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                                                        <Text style={{ fontSize: 14 }}>{`⏱️ ${date.toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
+                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                            <View style={{ backgroundColor: colors.hover, borderRadius: 10, paddingLeft: 7.5, paddingRight: 7.5, paddingTop: 2.5, paddingBottom: 2.5, marginTop: 5, marginLeft: root.desktopWeb ? 15 : 0 }}>
+                                                                <Text style={{ fontSize: 14 }}>{item.item.category ? item.item.category : ''}</Text>
+                                                            </View>
+                                                            <View />
+                                                        </View>
+                                                    </View>
+                                                    <Text style={{ fontSize: 14, width: '50%' }}>{`${item.item.details}`}</Text>
+                                                    <Text numberOfLines={1} style={{ fontSize: 30, fontWeight: 'bold', width: '20%', textAlign: 'center' }}>{item.item.hours}<Text numberOfLines={1} style={{ fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
+                                                </>
+                                            );
+                                        }}
+                                        onPress={(item) => {
+                                            navigation.navigate('entry', { id: item.item.id })
+                                        }}
+                                        onDelete={async (item) => {
+                                            const deleteFunction = async () => {
+                                                setLoading(true);
+                                                await API.graphql(graphqlOperation(`mutation {delete_entries_by_pk(id: "${item.item.id}") {id}}`));
+                                                await onRefresh();
+                                                setLoading(false);
+                                            }
+                                            if (Platform.OS !== 'web') {
+                                                Alert.alert('Warning', 'Are you sure you want to delete this time entry?',
+                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                            }
+                                            else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
+                                        }}
+                                        setContextPosition={setContextPosition}
+                                        menuRef={menuRef}
+                                        ListEmptyComponent={
+                                            <TouchableOpacity
+                                                onPress={async () => { addAction('entry'); }}
+                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
+                                                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add an entry +`}</Text>
+                                            </TouchableOpacity>}
+                                    />
+                                </>
                             }
-                            {index === 3 &&
-                                <CustomDraggableFlatList
-                                    data={project.tasks}
-                                    virtualHeight={window.height - 240}
-                                    renderItem={({ item }) =>
-                                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
-                                                <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7 }}>
-                                                    <Text>📌</Text>
-                                                </View>
-                                                <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
-                                                    <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
-                                                    <Text style={{ textDecorationLine: item.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
-                                                    <Text style={{ fontSize: 10, color: '#aaaaaa' }}>{item.comments_aggregate.aggregate.count} comments{item.category ? `, #${item.category}` : ``}</Text>
+                            {index === 2 &&
+                                <>
+                                    {(project.goal && !root.desktopWeb) && <Text style={{ alignSelf: 'center', marginBottom: -20, marginLeft: 5 }}>{`${count.weeklyGoal}%`}</Text>}
+                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                        onPress={async () => { addAction('task'); }}
+                                    ><Text>{'add task'} +</Text></TouchableOpacity>
+                                    <CustomDraggableFlatList
+                                        data={project.tasks}
+                                        virtualHeight={window.height - 240}
+                                        renderItem={({ item }) =>
+                                            <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
+                                                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7 }}>
+                                                        <Text>📌</Text>
+                                                    </View>
+                                                    <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
+                                                        <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
+                                                        <Text style={{ textDecorationLine: item.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
+                                                        <Text style={{ fontSize: 10, color: '#aaaaaa' }}>{item.comments_aggregate.aggregate.count} comments{item.category ? `, #${item.category}` : ``}</Text>
+                                                    </View>
                                                 </View>
                                             </View>
-                                        </View>
-                                    }
-                                    onPress={async (item) => {
-                                        navigation.navigate('task', { id: item.item.id })
-                                    }}
-                                    onRename={async (item) => {
-                                        const renameFunction = async (rename) => {
-                                            setLoading(true);
-                                            if (rename) {
-                                                await API.graphql(graphqlOperation(`mutation{update_tasks_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {details: "${rename}"}) {id}}`));
+                                        }
+                                        onPress={async (item) => {
+                                            navigation.navigate('task', { id: item.item.id })
+                                        }}
+                                        onRename={async (item) => {
+                                            const renameFunction = async (rename) => {
+                                                setLoading(true);
+                                                if (rename) {
+                                                    await API.graphql(graphqlOperation(`mutation{update_tasks_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {details: "${rename}"}) {id}}`));
+                                                }
+                                                await onRefresh();
+                                                setLoading(false);
                                             }
-                                            await onRefresh();
-                                            setLoading(false);
-                                        }
-                                        if (Platform.OS !== 'web') {
-                                            Alert.prompt('Rename', '', async (text) => {
-                                                await renameFunction(text);
-                                            }, 'plain-text', item.item.detail);
-                                        }
-                                        else {
-                                            let rename = prompt('Rename', item.item.detail);
-                                            await renameFunction(rename);
-                                        }
-                                    }}
-                                    onDelete={async (item) => {
-                                        const deleteFunction = async () => {
-                                            setLoading(true);
-                                            await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${item.item.id}") {id}}`));
-                                            await onRefresh();
-                                            setLoading(false);
-                                        }
-                                        if (Platform.OS !== 'web') {
-                                            Alert.alert('Warning', 'Are you sure you want to delete this task?',
-                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                        }
-                                        else if (confirm('Are you sure you want to delete this task?')) { await deleteFunction() }
-                                    }}
-                                    setContextPosition={setContextPosition}
-                                    menuRef={menuRef}
-                                    ListEmptyComponent={
-                                        <TouchableOpacity
-                                            onPress={async () => { addAction(); }}
-                                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: '#161616' }}>
-                                            <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add task +`}</Text>
-                                        </TouchableOpacity>}
-                                    onDragEnd={async ({ data }) => {
-                                        setProject({ ...project, tasks: data });
-                                        await API.graphql(graphqlOperation(`mutation {
+                                            if (Platform.OS !== 'web') {
+                                                Alert.prompt('Rename', '', async (text) => {
+                                                    await renameFunction(text);
+                                                }, 'plain-text', item.item.detail);
+                                            }
+                                            else {
+                                                let rename = prompt('Rename', item.item.detail);
+                                                await renameFunction(rename);
+                                            }
+                                        }}
+                                        onDelete={async (item) => {
+                                            const deleteFunction = async () => {
+                                                setLoading(true);
+                                                await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${item.item.id}") {id}}`));
+                                                await onRefresh();
+                                                setLoading(false);
+                                            }
+                                            if (Platform.OS !== 'web') {
+                                                Alert.alert('Warning', 'Are you sure you want to delete this task?',
+                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                            }
+                                            else if (confirm('Are you sure you want to delete this task?')) { await deleteFunction() }
+                                        }}
+                                        setContextPosition={setContextPosition}
+                                        menuRef={menuRef}
+                                        ListEmptyComponent={
+                                            <TouchableOpacity
+                                                onPress={async () => { addAction('task'); }}
+                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
+                                                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add task +`}</Text>
+                                            </TouchableOpacity>}
+                                        onDragEnd={async ({ data }) => {
+                                            setProject({ ...project, tasks: data });
+                                            await API.graphql(graphqlOperation(`mutation {
                                     ${data.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {order: ${data.length - taskIndex - 1}}) {id}`)}
                                 }`));
-                                    }}
-                                />
+                                        }}
+                                    />
+                                </>
                             }
-                            {index === 0 &&
-                                <CustomDraggableFlatList
-                                    data={project.documents}
-                                    virtualHeight={window.height - 240}
-                                    renderItem={(item) =>
-                                        <>
-                                            <Text style={{ fontSize: 14, width: '75%' }}>📄 {`${item.item.title}`}</Text>
-                                            <Text style={{ fontSize: 14, width: '5%' }}>☰</Text>
-                                        </>
-                                    }
-                                    onPress={async (item) => {
-                                        if (item.item.type === 'sheet') {
-                                            navigation.navigate('sheet', { id: item.item.id });
-                                        }
-                                        else {
-                                            navigation.navigate('document', { id: item.item.id });
-                                        }
-                                    }}
-                                    onRename={async (item) => {
-                                        const renameFunction = async (rename) => {
-                                            setLoading(true);
-                                            if (rename) {
-                                                await API.graphql(graphqlOperation(`mutation{update_documents_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${rename}"}) {id}}`));
-                                            }
-                                            await onRefresh();
-                                            setLoading(false);
-                                        }
-                                        if (Platform.OS !== 'web') {
-                                            Alert.prompt('Rename', '', async (text) => {
-                                                await renameFunction(text);
-                                            }, 'plain-text', item.item.title);
-                                        }
-                                        else {
-                                            let rename = prompt('Rename', item.item.title);
-                                            await renameFunction(rename);
-                                        }
-                                    }}
-                                    onDelete={async (item) => {
-                                        const deleteFunction = async () => {
-                                            setLoading(true);
-                                            await API.graphql(graphqlOperation(`mutation {delete_documents_by_pk(id: "${item.item.id}") {id}}`));
-                                            await onRefresh();
-                                            setLoading(false);
-                                        }
-                                        if (Platform.OS !== 'web') {
-                                            Alert.alert('Warning', 'Are you sure you want to delete this document?',
-                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                        }
-                                        else if (confirm('Are you sure you want to delete this document?')) { await deleteFunction() }
-                                    }}
-                                    setContextPosition={setContextPosition}
-                                    menuRef={menuRef}
-                                    ListEmptyComponent={
-                                        <TouchableOpacity
-                                            onPress={async () => { addAction(); }}
-                                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: '#161616' }}>
-                                            <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add a document +`}</Text>
-                                        </TouchableOpacity>}
-                                    onDragEnd={async ({ data }) => {
-                                        setProject({ ...project, documents: data });
-                                        await API.graphql(graphqlOperation(`mutation {
-                                    ${data.map((document, documentIndex) => `data${documentIndex}: update_documents_by_pk(pk_columns: {id: "${document.id}"}, _set: {order: ${documentIndex}}) {id}`)}
-                                }`));
-                                    }}
-                                />
-                            }
-
-                            {index === 1 &&
-                                <CustomDraggableFlatList
-                                    data={project.files}
-                                    virtualHeight={window.height - 240}
-                                    renderItem={(item) =>
-                                        <>
-                                            <Text style={{ fontSize: 14, width: '70%' }}>📄 {`${item.item.name}`}</Text>
-                                            <Text style={{ fontSize: 14, width: '20%' }}>{`${formatBytes(item.item.size)}`}</Text>
-                                            <Text style={{ fontSize: 14, width: '5%' }}>☰</Text>
-                                        </>
-                                    }
-                                    onPress={async (item) => {
-                                        let link = await Storage.get(`${project.id}/${item.item.name}`, { level: 'private', expires: 10 });
-                                        await WebBrowser.openBrowserAsync(link.replace('https://pbot-prod-files.s3.us-east-2.amazonaws.com', 'https://files.productabot.com'));
-                                    }}
-                                    onRename={async (item) => {
-                                        let rename = null;
-                                        let originalName = item.item.name;
-                                        let extension = '';
-                                        let nameSplit = item.item.name.split('.');
-                                        if (nameSplit.length > 0) {
-                                            originalName = nameSplit[0];
-                                            extension = '.' + nameSplit[1];
-                                        }
-
-                                        const renameFunction = async (rename) => {
-                                            setLoading(true);
-                                            if (rename) {
-                                                try {
-                                                    await Storage.copy({ key: `${project.id}/${item.item.name}`, level: 'private' }, { key: `${project.id}/${rename}${extension}`, level: 'private' });
-                                                    await Storage.remove(`${project.id}/${item.item.name}`, { level: 'private' });
-                                                    await API.graphql(graphqlOperation(`mutation{update_files_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {name: "${rename}${extension}"}) {id}}`));
-                                                }
-                                                catch (err) {
-                                                    console.log(err);
-                                                }
-                                            }
-                                            await onRefresh();
-                                            setLoading(false);
-                                        }
-
-                                        if (Platform.OS !== 'web') {
-                                            Alert.prompt('Rename', '', async (text) => {
-                                                await renameFunction(text);
-                                            }, 'plain-text', originalName);
-                                        }
-                                        else {
-                                            rename = prompt('Rename', originalName);
-                                            await renameFunction(rename);
-                                        }
-                                    }}
-                                    onDelete={async (item) => {
-                                        const deleteFunction = async () => {
-                                            setLoading(true);
-                                            try {
-                                                await Storage.remove(`${project.id}/${item.item.name}`, { level: 'private' });
-                                                await API.graphql(graphqlOperation(`mutation {delete_files_by_pk(id: "${item.item.id}") {id}}`));
+                            {index === 3 &&
+                                <>
+                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                        onPress={async () => { addAction('event'); }}
+                                    ><Text>{'add event'} +</Text></TouchableOpacity>
+                                    <CustomDraggableFlatList
+                                        data={project.events}
+                                        draggable={false}
+                                        virtualSize={120}
+                                        virtualHeight={window.height - 240}
+                                        renderItem={(item) => {
+                                            let dateFrom = new Date(item.item.date_from);
+                                            dateFrom.setDate(dateFrom.getDate() + 1);
+                                            let dateTo = new Date(item.item.date_to);
+                                            dateTo.setDate(dateTo.getDate() + 1);
+                                            return (
+                                                <>
+                                                    <View style={{ width: '30%', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                                                        <Text style={{ fontSize: 14 }}>{`⏱️ ${dateFrom.toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })} - ${dateTo.toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
+                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                            <View style={{ backgroundColor: colors.hover, borderRadius: 10, paddingLeft: 7.5, paddingRight: 7.5, paddingTop: 2.5, paddingBottom: 2.5, marginTop: 5, marginLeft: root.desktopWeb ? 15 : 0 }}>
+                                                                <Text style={{ fontSize: 14 }}>{item.item.category ? item.item.category : ''}</Text>
+                                                            </View>
+                                                            <View />
+                                                        </View>
+                                                    </View>
+                                                    <Text style={{ fontSize: 14, width: '50%' }}>{`${item.item.details}`}</Text>
+                                                </>
+                                            );
+                                        }}
+                                        onPress={(item) => {
+                                            navigation.navigate('event', { id: item.item.id })
+                                        }}
+                                        onDelete={async (item) => {
+                                            const deleteFunction = async () => {
+                                                setLoading(true);
+                                                await API.graphql(graphqlOperation(`mutation {delete_events_by_pk(id: "${item.item.id}") {id}}`));
                                                 await onRefresh();
+                                                setLoading(false);
                                             }
-                                            catch (err) {
-                                                console.log(err);
+                                            if (Platform.OS !== 'web') {
+                                                Alert.alert('Warning', 'Are you sure you want to delete this event?',
+                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
                                             }
-                                            setLoading(false);
-                                        }
-
-                                        if (Platform.OS !== 'web') {
-                                            Alert.alert('Warning', 'Are you sure you want to delete this file?',
-                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                        }
-                                        else if (confirm('Are you sure you want to delete this file?')) { await deleteFunction() }
-                                    }}
-                                    setContextPosition={setContextPosition}
-                                    menuRef={menuRef}
-                                    ListEmptyComponent={
-                                        <TouchableOpacity
-                                            onPress={async () => { addAction(); }}
-                                            style={{ cursor: 'grab', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: '#161616' }}>
-                                            <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`upload a file +`}</Text>
-                                        </TouchableOpacity>}
-                                    onDragEnd={async ({ data }) => {
-                                        setProject({ ...project, files: data });
-                                        await API.graphql(graphqlOperation(`mutation {
-                                        ${data.map((file, fileIndex) => `data${fileIndex}: update_files_by_pk(pk_columns: {id: "${file.id}"}, _set: {order: ${fileIndex}}) {id}`)}
-                                    }`));
-                                    }}
-                                />}
+                                            else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
+                                        }}
+                                        setContextPosition={setContextPosition}
+                                        menuRef={menuRef}
+                                        ListEmptyComponent={
+                                            <TouchableOpacity
+                                                onPress={async () => { addAction('event'); }}
+                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
+                                                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add event +`}</Text>
+                                            </TouchableOpacity>}
+                                    />
+                                </>
+                            }
                         </Animated.View>
                     </>}
             </View>

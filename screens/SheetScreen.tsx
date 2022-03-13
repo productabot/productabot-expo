@@ -21,7 +21,7 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
     let onRefresh = async () => {
         setLoading(true);
         let data = await API.graphql(graphqlOperation(`{
-            documents_by_pk(id: "${route.params.id}") {
+            files_by_pk(id: "${route.params.id}") {
               id
               content
               title
@@ -29,18 +29,18 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
           }
           `));
         try {
-            if (data.data.documents_by_pk.content) {
+            if (data.data.files_by_pk.content) {
                 let e2eResult = await AsyncStorage.getItem('e2e');
-                let decrypted = CryptoJS.AES.decrypt(data.data.documents_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
-                data.data.documents_by_pk.content = decrypted;
+                let decrypted = CryptoJS.AES.decrypt(data.data.files_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
+                data.data.files_by_pk.content = decrypted;
             }
         }
         catch (err) { console.log(err) }
-        setSheet(data.data.documents_by_pk);
+        setSheet(data.data.files_by_pk);
 
-        table.setData(data.data.documents_by_pk.content ? JSON.parse(data.data.documents_by_pk.content).data : []);
-        table.setStyle(data.data.documents_by_pk.content ? JSON.parse(data.data.documents_by_pk.content).style : []);
-        table.setWidth(data.data.documents_by_pk.content ? JSON.parse(JSON.stringify(JSON.parse(data.data.documents_by_pk.content).width).replace(/g\"/, '')) : []);
+        table.setData(data.data.files_by_pk.content ? JSON.parse(data.data.files_by_pk.content).data : []);
+        table.setStyle(data.data.files_by_pk.content ? JSON.parse(data.data.files_by_pk.content).style : []);
+        table.setWidth(data.data.files_by_pk.content ? JSON.parse(JSON.stringify(JSON.parse(data.data.files_by_pk.content).width).replace(/g\"/, '')) : []);
         setLoading(false);
     }
 
@@ -123,7 +123,7 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
         let e2eResult = await AsyncStorage.getItem('e2e');
         let encrypted = CryptoJS.AES.encrypt(JSON.stringify({ data: table.getJson(), style: table.getStyle(), width: table.getWidth() }), e2eResult).toString();
         await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
-            updateSheet: update_documents_by_pk(pk_columns: {id: "${sheet.id}"}, _set: {content: $content, title: $title}) {id}
+            updateSheet: update_files_by_pk(pk_columns: {id: "${sheet.id}"}, _set: {content: $content, title: $title}) {id}
         }`, { content: encrypted, title: sheet.title }));
         setLoading(false);
     }

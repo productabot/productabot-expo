@@ -92,7 +92,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                             <Text onPress={async () => {
                                 const insertFunction = async (text) => {
                                     await API.graphql(graphqlOperation(`mutation($task_id: uuid, $details: String) {
-                                        insert_task_comments_one(object: {task_id: $task_id, details: $details }) {id}
+                                        insert_comments_one(object: {parent_id: $task_id, details: $details }) {id}
                                     }
                                     `, { task_id: task.id, details: text }));
                                     await onRefresh(true);
@@ -116,7 +116,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                         <TouchableOpacity
                             onLongPress={async () => {
                                 const deleteFunction = async () => {
-                                    await API.graphql(graphqlOperation(`mutation {delete_task_comments_by_pk(id: "${item.id}") {id}}`));
+                                    await API.graphql(graphqlOperation(`mutation {delete_comments_by_pk(id: "${item.id}") {id}}`));
                                     await onRefresh(true);
                                 }
                                 if (Platform.OS !== 'web') {

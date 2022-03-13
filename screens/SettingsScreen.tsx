@@ -48,7 +48,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
         let user = await Auth.currentSession();
         let data = await API.graphql(graphqlOperation(`{
             users{id created_at email username image first_name last_name plan phone github}
-            files_aggregate(where: {user_id: {_eq: "${user.getIdToken().payload.sub}"}}) {
+            files_aggregate(where: {project: {user_id: {_eq: "${user.getIdToken().payload.sub}"}}}) {
                 aggregate {
                   sum {
                     size

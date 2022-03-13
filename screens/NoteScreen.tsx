@@ -9,7 +9,7 @@ import { WebView } from 'react-native-webview';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
 
-export default function NoteScreen({ route, navigation, refresh }: any) {
+export default function NoteScreen({ route, navigation, setLoading, refresh }: any) {
     const window = useWindowDimensions();
     const [note, setNote] = useState({});
     const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -19,6 +19,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
     useFocusEffect(
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
+            setLoading(true);
             const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (e) => { setKeyboardHeight(e.endCoordinates.height); });
             const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => { setKeyboardHeight(0); });
             return () => {
@@ -29,6 +30,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
     );
 
     const onRefresh = async () => {
+        setLoading(true);
         let data = (await API.graphql(graphqlOperation(`{
             notes_by_pk(id: "${route.params.id}") {
                 id
@@ -44,6 +46,7 @@ export default function NoteScreen({ route, navigation, refresh }: any) {
             editor.commands.setContent(\`${data.notes_by_pk.content.replace(/<div><br><\/div>/g, '<p></p>').replace(/<div>/g, '<p>').replace(/<\/div>/g, '</p>')}\`);
             editor.commands.setTextSelection({ from, to });
         })();`);
+        setLoading(false);
     }
 
     const injectJavascript = async (javascript: string, content = null) => {

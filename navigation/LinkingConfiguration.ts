@@ -38,6 +38,9 @@ export default {
               edit_task: {
                 path: 'projects/task/edit/:id?'
               },
+              event: {
+                path: 'projects/event/:id?'
+              },
             }
           },
           calendarTab: {
@@ -50,6 +53,9 @@ export default {
               },
               task: {
                 path: 'calendar/task/:id?'
+              },
+              event: {
+                path: 'calendar/event/:id?'
               },
             }
           },

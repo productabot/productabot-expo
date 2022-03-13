@@ -29,7 +29,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
     let onRefresh = async () => {
         setLoading(true);
         let data = await API.graphql(graphqlOperation(`{
-            documents_by_pk(id: "${route.params.id}") {
+            files_by_pk(id: "${route.params.id}") {
               id
               content
               title
@@ -38,11 +38,11 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
           `));
         try {
             let e2eResult = await AsyncStorage.getItem('e2e');
-            let decrypted = CryptoJS.AES.decrypt(data.data.documents_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
-            data.data.documents_by_pk.content = decrypted;
+            let decrypted = CryptoJS.AES.decrypt(data.data.files_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
+            data.data.files_by_pk.content = decrypted;
         }
         catch (err) { console.log(err) }
-        setDocument(data.data.documents_by_pk);
+        setDocument(data.data.files_by_pk);
         setLoading(false);
     }
 
@@ -66,7 +66,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
             let e2eResult = await AsyncStorage.getItem('e2e');
             let encrypted = CryptoJS.AES.encrypt(document.content, e2eResult).toString();
             await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
-                updateDocument: update_documents_by_pk(pk_columns: {id: "${document.id}"}, _set: {content: $content, title: $title}) {id}
+                updateDocument: update_files_by_pk(pk_columns: {id: "${document.id}"}, _set: {content: $content, title: $title}) {id}
             }`, { content: encrypted, title: document.title }));
         }
         else {
@@ -102,7 +102,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                             buttonIndex => {
                                 if (buttonIndex !== 0) {
                                     API.graphql(graphqlOperation(`mutation {
-                                            delete_documents_by_pk(id: "${document.id}") {
+                                            delete_files_by_pk(id: "${document.id}") {
                                                 id
                                             }
                                         }`)).then((response) => {
@@ -113,7 +113,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                         )
                         :
                         API.graphql(graphqlOperation(`mutation {
-                            delete_documents_by_pk(id: "${document.id}") {
+                            delete_files_by_pk(id: "${document.id}") {
                                 id
                             }
                         }`)).then((response) => {

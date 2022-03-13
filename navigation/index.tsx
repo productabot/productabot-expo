@@ -14,6 +14,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import LogoSvg from "../svgs/logo"
 import CalendarScreen from '../screens/CalendarScreen';
 import EntryScreen from '../screens/EntryScreen';
+import EventScreen from '../screens/EventScreen';
 import NotificationsComponent from '../components/NotificationsComponent';
 import NotesDesktopScreen from '../screens/NotesDesktopScreen';
 import NotesMobileScreen from '../screens/NotesMobileScreen';
@@ -160,6 +161,9 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     <AppStack.Screen name="entry">
                       {props => <EntryScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
+                    <AppStack.Screen name="event">
+                      {props => <EventScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                    </AppStack.Screen>
                     <AppStack.Screen name="task">
                       {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
@@ -186,6 +190,9 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     </AppStack.Screen>
                     <AppStack.Screen name="task">
                       {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                    </AppStack.Screen>
+                    <AppStack.Screen name="event">
+                      {props => <EventScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="edit_task">
                       {props => <EditTaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
