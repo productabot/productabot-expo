@@ -254,16 +254,16 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     {/* <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity> */}
                     <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={date.date} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                         <MenuTrigger>
-                            <Text style={{ color: '#aaaaaa', marginRight: 2 }}>+</Text>
+                            <Text style={{ color: '#aaaaaa', marginRight: 2,width: 25, textAlign: 'right' }}>+</Text>
                         </MenuTrigger>
                         <MenuOptions customStyles={{
                             optionsWrapper: { backgroundColor: 'transparent', width: 255 },
                             optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
                         }}>
                             <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 40 }}>
-                                <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>⏱ add entry</Text></TouchableOpacity>
-                                <TouchableOpacity onPress={() => { navigation.navigate('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>☉ add task</Text></TouchableOpacity>
-                                <TouchableOpacity onPress={() => { navigation.navigate('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>📅 add event</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>⏱ add entry</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => { navigation.navigate('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>☉ add task</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => { navigation.navigate('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>📅 add event</Text></TouchableOpacity>
                             </View>
                         </MenuOptions>
                     </Menu>

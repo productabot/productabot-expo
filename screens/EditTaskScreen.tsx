@@ -189,8 +189,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                                 <head>
                                 <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
                                 </head>
-                                <body style="background-color:#000000;margin:0px;padding:5px;">
-                                <input style="all:unset;width:100%;height:100%;background-color:#000000;color:#ffffff;font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${task.date}"/>
+                                <body style="background-color:${colors.background};margin:0px;padding:5px;">
+                                <input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${task.date}"/>
                                 </body>
                             `}}
                                         keyboardDisplayRequiresUserAction={false}

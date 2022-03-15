@@ -6,7 +6,8 @@ import CryptoJS from "react-native-crypto-js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@react-navigation/native';
 import * as root from '../Root';
-let table;
+let table, sheetId, sheetTitle;
+let parsedData = {};
 export default function SheetScreen({ route, navigation, refresh, setLoading }: any) {
     const [sheet, setSheet] = React.useState([]);
     const { colors } = useTheme();
@@ -14,7 +15,11 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
     useFocusEffect(
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
+            document.getElementById('spreadsheet').style.visibility = 'hidden';
             onRefresh();
+            return () => {
+                saveSheet();
+            }
         }, [route.params])
     );
 
@@ -37,11 +42,47 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
         }
         catch (err) { console.log(err) }
         setSheet(data.data.files_by_pk);
-
-        table.setData(data.data.files_by_pk.content ? JSON.parse(data.data.files_by_pk.content).data : []);
-        table.setStyle(data.data.files_by_pk.content ? JSON.parse(data.data.files_by_pk.content).style : []);
-        table.setWidth(data.data.files_by_pk.content ? JSON.parse(JSON.stringify(JSON.parse(data.data.files_by_pk.content).width).replace(/g\"/, '')) : []);
+        sheetId = data.data.files_by_pk.id;
+        sheetTitle = data.data.files_by_pk.title;
+        try {
+            parsedData = JSON.parse(data.data.files_by_pk.content);
+        }
+        catch (err) {
+            console.log(err);
+        }
+        if (parsedData.style) {
+            setTimeout(() => { try { table.setStyle(parsedData.style); } catch (err) { console.log(err) } }, 0);
+        }
+        if (parsedData.width) {
+            setTimeout(() => { try { table.setWidth(Array.from(Array(parsedData.width.length).keys()), parsedData.width); } catch (err) { console.log(err) } }, 0);
+        }
+        if (parsedData.columns) {
+            table.options.columns = parsedData.columns
+        }
+        if (parsedData.data) {
+            table.options.data = parsedData.data;
+        }
+        table.setData();
+        setTimeout(() => { document.getElementById('spreadsheet').style.visibility = 'initial'; }, 0);
         setLoading(false);
+    }
+
+    const saveSheet = async () => {
+        setLoading(true);
+        let e2eResult = await AsyncStorage.getItem('e2e');
+        let encrypted = CryptoJS.AES.encrypt(JSON.stringify({ data: table.getJson(), style: table.getStyle(), width: table.getWidth(), columns: table.options.columns }), e2eResult).toString();
+        await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
+            updateSheet: update_files_by_pk(pk_columns: {id: "${sheetId}"}, _set: {content: $content, title: $title}) {id}
+        }`, { content: encrypted, title: sheetTitle }));
+        setLoading(false);
+    }
+
+    const reloadTable = () => {
+        let style = table.getStyle();
+        let width = table.getWidth();
+        table.setData();
+        table.setStyle(style);
+        table.setWidth(Array.from(Array(width.length).keys()), width);
     }
 
     React.useEffect(() => {
@@ -65,13 +106,85 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
                     type: 'i',
                     content: 'save',
                     onclick: function () {
+                        saveSheet();
+                    }
+                },
+                {
+                    type: 'i',
+                    content: 'file_download',
+                    onclick: function () {
                         table.download();
                     }
                 },
                 {
                     type: 'select',
                     k: 'font-family',
-                    v: ['Arial', 'Verdana']
+                    v: ['Arial', 'Monospace', 'Verdana']
+                },
+                {
+                    type: 'i',
+                    content: 'title',
+                    onclick: function (e) {
+                        let columns = table.getSelectedColumns();
+                        for (const column of columns) {
+                            table.options.columns[column].type = 'text';
+                            table.options.columns[column].mask = '';
+                            table.options.columns[column].decimal = '';
+                        }
+                        reloadTable();
+                    }
+                },
+                {
+                    type: 'i',
+                    content: 'tag',
+                    onclick: function (e) {
+                        let columns = table.getSelectedColumns();
+                        for (const column of columns) {
+                            table.options.columns[column].type = 'numeric';
+                            table.options.columns[column].mask = '';
+                            table.options.columns[column].decimal = '';
+                        }
+                        reloadTable();
+                    }
+                },
+                {
+                    type: 'i',
+                    content: 'paid',
+                    onclick: function (e) {
+                        let columns = table.getSelectedColumns();
+                        for (const column of columns) {
+                            table.options.columns[column].type = 'numeric';
+                            table.options.columns[column].mask = '0.00';
+                            table.options.columns[column].decimal = '.';
+                        }
+                        reloadTable();
+                    }
+                },
+                {
+                    type: 'i',
+                    content: 'percent',
+                    onclick: function (e) {
+                        let columns = table.getSelectedColumns();
+                        for (const column of columns) {
+                            table.options.columns[column].type = 'numeric';
+                            table.options.columns[column].mask = '0.00%';
+                            table.options.columns[column].decimal = '';
+                        }
+                        reloadTable();
+                    }
+                },
+                {
+                    type: 'i',
+                    content: 'check',
+                    onclick: function (e) {
+                        let columns = table.getSelectedColumns();
+                        for (const column of columns) {
+                            table.options.columns[column].type = 'checkbox';
+                            table.options.columns[column].mask = '';
+                            table.options.columns[column].decimal = '';
+                        }
+                        reloadTable();
+                    }
                 },
                 {
                     type: 'select',
@@ -114,19 +227,9 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
                 },
             ],
             data: [[]],
-            minDimensions: [40, 200]
+            minDimensions: [37, 50]
         });
     }, []);
-
-    const saveSheet = async () => {
-        setLoading(true);
-        let e2eResult = await AsyncStorage.getItem('e2e');
-        let encrypted = CryptoJS.AES.encrypt(JSON.stringify({ data: table.getJson(), style: table.getStyle(), width: table.getWidth() }), e2eResult).toString();
-        await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
-            updateSheet: update_files_by_pk(pk_columns: {id: "${sheet.id}"}, _set: {content: $content, title: $title}) {id}
-        }`, { content: encrypted, title: sheet.title }));
-        setLoading(false);
-    }
 
     return (
         <div>
@@ -136,13 +239,13 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
                 }}><Text style={{ fontSize: 30, color: colors.text }}>←</Text></TouchableOpacity>
                 <TextInput spellCheck={false} inputAccessoryViewID='main' style={[{ color: colors.text, fontSize: 20, textAlign: 'center', width: '50%' }]} value={sheet.title} onChangeText={(value) => {
                     setSheet({ ...sheet, title: value });
+                    sheetTitle = value;
                 }} onBlur={() => {
-                    setSheet({ ...sheet });
                     saveSheet();
                 }} />
                 <div style={{ width: '10%' }}></div>
             </View>
-            <div onBlur={() => { saveSheet(); }} id="spreadsheet" style={{ height: 'calc(100vh - 100px)', width: '100vw', overflow: 'scroll' }}></div>
+            <div id="spreadsheet" style={{ height: 'calc(100vh - 100px)', width: '100vw', overflow: 'scroll' }}></div>
         </div>
     )
 }

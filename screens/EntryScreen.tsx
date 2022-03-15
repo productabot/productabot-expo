@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert, useWindowDimensions, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert, useWindowDimensions, Image, ActivityIndicator } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { LoadingComponent } from '../components/LoadingComponent';
@@ -21,6 +21,7 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
         details: null
     });
     const [refreshControl, setRefreshControl] = useState(false);
+    const [githubLoading, setGithubLoading] = useState(false);
     const [webViewLag, setWebViewLag] = useState('none');
     const [githubCommits, setGithubCommits] = useState([]);
     const [uri, setUri] = useState('https://productabot.com/blank.png');
@@ -109,13 +110,16 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
 
         try {
             setLoading(true);
+            setGithubLoading(true);
             let data = await API.get('1', '/auth/github/commits', {});
             setGithubCommits(data);
             setLoading(false);
+            setGithubLoading(false);
         }
         catch (err) {
             Alert.alert('There was an error pulling commits from GitHub');
             setLoading(false);
+            setGithubLoading(false);
         }
     }
 
@@ -203,8 +207,8 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
                                 <head>
                                 <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
                                 </head>
-                                <body style="background-color:#000000;margin:0px;padding:5px;">
-                                <input style="all:unset;width:100%;height:100%;background-color:#000000;color:#ffffff;font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${timesheet.date}"/>
+                                <body style="background-color:${colors.background};margin:0px;padding:5px;">
+                                <input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${timesheet.date}"/>
                                 </body>
                             `}}
                             keyboardDisplayRequiresUserAction={false}
@@ -224,7 +228,7 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.hours} keyboardType='numeric' onChangeText={value => { setTimesheet({ ...timesheet, hours: value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1') }) }} placeholder='hours' style={[styles.textInput]} />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
 
-                {githubCommits.length === 0 ? <Text style={{ marginBottom: 10, alignSelf: 'center' }} onPress={async () => { await pullGithubCommits(); }}>pull latest commits from github →</Text> : <RNPickerSelect
+                {githubCommits.length === 0 ? <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 10}}><Text style={{ alignSelf: 'center' }} onPress={async () => { await pullGithubCommits(); }}>{!githubLoading ? `pull latest commits from github →` : `pulling commits...  `}</Text>{githubLoading && <ActivityIndicator />}</View> : <RNPickerSelect
                     placeholder={{ label: 'select a recent commit from github' }}
                     Icon={() => <Image style={{ height: 25, width: 25, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={require('../assets/images/github.png')} />}
                     style={{
@@ -236,7 +240,10 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
                             width: 10
                         },
                     }}
-                    onValueChange={(value) => setTimesheet({ ...timesheet, details: value })}
+                    onValueChange={(value) =>
+                        value !== 'select a recent commit from github' &&
+                        setTimesheet({ ...timesheet, details: value, date: githubCommits.find(obj => obj.value === value)?.date, project: projects.find(project => project.label === githubCommits.find(commit => commit.value === value)?.project)?.value, category: githubCommits.find(obj => obj.value === value)?.category })
+                    }
                     items={githubCommits}
                 />}
                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>

@@ -374,7 +374,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                             }} ><span style={{ color: '#aa0000', fontFamily: 'arial', fontSize: 12, marginRight: 10, cursor: 'pointer' }}>delete</span></TouchableOpacity>
                         </View>
                         <MenuBar editor={editor} />
-                        <EditorContent onKeyDown={handleKeyDown} spellcheck="false" editor={editor} style={{ color: colors.text }} />
+                        <EditorContent onKeyDown={handleKeyDown} spellcheck="false" editor={editor} style={{ color: colors.text, wordBreak: 'break-word' }} />
                     </View>
                 </SplitPane>
             </View>

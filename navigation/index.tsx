@@ -127,9 +127,9 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     return (
                       <TouchableOpacity {...props}
                         onPress={() => { navigation.navigate('app', { screen: 'projectsTab', params: { screen: 'projects' } }); }}
-                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: window.width > 950 ? 160 : 30 }}>
+                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: window.width > 940 ? 160 : 30 }}>
                         <AnimatedLogo loading={loading} size={1} />
-                        {(window.width > 950) && <Text style={{ color: colors.text, fontSize: 20 }}>productabot</Text>}
+                        {(window.width > 940) && <Text style={{ color: colors.text, fontSize: 20 }}>productabot</Text>}
                       </TouchableOpacity>
                     )
                   }
@@ -141,7 +141,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             <AppBottomTab.Screen name="projectsTab" options={{
               title: `⧉ projects`,
               tabBarItemStyle: { maxWidth: 140, width: 140 },
-              ...((root.desktopWeb && window.width < 950) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15, marginTop: 3 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>⧉</Text></Pressable> })
+              ...((root.desktopWeb && window.width < 940) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15, marginTop: 3 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>⧉</Text></Pressable> })
             }}>
               {props => {
                 return (
@@ -177,7 +177,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             <AppBottomTab.Screen name="calendarTab" options={{
               title: `▦ calendar`,
               tabBarItemStyle: { maxWidth: 140, width: 140 },
-              ...((root.desktopWeb && window.width < 950) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>▦</Text></Pressable> })
+              ...((root.desktopWeb && window.width < 940) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>▦</Text></Pressable> })
             }}>
               {props => {
                 return (
@@ -204,12 +204,12 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             <AppBottomTab.Screen name="tasksTab" options={{
               title: `☉ tasks`,
               tabBarItemStyle: { maxWidth: 140, width: 140 },
-              ...((root.desktopWeb && window.width < 950) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>☉</Text></Pressable> })
+              ...((root.desktopWeb && window.width < 940) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>☉</Text></Pressable> })
             }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="tasks">
-                    {(window.width < 950) ?
+                    {(window.width < 940) ?
                       <AppStack.Screen name="tasks">
                         {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                       </AppStack.Screen>
@@ -230,7 +230,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             <AppBottomTab.Screen name="notesTab" options={{
               title: `≡ notes`,
               tabBarItemStyle: { maxWidth: 140, width: 140 },
-              ...((root.desktopWeb && window.width < 950) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>≡</Text></Pressable> })
+              ...((root.desktopWeb && window.width < 940) && { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>≡</Text></Pressable> })
             }}>
               {props => {
                 return (

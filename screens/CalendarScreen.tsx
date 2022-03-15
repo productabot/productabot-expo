@@ -23,6 +23,7 @@ const localizer = dateFnsLocalizer({
     }
 });
 
+let currentDate = new Date();
 let startDate = new Date();
 startDate.setDate(24);
 startDate.setMonth(startDate.getMonth() - 1);
@@ -51,7 +52,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
 
     let onRefresh = async () => {
         setLoading(true);
-        console.log(startDate, endDate);
+        currentDate = new Date(startDate);
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        // console.log(startDate, endDate);
         let data = await API.graphql(graphqlOperation(`
         {
             entries(order_by: {date: asc, project: {name: asc}, hours: desc}, where: {date: {_gte: "${startDate.toLocaleDateString('fr-CA')}", _lt: "${endDate.toLocaleDateString('fr-CA')}"}}) {
@@ -141,7 +144,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         if (event.type === 'entry') {
             const nextEntries = entries.map(existingEvent => {
                 return existingEvent.id == event.id
-                    ? { ...existingEvent, start, end }
+                    ? { ...existingEvent, start, end: start }
                     : existingEvent;
             });
             setEntries(nextEntries);
@@ -152,7 +155,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         else if (event.type === 'task') {
             const nextTasks = tasks.map(existingEvent => {
                 return existingEvent.id == event.id
-                    ? { ...existingEvent, start, end }
+                    ? { ...existingEvent, start, end: start }
                     : existingEvent;
             });
             setTasks(nextTasks);
@@ -180,6 +183,30 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
 
     return (
         <div style={{ paddingTop: 50, margin: 5 }}>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: -28 }}>
+                <div style={{ fontFamily: 'arial', color: colors.text, fontSize: 20, marginRight: 10, fontWeight: 'bold', marginTop: 3 }}>{new Date(currentDate).toLocaleDateString('en-US', { month: 'long' }).toLowerCase()} {new Date(currentDate).getFullYear()}</div>
+                <TouchableOpacity onPress={() => { setShowEntries(!showEntries) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
+                    {Platform.OS === 'web' ? <input checked={showEntries} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> : <View
+                        style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showEntries ? 0 : 1, borderColor: '#767676', flexDirection: 'row', marginLeft: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: showEntries ? '#0075ff' : '#ffffff' }}>
+                        {showEntries && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
+                    </View>}
+                    <Text style={{ marginLeft: 5 }}>entries</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { setShowTasks(!showTasks) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
+                    {Platform.OS === 'web' ? <input checked={showTasks} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> : <View
+                        style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showTasks ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: showTasks ? '#0075ff' : '#ffffff' }}>
+                        {showTasks && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
+                    </View>}
+                    <Text style={{ marginLeft: 5 }}>tasks</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { setShowEvents(!showEvents) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
+                    {Platform.OS === 'web' ? <input checked={showEvents} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> : <View
+                        style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showEvents ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: showEvents ? '#0075ff' : '#ffffff' }}>
+                        {showEvents && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
+                    </View>}
+                    <Text style={{ marginLeft: 5 }}>events</Text>
+                </TouchableOpacity>
+            </div>
             <DragAndDropCalendar
                 localizer={localizer}
                 // views={['month']}
@@ -190,7 +217,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 onEventDrop={moveEntry}
                 resizable={true}
                 onEventResize={resizeEntry}
-                events={[...entries, ...tasks, ...events]}
+                events={[...(showEntries ? entries : []), ...(showTasks ? tasks : []), ...(showEvents ? events : [])]}
                 style={{ height: 'calc(100vh - 60px)', color: colors.text, fontFamily: 'arial' }}
                 eventPropGetter={(event) => { return { style: { backgroundColor: event.project.color, fontSize: 12 } } }}
                 onRangeChange={({ start, end }) => {
@@ -205,11 +232,11 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                         dateHeader: ({ date, label }) => {
                             let givenDate = date.toDateString();
                             let currentDate = new Date().toDateString();
-                            return (<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: givenDate === currentDate ? '#66666677' : '', paddingRight: 2 }}>
+                            return (<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: givenDate === currentDate ? '#66666677' : '', paddingRight: 2, width: '102%' }}>
                                 <div style={{ fontSize: 12, marginLeft: 4 }}>{label}</div>
                                 <Menu key={label} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                     <MenuTrigger>
-                                        <Text style={{ color: '#aaaaaa' }}>+</Text>
+                                        <Text style={{ color: givenDate === currentDate ? colors.text : '#aaaaaa' }}>+</Text>
                                     </MenuTrigger>
                                     <MenuOptions customStyles={{
                                         optionsWrapper: { backgroundColor: 'transparent', width: 300 },
@@ -238,7 +265,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 300, borderRadius: 10 }}>
                         <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                <TouchableOpacity onPress={() => { navigation.navigate('project', { id: event.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.navigate('project', { id: event.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
                                     <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${event.project.image}` }} />
                                     <View style={{ flexDirection: 'column', marginLeft: 5 }}>
                                         <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{event.project.name}</Text>
