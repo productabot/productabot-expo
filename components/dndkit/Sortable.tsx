@@ -261,7 +261,7 @@ const Item = React.memo(
                                 onClick={() => { navigation.navigate('project', { id: value.id }) }}
                                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', cursor: dragging ? 'grabbing' : 'grab' }}>
                                 <div style={{ height: 140, width: 140, border: `1px solid ${colors.text}`, borderRadius: 20 }}>
-                                    <img style={{ width: 140, height: 140, borderRadius: 19 }} src={`https://files.productabot.com/public/${value.image}`} />
+                                    <img style={{ width: 140, height: 140, borderRadius: 19, objectFit: 'cover' }} src={`https://files.productabot.com/public/${value.image}`} />
                                 </div>
                                 <div style={{ marginBottom: 3 }}>
                                     <span style={{ color: colors.text }}>{value.public ? '' : '🔒'}{value.name}</span>

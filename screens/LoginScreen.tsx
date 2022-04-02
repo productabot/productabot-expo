@@ -17,13 +17,9 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
-        if (route.params.success) { setState({ ...state, success: true, successMessage: 'Success! Confirm your email before logging in' }); }
-        if (route.params.reset) { setState({ ...state, success: true, successMessage: 'We sent you a link to reset your password' }); }
-        if (route.params.username && route.params.code) {
-            Auth.confirmSignUp(route.params.username, route.params.code).then((response) => {
-                setState({ ...state, success: true, successMessage: 'Email successfully confirmed! You may log in' });
-            });
-        }
+        if (route.params.success) { setState({ ...state, successMessage: 'success! confirm your email before logging in' }); }
+        if (route.params.reset) { setState({ ...state, successMessage: 'we sent you a link to reset your password' }); }
+        if (route.params.email) { setState({ ...state, email: route.params.email, successMessage: 'email successfully confirmed! you may log in' }); }
         if (route.params.demo) {
             setLoading(true);
             Auth.signIn({
@@ -33,7 +29,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
                 //if the login attempt succeeds, store the password
                 AsyncStorage.setItem('e2e', 'password').then(() => {
                     connectWebsocket();
-                    setState({ ...state, errorMessage: '', success: false, email: '', password: '' });
+                    setState({ ...state, errorMessage: '', successMessage: '', email: '', password: '' });
                     setLoading(false);
                     navigation.navigate('app');
                 });
@@ -52,13 +48,13 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
             await AsyncStorage.setItem('e2e', state.password);
             connectWebsocket();
             setLoading(false);
-            setState({ ...state, errorMessage: '', success: false, email: '', password: '' });
+            setState({ ...state, errorMessage: '', successMessage: '', email: '', password: '' });
             navigation.navigate('app');
         }
         catch (err) {
             console.log(err);
             setLoading(false);
-            setState({ ...state, success: false, errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
+            setState({ ...state, successMessage: '', errorMessage: err.code === 'UserNotConfirmedException' ? 'confirm your email address before logging in' : 'your username or password is incorrect' });
         }
     }
 
@@ -87,9 +83,9 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
                     <AnimatedLogo loading={loading} size={1.5} />
                     <Text style={[styles.baseText, { fontSize: s(50, 0.85), marginLeft: 5 }]}>productabot</Text>
                 </TouchableOpacity>
-                <View style={{ margin: 30 }}>
-                    {state.errorMessage.length > 0 && <Text style={[styles.baseText, { color: '#cc0000', textAlign: 'center', marginTop: -16 }]}>{state.errorMessage}</Text>}
-                    {state.success && <Text style={[styles.baseText, { color: '#006600', textAlign: 'center', marginTop: -16 }]}>{state.successMessage}</Text>}
+                {state.errorMessage.length > 0 && <Text style={[styles.baseText, { marginTop: 5, marginBottom: -21, color: '#cc0000', textAlign: 'center' }]}>{state.errorMessage}</Text>}
+                {state.successMessage && <Text style={[styles.baseText, { marginTop: 5, marginBottom: -21, color: '#006600', textAlign: 'center' }]}>{state.successMessage}</Text>}
+                <View style={{ margin: 20 }}>
                     <TextInput placeholderTextColor={colors.subtitle} spellCheck={false} inputAccessoryViewID='main' value={state.email} onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address'></TextInput>
                     <TextInput placeholderTextColor={colors.subtitle} spellCheck={false} inputAccessoryViewID='main' value={state.password} onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                         onSubmitEditing={login}></TextInput>

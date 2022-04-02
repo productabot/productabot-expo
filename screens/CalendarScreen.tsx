@@ -100,7 +100,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
             }
         }          
         `));
-        setEntries(data.data.entries.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `⏱${obj.project.name} - ${obj.hours} hrs`, allDay: true, type: 'entry' } }));
+        setEntries(data.data.entries.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `⏱${obj.project?.name} - ${obj.hours} hrs`, allDay: true, type: 'entry' } }));
         setTasks(data.data.tasks.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `☉ ${obj.details}`, allDay: true, type: 'task' } }));
         setEvents(data.data.events.map(obj => { return { ...obj, start: new Date(obj.date_from + 'T12:00'), end: new Date(obj.date_to + 'T12:01'), title: `📅 ${obj.details}`, allDay: true, type: 'event' } }));
         setLoading(false);
@@ -219,7 +219,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 onEventResize={resizeEntry}
                 events={[...(showEntries ? entries : []), ...(showTasks ? tasks : []), ...(showEvents ? events : [])]}
                 style={{ height: 'calc(100vh - 60px)', color: colors.text, fontFamily: 'arial' }}
-                eventPropGetter={(event) => { return { style: { backgroundColor: event.project.color, fontSize: 12 } } }}
+                eventPropGetter={(event) => { return { style: { backgroundColor: event.project?.color, fontSize: 12 } } }}
                 onRangeChange={({ start, end }) => {
                     if (start && end) {
                         startDate = start;
@@ -265,10 +265,10 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 300, borderRadius: 10 }}>
                         <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.navigate('project', { id: event.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
-                                    <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${event.project.image}` }} />
+                                <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.navigate('project', { id: event.project?.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                    <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${event.project?.image}` }} />
                                     <View style={{ flexDirection: 'column', marginLeft: 5 }}>
-                                        <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{event.project.name}</Text>
+                                        <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{event.project?.name}</Text>
                                         <View style={{ flexDirection: 'row' }}>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
                                                 <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 12 }}>{event.category}</Text>
