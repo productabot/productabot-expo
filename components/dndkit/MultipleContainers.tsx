@@ -56,6 +56,7 @@ function DroppableContainer({
   id,
   items,
   style,
+  heightOffset,
   ...props
 }: any & {
   disabled?: boolean;
@@ -99,6 +100,7 @@ function DroppableContainer({
         ...listeners
       }}
       columns={columns}
+      heightOffset={heightOffset}
       {...props}
     >
       {children}
@@ -136,6 +138,8 @@ interface Props {
   trashable?: boolean;
   scrollable?: boolean;
   vertical?: boolean;
+  heightOffset?: number;
+  onRefresh?(): any;
 }
 
 export const TRASH_ID = "void";
@@ -161,7 +165,9 @@ export function MultipleContainers({
   strategy = verticalListSortingStrategy,
   trashable = false,
   vertical = false,
-  scrollable
+  scrollable,
+  heightOffset,
+  onRefresh
 }: Props) {
   // const [items, setItems] = useState(initialItems);
   const windowDimensions = useWindowDimensions();
@@ -455,17 +461,18 @@ export function MultipleContainers({
               items={items[containerId]}
               style={containerStyle}
               onRemove={() => handleRemove(containerId)}
+              heightOffset={heightOffset}
             >
               <SortableContext key={containerId} items={items[containerId]} strategy={strategy} >
                 <VirtualList
-                  height={windowDimensions.height - 130}
+                  height={windowDimensions.height - heightOffset}
                   width={'100%'}
                   style={{ overflowY: 'scroll' }}
                   itemCount={items[containerId].length}
                   itemSize={(index) => {
                     let length = items[containerId][index].details?.length;
                     if (length) {
-                      return Math.ceil(length / (((windowDimensions.width - 100) / 3) / 9)) * 16 + 70
+                      return Math.ceil(length / (((windowDimensions.width - 100) / 4) / 10)) * 16 + 70
                     }
                     else {
                       return 80;
@@ -486,6 +493,7 @@ export function MultipleContainers({
                           renderItem={renderItem}
                           containerId={containerId}
                           getIndex={getIndex}
+                          onRefresh={onRefresh}
                         />
                       </div>
                     );
@@ -546,6 +554,7 @@ export function MultipleContainers({
             })}
             wrapperStyle={wrapperStyle({ index })}
             renderItem={renderItem}
+            onRefresh={onRefresh}
           />
         ))}
       </Container>
@@ -577,6 +586,7 @@ interface SortableItemProps {
   getIndex(id: string): number;
   renderItem(): React.ReactElement;
   wrapperStyle({ index }: { index: number }): React.CSSProperties;
+  onRefresh(): any;
 }
 
 function SortableItem({
@@ -588,7 +598,8 @@ function SortableItem({
   style,
   containerId,
   getIndex,
-  wrapperStyle
+  wrapperStyle,
+  onRefresh
 }: SortableItemProps) {
   const {
     setNodeRef,
@@ -624,6 +635,7 @@ function SortableItem({
       transform={transform}
       listeners={listeners}
       renderItem={renderItem}
+      onRefresh={onRefresh}
     />
   );
 }

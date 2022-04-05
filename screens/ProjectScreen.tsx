@@ -21,6 +21,9 @@ import Popover from '../components/PopoverMenuRenderer';
 import { PieChart } from "react-native-chart-kit";
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@react-navigation/native';
+import { MultipleContainers } from '../components/dndkit/MultipleContainers';
+import TasksScreen from './TasksScreen';
+import TasksDesktopScreen from './TasksDesktopScreen';
 const chartColors = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6',
     '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
     '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A',
@@ -194,7 +197,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         setLoading(false);
         Animated.sequence([Animated.timing(opacity, { toValue: 1, duration: Platform.OS === 'web' ? 1 : 100, easing: Easing.linear, useNativeDriver: true })]).start();
     }
-
+    
     const pickImage = async () => {
         try {
             let selectedMedia = await ImagePicker.launchImageLibraryAsync({
@@ -231,10 +234,10 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
 
     const addAction = async (type) => {
         if (type === 'entry') {
-            navigation.navigate('entry', { project_id: project.id })
+            navigation.push('entry', { project_id: project.id })
         }
         else if (type === 'task') {
-            navigation.navigate('edit_task', { project_id: project.id })
+            navigation.push('edit_task', { project_id: project.id })
         }
         else if (type === 'document') {
             setLoading(true);
@@ -242,7 +245,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             insert_files_one(object: {title: "New Document", content: "", order: ${project.files.length}, project_id: "${project.id}"}) {id}
           }`));
             setLoading(false);
-            navigation.navigate('document', { id: data.data.insert_files_one.id })
+            navigation.push('document', { id: data.data.insert_files_one.id })
         }
         else if (type === 'sheet') {
             if (Platform.OS === 'web') {
@@ -251,7 +254,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                     insert_files_one(object: {title: "New Sheet", content: "", order: ${project.files.length}, project_id: "${project.id}", type: "sheet"}) {id}
                 }`));
                 setLoading(false);
-                navigation.navigate('sheet', { id: data.data.insert_files_one.id })
+                navigation.push('sheet', { id: data.data.insert_files_one.id })
             }
             else {
                 alert('Sorry! Sheets are not supported on the mobile app at this time');
@@ -272,7 +275,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             }
         }
         else if (type === 'event') {
-            navigation.navigate('event', { project_id: project.id })
+            navigation.push('event', { project_id: project.id })
         }
     }
 
@@ -430,7 +433,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     setLoading(true);
                                     // await API.graphql(graphqlOperation(`mutation {delete_projects_by_pk(id: "${project.id}") {id}}`));
                                     setLoading(false);
-                                    navigation.navigate('projectsTab');
+                                    navigation.push('projectsTab');
                                 }
                                 if (Platform.OS === 'ios') {
                                     Alert.alert('Warning', 'Are you sure you want to archive this project?', [{ style: 'cancel', text: 'no' }, {
@@ -454,7 +457,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     setLoading(true);
                                     await API.graphql(graphqlOperation(`mutation {delete_projects_by_pk(id: "${project.id}") {id}}`));
                                     setLoading(false);
-                                    navigation.navigate('projectsTab');
+                                    navigation.push('projectsTab');
                                 }
                                 if (Platform.OS === 'ios') {
                                     Alert.alert('Warning', 'Are you sure you want to delete this project?', [{ style: 'cancel', text: 'no' }, {
@@ -508,14 +511,14 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                         onPress={async (item) => {
                                             if (item.item.type === 'sheet') {
                                                 if (Platform.OS === 'web') {
-                                                    navigation.navigate('sheet', { id: item.item.id });
+                                                    navigation.push('sheet', { id: item.item.id });
                                                 }
                                                 else {
                                                     alert('Sorry! Sheets are not supported on the mobile app at this time');
                                                 }
                                             }
                                             else if (item.item.type === 'document') {
-                                                navigation.navigate('document', { id: item.item.id });
+                                                navigation.push('document', { id: item.item.id });
                                             }
                                             else {
                                                 let link = await Storage.get(`${project.id}/${item.item.title}`, { level: 'private', expires: 10 });
@@ -680,7 +683,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                             );
                                         }}
                                         onPress={(item) => {
-                                            navigation.navigate('entry', { id: item.item.id })
+                                            navigation.push('entry', { id: item.item.id })
                                         }}
                                         onDelete={async (item) => {
                                             const deleteFunction = async () => {
@@ -708,77 +711,11 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             }
                             {index === 2 &&
                                 <>
-                                    {(project.goal && !root.desktopWeb) && <Text style={{ alignSelf: 'center', marginBottom: -20, marginLeft: 5 }}>{`${count.weeklyGoal}%`}</Text>}
-                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                        onPress={async () => { addAction('task'); }}
-                                    ><Text>{'add task'} +</Text></TouchableOpacity>
-                                    <CustomDraggableFlatList
-                                        data={project.tasks}
-                                        virtualHeight={window.height - 240}
-                                        renderItem={({ item }) =>
-                                            <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
-                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
-                                                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7 }}>
-                                                        <Text>📌</Text>
-                                                    </View>
-                                                    <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
-                                                        <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
-                                                        <Text style={{ textDecorationLine: item.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
-                                                        <Text style={{ fontSize: 10, color: '#aaaaaa' }}>{item.comments_aggregate.aggregate.count} comments{item.category ? `, #${item.category}` : ``}</Text>
-                                                    </View>
-                                                </View>
-                                            </View>
-                                        }
-                                        onPress={async (item) => {
-                                            navigation.navigate('task', { id: item.item.id })
-                                        }}
-                                        onRename={async (item) => {
-                                            const renameFunction = async (rename) => {
-                                                setLoading(true);
-                                                if (rename) {
-                                                    await API.graphql(graphqlOperation(`mutation{update_tasks_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {details: "${rename}"}) {id}}`));
-                                                }
-                                                await onRefresh();
-                                                setLoading(false);
-                                            }
-                                            if (Platform.OS !== 'web') {
-                                                Alert.prompt('Rename', '', async (text) => {
-                                                    await renameFunction(text);
-                                                }, 'plain-text', item.item.detail);
-                                            }
-                                            else {
-                                                let rename = prompt('Rename', item.item.detail);
-                                                await renameFunction(rename);
-                                            }
-                                        }}
-                                        onDelete={async (item) => {
-                                            const deleteFunction = async () => {
-                                                setLoading(true);
-                                                await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${item.item.id}") {id}}`));
-                                                await onRefresh();
-                                                setLoading(false);
-                                            }
-                                            if (Platform.OS !== 'web') {
-                                                Alert.alert('Warning', 'Are you sure you want to delete this task?',
-                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                            }
-                                            else if (confirm('Are you sure you want to delete this task?')) { await deleteFunction() }
-                                        }}
-                                        setContextPosition={setContextPosition}
-                                        menuRef={menuRef}
-                                        ListEmptyComponent={
-                                            <TouchableOpacity
-                                                onPress={async () => { addAction('task'); }}
-                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
-                                                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add task +`}</Text>
-                                            </TouchableOpacity>}
-                                        onDragEnd={async ({ data }) => {
-                                            setProject({ ...project, tasks: data });
-                                            await API.graphql(graphqlOperation(`mutation {
-                                    ${data.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {order: ${data.length - taskIndex - 1}}) {id}`)}
-                                }`));
-                                        }}
-                                    />
+                                    {Platform.OS === 'web' ?
+                                        <TasksDesktopScreen setLoading={setLoading} navigation={navigation} projectScreen={true} givenProjectId={project?.id} />
+                                        :
+                                        <TasksScreen setLoading={setLoading} navigation={navigation} projectScreen={true} givenProjectId={project?.id} />
+                                    }
                                 </>
                             }
                             {index === 3 &&
@@ -812,7 +749,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                             );
                                         }}
                                         onPress={(item) => {
-                                            navigation.navigate('event', { id: item.item.id })
+                                            navigation.push('event', { id: item.item.id })
                                         }}
                                         onDelete={async (item) => {
                                             const deleteFunction = async () => {

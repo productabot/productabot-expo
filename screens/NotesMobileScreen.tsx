@@ -14,6 +14,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     const [refreshControl, setRefreshControl] = useState(false);
     const [tags, setTags] = useState([]);
     const [tag, setTag] = useState({});
+    const [notesCount, setNotesCount] = useState(0);
     const [notes, setNotes] = useState([]);
     const [update, setUpdate] = useState(true);
     const [addingTag, setAddingTag] = useState(false);
@@ -63,8 +64,14 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
               title
               order
             }
+            notes_aggregate(where: {tag_id: {_eq: "${tag.id ? tag.id : tagsData.data.tags.length > 0 ? tagsData.data.tags[0].id : 'bb1871eb-929a-4a96-90e1-1ee7789e8872'}"}}) {
+                aggregate {
+                count
+                }
+            }
           }`));
         setNotes(notesData.data.notes);
+        setNotesCount(notesData.data.notes_aggregate.aggregate.count);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
 
@@ -75,8 +82,14 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
               title
               order
             }
+            notes_aggregate(where: {tag_id: {_eq: "${tag.id ? tag.id : tagsData.data.tags.length > 0 ? tagsData.data.tags[0].id : 'bb1871eb-929a-4a96-90e1-1ee7789e8872'}"}}) {
+                aggregate {
+                count
+                }
+            }
           }`));
         setNotes([...notes, ...notesData.data.notes]);
+        setNotesCount(notesData.data.notes_aggregate.aggregate.count);
     }
 
     useEffect(() => {
@@ -155,11 +168,11 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                 <TouchableOpacity onPress={async () => {
                     let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
                     let data = await API.graphql(graphqlOperation(`mutation {
-                            insert_notes_one(object: {tag_id: "${tag.id}", title: "${dateString}", content: "", order: ${notes.length}}) {
+                            insert_notes_one(object: {tag_id: "${tag.id}", title: "${dateString}", content: "", order: ${notesCount}}) {
                                 id
                             }
                         }`));
-                    navigation.navigate('note', { id: data.data.insert_notes_one.id });
+                    navigation.push('note', { id: data.data.insert_notes_one.id });
                 }}><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
             </View>
             <CustomDraggableFlatList
@@ -170,7 +183,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                         <Text style={{ fontSize: 14 }}>☰</Text>
                     </View>
                 }
-                onPress={async (item) => { navigation.navigate('note', { id: item.item.id }) }}
+                onPress={async (item) => { navigation.push('note', { id: item.item.id }) }}
                 onDragEnd={({ data }) => {
                     setUpdate(true);
                     setNotes(data);

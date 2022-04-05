@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Text, View } from '../components/Themed';
 import { Calendar, CalendarList, LocaleConfig } from 'react-native-calendars';
-import { RefreshControl, ScrollView, TouchableOpacity, Image, useWindowDimensions, Platform, Alert, Animated, Easing } from 'react-native';
+import { RefreshControl, ScrollView, TouchableOpacity, Image, useWindowDimensions, Platform, Alert } from 'react-native';
 import * as root from '../Root';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { useFocusEffect } from '@react-navigation/native';
@@ -17,7 +17,6 @@ LocaleConfig.locales['en'] = {
 LocaleConfig.defaultLocale = 'en';
 
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
-let dateOpacity = false;
 let changingMonths = false;
 let month = new Date().toLocaleDateString();
 let menuOpen = false;
@@ -39,7 +38,6 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     const [tasks, setTasks] = useState([]);
     const [events, setEvents] = useState([]);
     const [firstLoad, setFirstLoad] = useState(false);
-    const opacity = Array(42).fill(0).map(() => useRef(new Animated.Value(0)).current);
     const [markedDates, setMakedDates] = useState({});
     const [hide, setHide] = React.useState(true);
     const scrollRef = useRef();
@@ -178,9 +176,6 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         setEvents(data.data.events);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
         scrollRef.current && scrollRef.current.scrollTo({ x: windowDimensions.width, animated: false });
-        for (let i = 0; i < 42; i++) {
-            Animated.sequence([Animated.delay(10 * i), Animated.timing(opacity[i], { toValue: 1, duration: 100, easing: Easing.ease, useNativeDriver: false })]).start();
-        }
         setMakedDates({});
     }
 
@@ -217,29 +212,6 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     }
 
     const DayComponent = ({ date, state }) => {
-        if (!dateOpacity) {
-            let currentDateString = date.dateString;
-            let dateOpacityObject = {};
-            for (let i = 0; i < 42; i++) {
-                if (Platform.OS === 'web') {
-                    dateOpacityObject[currentDateString] = i;
-                }
-                else {
-                    if (!firstLoad || entries.filter(timesheet => timesheet.date === currentDateString).length === 0) { dateOpacityObject[currentDateString] = i; }
-                    else { dateOpacityObject[currentDateString] = -1; }
-                }
-                let currentDate = new Date(currentDateString);
-                currentDate.setDate(currentDate.getDate() + 1);
-                currentDateString = currentDate.toISOString().split('T')[0];
-            }
-            dateOpacity = dateOpacityObject;
-            for (let i = 0; i < 42; i++) {
-                opacity[i].setValue(0);
-            }
-            if (!firstLoad) {
-                setTimeout(() => { setFirstLoad(true); }, 1000);
-            }
-        }
         return (
             <ScrollView
                 style={[
@@ -251,19 +223,19 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <Text style={{ margin: 5, textAlign: 'left', color: colors.text, fontSize: 12 }}>
                         {date.day}
                     </Text>
-                    {/* <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity> */}
+                    {/* <TouchableOpacity onPress={() => { navigation.push('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity> */}
                     <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={date.date} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                         <MenuTrigger>
-                            <Text style={{ color: '#aaaaaa', marginRight: 2,width: 25, textAlign: 'right' }}>+</Text>
+                            <Text style={{ color: '#aaaaaa', marginRight: 2, width: 25, textAlign: 'right' }}>+</Text>
                         </MenuTrigger>
                         <MenuOptions customStyles={{
                             optionsWrapper: { backgroundColor: 'transparent', width: 255 },
                             optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
                         }}>
                             <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 40 }}>
-                                <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>⏱ add entry</Text></TouchableOpacity>
-                                <TouchableOpacity onPress={() => { navigation.navigate('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>☉ add task</Text></TouchableOpacity>
-                                <TouchableOpacity onPress={() => { navigation.navigate('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>📅 add event</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => { navigation.push('entry', { date: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>⏱ add entry</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => { navigation.push('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>☉ add task</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => { navigation.push('event', { date_from: date.dateString, date_to: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>📅 add event</Text></TouchableOpacity>
                             </View>
                         </MenuOptions>
                     </Menu>
@@ -271,10 +243,10 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 {showEntries && entries.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
                     <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                         <MenuTrigger>
-                            <Animated.View style={{ opacity: dateOpacity[date.dateString] !== -1 ? opacity[dateOpacity[date.dateString]] : 1, paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>⏱{root.desktopWeb ? obj.project.name : obj.project.key}</Text>
                                 <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff', minWidth: obj.hours.toString().length * 6 }}>{obj.hours}</Text>
-                            </Animated.View>
+                            </View>
                         </MenuTrigger>
                         <MenuOptions customStyles={{
                             optionsWrapper: { backgroundColor: 'transparent', width: 255 },
@@ -283,7 +255,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                             <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
                                 <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                        <TouchableOpacity onPress={() => { navigation.navigate('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                        <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
                                             <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
                                             <View style={{ flexDirection: 'column', marginLeft: 5 }}>
                                                 <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
@@ -313,7 +285,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                         else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
                                     }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
                                     <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
-                                        navigation.navigate('entry', { id: obj.id, date: undefined })
+                                        navigation.push('entry', { id: obj.id, date: undefined })
                                     }} ><Text style={{ color: '#ffffff' }}>Edit</Text></TouchableOpacity>
                                 </View>
                             </View>
@@ -323,9 +295,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 {showTasks && tasks.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
                     <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                         <MenuTrigger>
-                            <Animated.View style={{ opacity: dateOpacity[date.dateString] !== -1 ? opacity[dateOpacity[date.dateString]] : 1, paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>☉ {obj.details.slice(0, 50)}</Text>
-                            </Animated.View>
+                            </View>
                         </MenuTrigger>
                         <MenuOptions customStyles={{
                             optionsWrapper: { backgroundColor: 'transparent', width: 255 },
@@ -334,7 +306,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                             <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
                                 <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                        <TouchableOpacity onPress={() => { navigation.navigate('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                        <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
                                             <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
                                             <View style={{ flexDirection: 'column', marginLeft: 5 }}>
                                                 <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
@@ -363,7 +335,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                         else if (confirm('Are you sure you want to delete this task?')) { await deleteFunction() }
                                     }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
                                     <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
-                                        navigation.navigate('task', { id: obj.id })
+                                        navigation.push('task', { id: obj.id })
                                     }} ><Text style={{ color: '#ffffff' }}>View</Text></TouchableOpacity>
                                 </View>
                             </View>
@@ -373,9 +345,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 {showEvents && events.filter(event => getDateRange(new Date(event.date_from), new Date(event.date_to)).includes(date.dateString)).map((obj, index) =>
                     <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                         <MenuTrigger>
-                            <Animated.View style={{ opacity: dateOpacity[date.dateString] !== -1 ? opacity[dateOpacity[date.dateString]] : 1, paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '200%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '200%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>📅{obj.details.slice(0, 50)}</Text>
-                            </Animated.View>
+                            </View>
                         </MenuTrigger>
                         <MenuOptions customStyles={{
                             optionsWrapper: { backgroundColor: 'transparent', width: 255 },
@@ -384,7 +356,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                             <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
                                 <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                        <TouchableOpacity onPress={() => { navigation.navigate('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                        <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
                                             <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
                                             <View style={{ flexDirection: 'column', marginLeft: 5 }}>
                                                 <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
@@ -413,7 +385,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                         else if (confirm('Are you sure you want to delete this event?')) { await deleteFunction() }
                                     }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
                                     <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
-                                        navigation.navigate('event', { id: obj.id })
+                                        navigation.push('event', { id: obj.id })
                                     }} ><Text style={{ color: '#ffffff' }}>View</Text></TouchableOpacity>
                                 </View>
                             </View>
@@ -436,7 +408,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : colors.text, fontSize: 12 }}>
                         {date.day}
                     </Text>
-                    <TouchableOpacity onPress={() => { navigation.navigate('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { navigation.push('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
                 </View>
                 {entries.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
                     <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -106,7 +106,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                                                 id
                                             }
                                         }`)).then((response) => {
-                                        navigation.navigate('documents');
+                                        navigation.push('documents');
                                     });
                                 }
                             }
@@ -117,7 +117,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                                 id
                             }
                         }`)).then((response) => {
-                            navigation.navigate('project');
+                            navigation.push('project');
                         });
                 }}><Text style={{ fontSize: 30 }}>{Platform.OS === 'ios' ? '...' : '×'}</Text></TouchableOpacity>
             </View>

@@ -64,7 +64,7 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
         //check if the user has any projects
         if (projects.data.projects.length === 0) {
             alert('You must add a project before adding a time entry');
-            navigation.navigate('projectsTab');
+            navigation.push('projectsTab');
         }
 
         //load existing timesheet if editing
@@ -206,6 +206,9 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
                                 html: `
                                 <head>
                                 <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
+                                <style>
+                                input::-webkit-date-and-time-value{ text-align:left;margin-left:5px; }
+                                </style>
                                 </head>
                                 <body style="background-color:${colors.background};margin:0px;padding:5px;">
                                 <input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${timesheet.date}"/>

@@ -243,9 +243,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                         optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
                                     }}>
                                         <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 300, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 40 }}>
-                                            <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.navigate('entry', { date: date.toISOString().split('T')[0], id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>⏱ add entry</Text></TouchableOpacity>
-                                            <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.navigate('edit_task', { date: date.toISOString().split('T')[0], id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>☉ add task</Text></TouchableOpacity>
-                                            <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.navigate('event', { date_from: date.toISOString().split('T')[0], date_to: date.toISOString().split('T')[0], id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>📅 add event</Text></TouchableOpacity>
+                                            <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.push('entry', { date: date.toISOString().split('T')[0], id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>⏱ add entry</Text></TouchableOpacity>
+                                            <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.push('edit_task', { date: date.toISOString().split('T')[0], id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>☉ add task</Text></TouchableOpacity>
+                                            <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.push('event', { date_from: date.toISOString().split('T')[0], date_to: date.toISOString().split('T')[0], id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>📅 add event</Text></TouchableOpacity>
                                         </View>
                                     </MenuOptions>
                                 </Menu>
@@ -265,7 +265,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 300, borderRadius: 10 }}>
                         <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.navigate('project', { id: event.project?.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                <TouchableOpacity onPress={() => { menuRef.current.close(); navigation.push('project', { id: event.project?.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
                                     <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${event.project?.image}` }} />
                                     <View style={{ flexDirection: 'column', marginLeft: 5 }}>
                                         <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{event.project?.name}</Text>
@@ -298,7 +298,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                 else if (confirm(`Are you sure you want to delete this ${event.type}?`)) { await deleteFunction() }
                             }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
                             <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
-                                menuRef.current.close(); navigation.navigate(event.type, { id: event.id, date: undefined })
+                                menuRef.current.close(); navigation.push(event.type, { id: event.id, date: undefined })
                             }} ><Text style={{ color: '#ffffff' }}>Edit</Text></TouchableOpacity>
                         </View>
                     </View>

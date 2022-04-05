@@ -22,6 +22,7 @@ export interface Props {
   transition?: string | null;
   wrapperStyle?: React.CSSProperties;
   value: React.ReactNode;
+  onRefresh?(): void;
   onRemove?(): void;
   renderItem?(args: {
     dragOverlay: boolean;
@@ -59,6 +60,7 @@ export const Item = React.memo(
         transform,
         value,
         wrapperStyle,
+        onRefresh,
         ...props
       },
       ref
@@ -92,10 +94,10 @@ export const Item = React.memo(
             } as React.CSSProperties
           }
           ref={ref}
-          onClick={() => { navigation.navigate('task', { id: value.id }); }}
+          onClick={() => { navigation.push('task', { id: value.id }); }}
           onContextMenu={async (e) => {
             e.preventDefault();
-            if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${value.id}") {id}}`)); }
+            if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${value.id}") {id}}`)); onRefresh(); }
           }}
         >
           <div

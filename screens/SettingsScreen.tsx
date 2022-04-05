@@ -120,7 +120,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
         setLoading(true);
         await Auth.signOut();
         setLoading(false);
-        navigation.navigate('auth');
+        navigation.push('auth');
         Platform.OS === 'web' && setTimeout(() => { window.location.reload() }, 250);
     }
 

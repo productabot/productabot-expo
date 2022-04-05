@@ -24,7 +24,7 @@ export default function ResetScreen({ route, navigation, setLoading, loading }: 
                 let response = await Auth.forgotPassword(state.email);
                 console.log(response);
                 setLoading(false);
-                navigation.navigate('login', { reset: true });
+                navigation.push('login', { reset: true });
             }
             catch (err) {
                 console.log(err);
@@ -59,7 +59,7 @@ export default function ResetScreen({ route, navigation, setLoading, loading }: 
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
-                    onPress={() => { navigation.navigate('login') }}>
+                    onPress={() => { navigation.push('login') }}>
                     <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
                 </TouchableOpacity>
             </KeyboardAvoidingView>

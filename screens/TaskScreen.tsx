@@ -79,7 +79,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                     </View>
                     <TouchableOpacity
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        onPress={() => { navigation.navigate('edit_task', { id: task.id }) }}
+                        onPress={() => { navigation.push('edit_task', { id: task.id }) }}
                         style={{ width: 50, height: 30, borderRadius: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 5, backgroundColor: '#0075ff' }}>
                         <Text style={{ color: '#ffffff' }}>edit</Text>
                     </TouchableOpacity>

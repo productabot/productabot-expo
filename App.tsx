@@ -7,7 +7,7 @@ import { AnimatedLogo } from './components/AnimatedLogo';
 import useCachedResources from './hooks/useCachedResources';
 import Navigation from './navigation';
 import { Environment } from './Environment';
-import Amplify from "@aws-amplify/core";
+import { Amplify } from "@aws-amplify/core";
 import { Auth } from "@aws-amplify/auth";
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { Platform, LogBox } from 'react-native';
@@ -25,7 +25,13 @@ Amplify.configure({
     userPoolId: Environment.userPoolId,
     userPoolWebClientId: Environment.userPoolWebClientId,
     mandatorySignIn: true,
-    authenticationFlowType: "USER_PASSWORD_AUTH"
+    authenticationFlowType: "USER_PASSWORD_AUTH",
+    ...(Platform.OS === 'web' && {
+      cookieStorage: {
+        domain: `${window.location.hostname === 'localhost' ? 'localhost' : '.' + window.location.hostname.split('.').slice(1).join('.')}`,
+        secure: true
+      }
+    })
   },
   API: {
     graphql_endpoint: Environment.endpoint,

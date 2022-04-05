@@ -11,15 +11,18 @@ import SegmentedControl from '@react-native-segmented-control/segmented-control'
 import ConfettiCannon from 'react-native-confetti-cannon';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@react-navigation/native';
+import RNPickerSelect from 'react-native-picker-select';
 
 const oldDate = new Date();
 oldDate.setDate(oldDate.getDate() - 2);
-export default function TasksScreen({ refresh, setLoading, loading, navigation }: any) {
+export default function TasksScreen({ refresh, setLoading, loading, navigation, givenProjectId = '', projectScreen = false }: any) {
     const [refreshControl, setRefreshControl] = React.useState(false);
     const [index, setIndex] = React.useState(1);
     const [checked, setChecked] = React.useState([]);
-    const [count, setCount] = React.useState({ backlog: 0, in_progress: 0, done: 0 });
+    const [count, setCount] = React.useState({ backlog: 0, selected: 0, in_progress: 0, done: 0 });
     const [tasks, setTasks] = React.useState([]);
+    const [projects, setProjects] = React.useState([]);
+    const [projectId, setProjectId] = React.useState('');
     const windowDimensions = useWindowDimensions();
     const [contextPosition, setContextPosition] = React.useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
     const menuRef = React.useRef(null);
@@ -34,13 +37,13 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
 
     React.useEffect(() => {
         onRefresh();
-    }, [refresh, index]);
+    }, [refresh, index, projectId]);
 
     let onRefresh = async (showRefreshControl = false) => {
         setChecked([]);
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
         let tasksData = await API.graphql(graphqlOperation(`{
-            tasks(order_by: {root_order: desc}, where: {status: {_eq: "${index === 0 ? 'backlog' : index === 1 ? 'in_progress' : 'done'}"}}) {
+            tasks(order_by: {root_order: desc}, where: {${projectId ? `project_id: {_eq:"${projectId}"},` : givenProjectId ? `project_id: {_eq:"${givenProjectId}"},` : ``}status: {_eq: "${index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done'}"}}) {
               id
               created_at
               category
@@ -62,6 +65,11 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                 count
                 }
             }
+            selected: tasks_aggregate(where: {status: {_eq: "selected"}}) {
+                aggregate {
+                count
+                }
+            }
             in_progress: tasks_aggregate(where: {status: {_eq: "in_progress"}}) {
                 aggregate {
                 count
@@ -72,48 +80,64 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                 count
                 }
             }
+            projects(order_by: {name: asc}, where: {archived: {_eq: false}}) {
+                id
+                name
+                image
+              }
           }`));
         setTasks(tasksData.data.tasks);
-        setCount({ backlog: tasksData.data.backlog.aggregate.count, in_progress: tasksData.data.in_progress.aggregate.count, done: tasksData.data.done.aggregate.count })
+        setCount({ backlog: tasksData.data.backlog.aggregate.count, selected: tasksData.data.selected.aggregate.count, in_progress: tasksData.data.in_progress.aggregate.count, done: tasksData.data.done.aggregate.count })
+        setProjects([{ label: 'show all projects', value: '' }, ...tasksData.data.projects.map(obj => { return ({ label: obj.name, value: obj.id }) })]);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
 
 
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0 }}>
-            <View style={{ width: Math.min(950, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : 150) }}>
+            <View style={{ width: Math.min(950, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : projectScreen ? 300 : 120), paddingLeft: 10, paddingRight: 10 }}>
+                {!projectScreen &&
+                    <RNPickerSelect
+                        placeholder={{}}
+                        style={{
+                            inputIOS: { backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#cccccc', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, paddingLeft: 10 }
+                        }}
+                        value={projectId}
+                        onValueChange={(value) => { setProjectId(value); }}
+                        items={projects}
+                    />}
                 <SegmentedControl
                     appearance={colors.background === '#000000' ? 'dark' : 'light'}
                     style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
-                    values={[`backlog (${count.backlog})`, `in progress (${count.in_progress})`, `done (${count.done})`]}
+                    values={[`backlog`, `selected`, `in progress`, `done`]}
                     selectedIndex={index}
                     onChange={(e) => { setChecked([]); setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                 />
                 <View style={{ width: '100%', height: 40, flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10, marginBottom: -10 }}>
                     {(checked.length > 0 && index !== 0) ? <TouchableOpacity
-                        style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
+                        style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10, marginLeft: 5 }}
                         onPress={async () => {
                             Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-                            await API.graphql(graphqlOperation(`mutation {${checked.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task}"}, _set: {status: "${index === 1 ? 'backlog' : index === 2 ? 'in_progress' : 'done'}", root_order: 10000}) {id}`)}}`));
+                            await API.graphql(graphqlOperation(`mutation {${checked.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task}"}, _set: {status: "${index === 1 ? 'backlog' : index === 2 ? 'selected' : index === 3 ? 'in_progress' : 'done'}", root_order: 10000}) {id}`)}}`));
                             await onRefresh();
-                        }}><Text style={{ color: '#ffffff' }}>{`move to `}<Text style={{ color:'#ffffff', fontWeight: 'bold' }}>{index === 1 ? 'backlog' : index === 2 ? 'in progress' : 'done'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
+                        }}><Text style={{ color: '#ffffff' }}>{`move to `}<Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{index === 1 ? 'backlog' : index === 2 ? 'selected' : index === 3 ? 'in progress' : 'done'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
                     {checked.length !== 0 &&
-                        <View style={{ alignSelf: 'center', backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}><Text>{`${checked.length} selected`}</Text></View>
+                        <View style={{ alignSelf: 'center', backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}><Text>{`${checked.length}${index !== 1 ? ' selected' : ''}`}</Text></View>
                     }
-                    {(checked.length > 0 && index !== 2) ? <TouchableOpacity
-                        style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
+                    {(checked.length > 0 && index !== 3) ? <TouchableOpacity
+                        style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10, marginRight: 5 }}
                         onPress={async () => {
-                            await API.graphql(graphqlOperation(`mutation {${checked.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task}"}, _set: {status: "${index === 0 ? 'in_progress' : index === 1 ? 'done' : 'backlog'}", root_order: 10000}) {id}`)}}`));
+                            await API.graphql(graphqlOperation(`mutation {${checked.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task}"}, _set: {status: "${index === 0 ? 'selected' : index === 1 ? 'in_progress' : index === 2 ? 'done' : 'backlog'}", root_order: 10000}) {id}`)}}`));
                             await onRefresh();
-                            if (index === 1) {
+                            if (index === 2) {
                                 Platform.OS !== 'web' && [...Array(25).keys()].map(i => setTimeout(() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }, i * 25));
                                 setConfetti(true); setTimeout(() => { setConfetti(false) }, 2500);
                             }
-                        }}><Text style={{ color: '#ffffff' }}>{`move to `}<Text style={{ color:'#ffffff', fontWeight: 'bold' }}>{index === 0 ? 'in progress' : index === 1 ? 'done' : 'backlog'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
+                        }}><Text style={{ color: '#ffffff' }}>{`move to `}<Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{index === 0 ? 'selected' : index === 1 ? 'in progress' : index === 2 ? 'done' : 'backlog'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
                     {checked.length === 0 &&
                         <TouchableOpacity
                             style={{ backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
-                            onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.navigate('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'in_progress' : 'done' }) }}><Text>{`add task +`}</Text></TouchableOpacity>
+                            onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.push('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'in_progress' : 'done' }) }}><Text>{`add task +`}</Text></TouchableOpacity>
                     }
                 </View>
                 <CustomDraggableFlatList
@@ -167,11 +191,11 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                             </View>
                         </>
                     }
-                    onRename={async (item) => {
+                    onRename={async ({ item }) => {
                         const renameFunction = async (rename) => {
                             setLoading(true);
                             if (rename) {
-                                await API.graphql(graphqlOperation(`mutation{update_tasks_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {details: "${rename}"}) {id}}`));
+                                await API.graphql(graphqlOperation(`mutation{update_tasks_by_pk(pk_columns: {id: "${item.id}"}, _set: {details: "${rename}"}) {id}}`));
                             }
                             await onRefresh();
                             setLoading(false);
@@ -179,14 +203,14 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                         if (Platform.OS !== 'web') {
                             Alert.prompt('Rename', '', async (text) => {
                                 await renameFunction(text);
-                            }, 'plain-text', item.item.details);
+                            }, 'plain-text', item.details);
                         }
                         else {
-                            let rename = prompt('Rename', item.item.details);
+                            let rename = prompt('Rename', item.details);
                             await renameFunction(rename);
                         }
                     }}
-                    onDelete={async (item) => {
+                    onDelete={async ({ item }) => {
                         const deleteFunction = async () => {
                             setLoading(true);
                             await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${item.id}") {id}}`));
@@ -203,7 +227,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                     menuRef={menuRef}
                     onPress={async ({ item, index }) => {
                         Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        navigation.navigate('task', { id: item.id });
+                        navigation.push('task', { id: item.id });
                     }}
                     onDragEnd={async ({ data }) => {
                         setTasks(data);
@@ -218,7 +242,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation }
                             titleColor={colors.text}
                             title=""
                         />}
-                    style={{ height: windowDimensions.height - 230 }}
+                    style={{ height: windowDimensions.height - (projectScreen ? 370 : 260) }}
                 />
             </View>
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>

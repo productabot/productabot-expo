@@ -17,7 +17,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
         date: '',
         project: null,
         category: null,
-        details: null
+        details: null,
+        status: 'backlog'
     });
     const [refreshControl, setRefreshControl] = useState(false);
     const [webViewLag, setWebViewLag] = useState('none');
@@ -61,7 +62,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
         //check if the user has any projects
         if (projects.data.projects.length === 0) {
             alert('You must add a project before adding a task');
-            navigation.navigate('projectsTab');
+            navigation.push('projectsTab');
         }
 
         //load existing task if editing
@@ -75,6 +76,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                       date
                       category
                       details
+                      status
                     }
                   }
                   `));
@@ -94,7 +96,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             project: route.params.id ? task.project_id : route.params.project_id ? route.params.project_id : lastProject ? lastProject : projects.data.projects.length !== 0 ? projects.data.projects[0].id : null,
             date: route.params.id ? task.date : route.params.date ? await root.exportDate(new Date(route.params.date), 1) : null,
             category: route.params.id ? task.category : null,
-            details: route.params.id ? task.details : null
+            details: route.params.id ? task.details : null,
+            status: route.params.id ? task.status : 'backlog'
         });
         setProjects(projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id, image: obj.image }) }));
         setDates(dates);
@@ -108,8 +111,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             let response = await API.graphql(graphqlOperation(route.params.id
                 ?
                 `            
-                mutation($project_id: uuid, $date: date, $details: String, $category: String) {
-                    update_tasks_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, details: $details, project_id: $project_id, category: $category}) {id}
+                mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String) {
+                    update_tasks_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, details: $details, project_id: $project_id, category: $category, status: $status}) {id}
                 }
                 `
                 :
@@ -117,14 +120,14 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                 mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String) {
                     insert_tasks_one(object: {project_id: $project_id, date: $date, details: $details, category: $category, status: $status, root_order: 10000 }) {id}
                 }
-              `, { project_id: task.project, date: task.date, details: task.details, category: task.category, status: route.params.status }));
+              `, { project_id: task.project, date: task.date, details: task.details, category: task.category, status: task.status }));
             console.log(response);
-            setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value });
+            setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value, status: 'backlog' });
             setLoading(false);
             navigation.goBack();
         }
         catch (err) {
-            setTask({ details: null, date: dates[20].value, project: projects[0].value });
+            setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value, status: 'backlog' });
             setLoading(false);
             console.log(err);
         }
@@ -172,13 +175,12 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                     items={projects}
                 />
                 <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Text style={{ width: 80, textAlign: 'center' }}>due date</Text>
                     {Platform.OS === 'web' ?
                         <input id="date" type="date" value={task.date} onChange={(e) => { setTask({ ...task, date: e.target.value }) }}
                             style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(100% - 12px)', fontFamily: 'arial', borderRadius: 10 }}
                         />
                         :
-                        <View style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 0, marginTop: 5, marginBottom: 5, height: 30, width: '75%', borderRadius: 10 }}>
+                        <View style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 0, marginTop: 5, marginBottom: 5, height: 30, width: '100%', borderRadius: 10 }}>
                             {task.date ?
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
                                     <WebView
@@ -188,6 +190,9 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                                             html: `
                                 <head>
                                 <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
+                                <style>
+                                input::-webkit-date-and-time-value{ text-align:left;margin-left:5px; }
+                                </style>
                                 </head>
                                 <body style="background-color:${colors.background};margin:0px;padding:5px;">
                                 <input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${task.date}"/>
@@ -213,14 +218,33 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                         </View>
                     }
                 </View>
+                <RNPickerSelect
+                    placeholder={{}}
+                    Icon={() => Platform.OS === 'web' ?
+                        <Text style={{ fontSize: 30, margin: 0, padding: 0, marginTop: -9, width: 30 }}>{task.status === 'backlog' ? '◔' : task.status === 'selected' ? '◑' : task.status === 'in_progress' ? '◕' : '⬤'}</Text>
+                        :
+                        <Text style={{ fontSize: ['selected', 'done'].includes(task.status) ? 30 : 40, margin: 0, padding: 0, marginTop: ['selected', 'done'].includes(task.status) ? -3 : -10, marginLeft: ['selected', 'done'].includes(task.status) ? 0 : 2, width: 30 }}>{task.status === 'backlog' ? '◔' : task.status === 'selected' ? '◑' : task.status === 'in_progress' ? '◕' : '●'}</Text>
+                    }
+                    style={{
+                        inputWeb: styles.picker,
+                        inputIOS: styles.picker,
+                        iconContainer: {
+                            top: Platform.OS === 'web' ? 10 : 8,
+                            left: Platform.OS === 'web' ? 8 : 6,
+                            width: 10
+                        },
+                    }}
+                    value={task.status}
+                    onValueChange={(value) => setTask({ ...task, status: value })}
+                    items={[{ label: 'backlog', value: 'backlog' }, { label: 'selected', value: 'selected' }, { label: 'in progress', value: 'in_progress' }, { label: 'done', value: 'done' }]}
+                />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={task.category} keyboardType='default' onChangeText={value => { setTask({ ...task, category: value }) }} placeholder='category' style={[styles.textInput]} />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={task.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTask({ ...task, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
-
                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={submit} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{route.params.id ? `save` : `add`}</Text></TouchableOpacity>
                 </View>
-                {route.params.id && <Text style={{ color: '#ff0000', marginTop: 40 }} onPress={async () => { if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${route.params.id}") {id}}`)); navigation.navigate('tasks'); } }}>delete task</Text>}
+                {route.params.id && <Text style={{ color: '#ff0000', marginTop: 40 }} onPress={async () => { if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${route.params.id}") {id}}`)); navigation.push('tasks'); } }}>delete task</Text>}
             </ScrollView>
             <InputAccessoryViewComponent />
         </View>

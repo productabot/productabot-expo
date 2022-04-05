@@ -165,7 +165,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
           }}
           onClickItem={async (array, item) => {
             if (item.id) {
-              navigation.navigate('project', { id: item.id })
+              navigation.push('project', { id: item.id })
             }
             else {
               setLoading(true);
@@ -175,7 +175,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
               }
             }`));
               setLoading(false);
-              navigation.navigate('project', { id: data.data.insert_projects_one.id });
+              navigation.push('project', { id: data.data.insert_projects_one.id });
             }
           }}
           renderItem={(item, index) => (
@@ -219,7 +219,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
                   });
                   menuRef.current.open();
                 }}
-                onPress={() => { navigation.navigate('project', { id: item.id }) }}
+                onPress={() => { navigation.push('project', { id: item.id }) }}
                 style={{ alignItems: 'center', width: 140, cursor: 'grab' }}
                 key={item.id}>
                 <View style={{ width: 140, height: 140, borderColor: colors.text, borderWidth: 1, borderRadius: 20 }}>
@@ -247,7 +247,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
                 }
               }`));
                     setLoading(false);
-                    navigation.navigate('project', { id: data.data.insert_projects_one.id });
+                    navigation.push('project', { id: data.data.insert_projects_one.id });
                   }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', margin: 10, marginLeft: 20, marginRight: 20, width: 140, height: 140 }}>
                   <Text style={{ fontSize: 30 }}>+</Text>
                 </View>

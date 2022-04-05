@@ -258,7 +258,7 @@ const Item = React.memo(
                                     });
                                     menuRef.current.open();
                                 }}
-                                onClick={() => { navigation.navigate('project', { id: value.id }) }}
+                                onClick={() => { navigation.push('project', { id: value.id }) }}
                                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', cursor: dragging ? 'grabbing' : 'grab' }}>
                                 <div style={{ height: 140, width: 140, border: `1px solid ${colors.text}`, borderRadius: 20 }}>
                                     <img style={{ width: 140, height: 140, borderRadius: 19, objectFit: 'cover' }} src={`https://files.productabot.com/public/${value.image}`} />
@@ -278,7 +278,7 @@ const Item = React.memo(
                                     setLoading(true);
                                     let data = await API.graphql(graphqlOperation(`mutation {insert_projects_one(object: {name: "new project", key: "NP", description: "Add a description to your new project", color: "#ff0000", order: 1000}) {id}}`));
                                     setLoading(false);
-                                    navigation.navigate('project', { id: data.data.insert_projects_one.id });
+                                    navigation.push('project', { id: data.data.insert_projects_one.id });
                                 }}
                                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 160, cursor: 'pointer', fontSize: 40 }}><span style={{ color: colors.text }}>+</span></div>}
                     </div>

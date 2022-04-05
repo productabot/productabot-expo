@@ -31,7 +31,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
                     connectWebsocket();
                     setState({ ...state, errorMessage: '', successMessage: '', email: '', password: '' });
                     setLoading(false);
-                    navigation.navigate('app');
+                    navigation.push('app');
                 });
             });
         }
@@ -49,7 +49,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
             connectWebsocket();
             setLoading(false);
             setState({ ...state, errorMessage: '', successMessage: '', email: '', password: '' });
-            navigation.navigate('app');
+            navigation.push('app');
         }
         catch (err) {
             console.log(err);
@@ -97,11 +97,11 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]}
-                    onPress={() => { navigation.navigate('signup') }}>
+                    onPress={() => { navigation.push('signup') }}>
                     <Text style={[styles.baseText, styles.buttonText]}>signup</Text>
                 </TouchableOpacity>
                 <View>
-                    <Text style={{ color: colors.text, textDecorationLine: 'underline', marginTop: 10 }} onPress={() => { navigation.navigate('reset') }}>forgot password?</Text>
+                    <Text style={{ color: colors.text, textDecorationLine: 'underline', marginTop: 10 }} onPress={() => { navigation.push('reset') }}>forgot password?</Text>
                     <Text style={[styles.baseText, { fontSize: 10, color: '#aaaaaa', marginTop: 30, textAlign: 'center' }]}>© {new Date().getFullYear()} productabot</Text>
                 </View>
             </KeyboardAvoidingView>
