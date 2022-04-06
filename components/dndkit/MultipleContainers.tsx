@@ -167,7 +167,8 @@ export function MultipleContainers({
   vertical = false,
   scrollable,
   heightOffset,
-  onRefresh
+  onRefresh,
+  showContainers
 }: Props) {
   // const [items, setItems] = useState(initialItems);
   const windowDimensions = useWindowDimensions();
@@ -453,54 +454,57 @@ export function MultipleContainers({
           strategy={verticalListSortingStrategy}
         >
           {containers.map((containerId) => (
-            <DroppableContainer
-              key={containerId}
-              id={containerId}
-              label={`${containerId}`}
-              columns={columns}
-              items={items[containerId]}
-              style={containerStyle}
-              onRemove={() => handleRemove(containerId)}
-              heightOffset={heightOffset}
-            >
-              <SortableContext key={containerId} items={items[containerId]} strategy={strategy} >
-                <VirtualList
-                  height={windowDimensions.height - heightOffset}
-                  width={'100%'}
-                  style={{ overflowY: 'scroll' }}
-                  itemCount={items[containerId].length}
-                  itemSize={(index) => {
-                    let length = items[containerId][index].details?.length;
-                    if (length) {
-                      return Math.ceil(length / (((windowDimensions.width - 100) / 4) / 10)) * 16 + 70
-                    }
-                    else {
-                      return 80;
-                    }
-                  }}
-                  renderItem={({ index, style }) => {
-                    const item = items[containerId][index];
-                    return (
-                      <div key={item.id} style={style}>
-                        <SortableItem
-                          disabled={isSortingContainer}
-                          key={item.id}
-                          id={item}
-                          index={index}
-                          handle={handle}
-                          style={getItemStyles}
-                          wrapperStyle={wrapperStyle}
-                          renderItem={renderItem}
-                          containerId={containerId}
-                          getIndex={getIndex}
-                          onRefresh={onRefresh}
-                        />
-                      </div>
-                    );
-                  }}
-                />
-              </SortableContext>
-            </DroppableContainer>
+            showContainers[containerId] ?
+              <DroppableContainer
+                key={containerId}
+                id={containerId}
+                label={`${containerId}`}
+                columns={columns}
+                items={items[containerId]}
+                style={containerStyle}
+                onRemove={() => handleRemove(containerId)}
+                heightOffset={heightOffset}
+              >
+                <SortableContext key={containerId} items={items[containerId]} strategy={strategy} >
+                  <VirtualList
+                    height={windowDimensions.height - heightOffset}
+                    width={'100%'}
+                    style={{ overflowY: 'scroll' }}
+                    itemCount={items[containerId].length}
+                    itemSize={(index) => {
+                      let length = items[containerId][index].details?.length;
+                      if (length) {
+                        return Math.ceil(length / (((windowDimensions.width - 100) / 4) / 10)) * 16 + 70
+                      }
+                      else {
+                        return 80;
+                      }
+                    }}
+                    renderItem={({ index, style }) => {
+                      const item = items[containerId][index];
+                      return (
+                        <div key={item.id} style={style}>
+                          <SortableItem
+                            disabled={isSortingContainer}
+                            key={item.id}
+                            id={item}
+                            index={index}
+                            handle={handle}
+                            style={getItemStyles}
+                            wrapperStyle={wrapperStyle}
+                            renderItem={renderItem}
+                            containerId={containerId}
+                            getIndex={getIndex}
+                            onRefresh={onRefresh}
+                          />
+                        </div>
+                      );
+                    }}
+                  />
+                </SortableContext>
+              </DroppableContainer>
+              :
+              <div />
           ))}
         </SortableContext>
       </div>

@@ -18,7 +18,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
         project: null,
         category: null,
         details: null,
-        status: 'backlog'
+        status: 'backlog',
+        priority: 'low'
     });
     const [refreshControl, setRefreshControl] = useState(false);
     const [webViewLag, setWebViewLag] = useState('none');
@@ -77,6 +78,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                       category
                       details
                       status
+                      priority
                     }
                   }
                   `));
@@ -97,7 +99,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             date: route.params.id ? task.date : route.params.date ? await root.exportDate(new Date(route.params.date), 1) : null,
             category: route.params.id ? task.category : null,
             details: route.params.id ? task.details : null,
-            status: route.params.id ? task.status : 'backlog'
+            status: route.params.id ? task.status : 'backlog',
+            priority: route.params.id ? task.priority : 'low',
         });
         setProjects(projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id, image: obj.image }) }));
         setDates(dates);
@@ -111,23 +114,23 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             let response = await API.graphql(graphqlOperation(route.params.id
                 ?
                 `            
-                mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String) {
-                    update_tasks_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, details: $details, project_id: $project_id, category: $category, status: $status}) {id}
+                mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String, $priority: String) {
+                    update_tasks_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, details: $details, project_id: $project_id, category: $category, status: $status, priority: $priority}) {id}
                 }
                 `
                 :
                 `
-                mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String) {
-                    insert_tasks_one(object: {project_id: $project_id, date: $date, details: $details, category: $category, status: $status, root_order: 10000 }) {id}
+                mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String, $priority: String) {
+                    insert_tasks_one(object: {project_id: $project_id, date: $date, details: $details, category: $category, status: $status, priority: $priority, root_order: 10000 }) {id}
                 }
-              `, { project_id: task.project, date: task.date, details: task.details, category: task.category, status: task.status }));
+              `, { project_id: task.project, date: task.date, details: task.details, category: task.category, status: task.status, priority: task.priority }));
             console.log(response);
-            setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value, status: 'backlog' });
+            setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value, status: 'backlog', priority: 'low' });
             setLoading(false);
             navigation.goBack();
         }
         catch (err) {
-            setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value, status: 'backlog' });
+            setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value, status: 'backlog', priority: 'low' });
             setLoading(false);
             console.log(err);
         }
@@ -238,6 +241,31 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                     onValueChange={(value) => setTask({ ...task, status: value })}
                     items={[{ label: 'backlog', value: 'backlog' }, { label: 'selected', value: 'selected' }, { label: 'in progress', value: 'in_progress' }, { label: 'done', value: 'done' }]}
                 />
+                <RNPickerSelect
+                    placeholder={{}}
+                    Icon={() =>
+                        task.priority === 'low' ?
+                            <Text style={{ fontSize: 31, margin: 0, padding: 0, marginTop: -11, width: 30 }}>⨀</Text>
+                            : task.priority === 'medium' ?
+                                <Text style={{ fontSize: 28, margin: 0, padding: 0, marginTop: -9, width: 30 }}>⦿</Text>
+                                : task.priority === 'high' ?
+                                    <Text style={{ fontSize: 30, margin: 0, padding: 0, marginTop: -9, width: 30, marginLeft: 1 }}>⬤</Text>
+                                    :
+                                    <Text />
+                    }
+                    style={{
+                        inputWeb: styles.picker,
+                        inputIOS: styles.picker,
+                        iconContainer: {
+                            top: Platform.OS === 'web' ? 10 : 8,
+                            left: Platform.OS === 'web' ? 8 : 6,
+                            width: 10
+                        },
+                    }}
+                    value={task.priority}
+                    onValueChange={(value) => setTask({ ...task, priority: value })}
+                    items={[{ label: 'low priority', value: 'low' }, { label: 'medium priority', value: 'medium' }, { label: 'high priority', value: 'high' }]}
+                />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={task.category} keyboardType='default' onChangeText={value => { setTask({ ...task, category: value }) }} placeholder='category' style={[styles.textInput]} />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={task.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTask({ ...task, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
@@ -247,7 +275,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                 {route.params.id && <Text style={{ color: '#ff0000', marginTop: 40 }} onPress={async () => { if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${route.params.id}") {id}}`)); navigation.push('tasks'); } }}>delete task</Text>}
             </ScrollView>
             <InputAccessoryViewComponent />
-        </View>
+        </View >
     );
 }
 
