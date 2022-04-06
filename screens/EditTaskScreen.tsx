@@ -99,7 +99,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             date: route.params.id ? task.date : route.params.date ? await root.exportDate(new Date(route.params.date), 1) : null,
             category: route.params.id ? task.category : null,
             details: route.params.id ? task.details : null,
-            status: route.params.id ? task.status : 'backlog',
+            status: route.params.id ? task.status : route.params.status ? route.params.status : 'backlog',
             priority: route.params.id ? task.priority : 'low',
         });
         setProjects(projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id, image: obj.image }) }));
@@ -141,7 +141,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             {root.desktopWeb ?
                 <View style={{ height: 50 }} />
                 :
-                <View style={{ padding: 10, paddingBottom: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <View style={{ padding: 10, paddingBottom: 0, paddingTop: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                     <Text>{route.params.id ? 'edit task' : 'add task'}</Text>
                     <Text style={{ fontSize: 30, opacity: 0 }}>←</Text>
@@ -244,14 +244,24 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                 <RNPickerSelect
                     placeholder={{}}
                     Icon={() =>
-                        task.priority === 'low' ?
-                            <Text style={{ fontSize: 31, margin: 0, padding: 0, marginTop: -11, width: 30 }}>⨀</Text>
-                            : task.priority === 'medium' ?
-                                <Text style={{ fontSize: 28, margin: 0, padding: 0, marginTop: -9, width: 30 }}>⦿</Text>
-                                : task.priority === 'high' ?
-                                    <Text style={{ fontSize: 30, margin: 0, padding: 0, marginTop: -9, width: 30, marginLeft: 1 }}>⬤</Text>
-                                    :
-                                    <Text />
+                        Platform.OS === 'web' ?
+                            (task.priority === 'low' ?
+                                <Text style={{ fontSize: 31, margin: 0, padding: 0, marginTop: -11, width: 30 }}>⨀</Text>
+                                : task.priority === 'medium' ?
+                                    <Text style={{ fontSize: 28, margin: 0, padding: 0, marginTop: -9, width: 30 }}>⦿</Text>
+                                    : task.priority === 'high' ?
+                                        <Text style={{ fontSize: 30, margin: 0, padding: 0, marginTop: -9, width: 30, marginLeft: 1 }}>⬤</Text>
+                                        :
+                                        <Text />)
+                            :
+                            (task.priority === 'low' ?
+                                <Text style={{ fontSize: 32, margin: 0, padding: 0, marginTop: 2, width: 30 }}>⨀</Text>
+                                : task.priority === 'medium' ?
+                                    <Text style={{ fontSize: 42, margin: 0, padding: 0, marginTop: -1, width: 30 }}>⦿</Text>
+                                    : task.priority === 'high' ?
+                                        <Text style={{ fontSize: 32, margin: 0, padding: 0, marginTop: -4, width: 30, marginLeft: 0 }}>●</Text>
+                                        :
+                                        <Text />)
                     }
                     style={{
                         inputWeb: styles.picker,

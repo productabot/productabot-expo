@@ -168,7 +168,8 @@ export function MultipleContainers({
   scrollable,
   heightOffset,
   onRefresh,
-  showContainers
+  showContainers,
+  setContextPosition
 }: Props) {
   // const [items, setItems] = useState(initialItems);
   const windowDimensions = useWindowDimensions();
@@ -496,6 +497,7 @@ export function MultipleContainers({
                             containerId={containerId}
                             getIndex={getIndex}
                             onRefresh={onRefresh}
+                            setContextPosition={setContextPosition}
                           />
                         </div>
                       );
@@ -603,7 +605,8 @@ function SortableItem({
   containerId,
   getIndex,
   wrapperStyle,
-  onRefresh
+  onRefresh,
+  setContextPosition
 }: SortableItemProps) {
   const {
     setNodeRef,
@@ -640,6 +643,7 @@ function SortableItem({
       listeners={listeners}
       renderItem={renderItem}
       onRefresh={onRefresh}
+      setContextPosition={setContextPosition}
     />
   );
 }

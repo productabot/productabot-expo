@@ -58,7 +58,8 @@ export default function Navigation({ navigation, authenticated, setLoading, load
       text: '#ffffff',
       border: '#666666',
       notification: '#ffffff',
-      subtitle: '#aaaaaa'
+      subtitle: '#aaaaaa',
+      delete: '#ff5555'
     },
   };
 
@@ -72,7 +73,8 @@ export default function Navigation({ navigation, authenticated, setLoading, load
       text: '#000000',
       border: '#666666',
       notification: '#000000',
-      subtitle: '#666666'
+      subtitle: '#666666',
+      delete: '#ff0000'
     },
   };
 

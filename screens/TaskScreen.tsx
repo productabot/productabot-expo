@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert, useWindowDimensions, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert, useWindowDimensions, Image, ActivityIndicator } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import * as root from '../Root';
@@ -37,7 +37,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                 date
                 category
                 details
-                comments(order_by: {created_at: desc}) {
+                comments(order_by: {created_at: asc}) {
                     id
                     created_at
                     updated_at
@@ -57,7 +57,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
 
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0, }}>
-            <View style={{ width: Math.min(850, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 80 : 150) }}>
+            <View style={{ width: Math.min(850, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 80 : 100) }}>
                 {root.desktopWeb ?
                     <TouchableOpacity style={{ alignSelf: 'flex-start', marginLeft: -40, marginBottom: -60 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                     :
@@ -85,30 +85,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                     </TouchableOpacity>
                 </View>
                 <FlatList
-                    style={{ width: '100%', height: 200 }}
-                    ListHeaderComponent={() =>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingLeft: 25, paddingRight: 25, paddingBottom: 0 }}>
-                            <Text>{''}</Text>
-                            <Text onPress={async () => {
-                                const insertFunction = async (text) => {
-                                    await API.graphql(graphqlOperation(`mutation($task_id: uuid, $details: String) {
-                                        insert_comments_one(object: {parent_id: $task_id, details: $details }) {id}
-                                    }
-                                    `, { task_id: task.id, details: text }));
-                                    await onRefresh(true);
-                                }
-                                if (Platform.OS !== 'web') {
-                                    Alert.prompt('comment', '', async (text) => {
-                                        await insertFunction(text);
-                                    }, 'plain-text', '');
-                                }
-                                else {
-                                    let text = prompt('comment', '');
-                                    await insertFunction(text);
-                                }
-                            }}>add commment +</Text>
-                        </View>
-                    }
+                    style={{ width: '100%', height: 200, paddingLeft: 10 }}
                     numColumns={1}
                     data={task?.comments}
                     contentContainerStyle={{ width: '100%' }}
@@ -127,8 +104,9 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                             }}
                             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: colors.card }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', maxWidth: '100%' }}>
+                                <View style={{ height: 30, width: 2, backgroundColor: colors.subtitle, marginLeft: 0, marginRight: 10 }} />
                                 <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
-                                    <Text style={{ color: colors.subtitle, fontSize: 10, textAlign: 'left' }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
+                                    <Text style={{ color: colors.subtitle, fontSize: 10, textAlign: 'left' }}>{item.created_at ? new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : ' '}</Text>
                                     <Text style={{ textDecorationLine: task.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
                                 </View>
                             </View>
@@ -144,8 +122,26 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                             titleColor={colors.text}
                             title=""
                         />}
+                    ListFooterComponent={() =>
+                        <>
+                            {task?.id && <TextInput
+                                style={{ color: colors.text, padding: 5, margin: 15, borderBottomColor: colors.subtitle, borderBottomWidth: 1 }}
+                                placeholder="add a comment"
+                                returnKeyType='send'
+                                type='text'
+                                onSubmitEditing={async (e) => {
+                                    let content = e.nativeEvent.text;
+                                    let newComment = await API.graphql(graphqlOperation(`mutation($task_id: uuid, $details: String) {
+                                        insert_comments_one(object: {parent_id: $task_id, details: $details }) {id created_at}
+                                    }`, { task_id: task.id, details: content }));
+                                    setTask({ ...task, comments: [...task.comments, { id: newComment.data.insert_comments_one.id, created_at: newComment.data.insert_comments_one.created_at, details: content }] })
+                                    await onRefresh(true);
+                                }}
+                            />}
+                        </>
+                    }
                     onEndReached={() => { }}
-                    ListEmptyComponent={<View></View>}
+                    ListEmptyComponent={<View />}
                 />
                 <InputAccessoryViewComponent />
             </View>

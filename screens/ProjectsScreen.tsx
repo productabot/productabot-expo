@@ -256,23 +256,21 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
           )}
         />
       }
-      <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
+      <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer} >
         <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y, left: contextPosition.x } }} />
-        <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
-          <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-            <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
-              menuRef.current.close();
-              await contextPosition.rename();
-              await onRefresh();
-            }} ><Text style={{ color: '#ffffff' }}>Rename</Text></TouchableOpacity>
-            <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
-              menuRef.current.close();
-              await contextPosition.archive();
-              await onRefresh();
-            }}><Text style={{ color: '#ffffff' }}>{archived ? 'Unarchive' : 'Archive'}</Text></TouchableOpacity>
-            <TouchableOpacity style={{ backgroundColor: '#000000', padding: 5, paddingLeft: 20, width: '100%' }}
-              onPress={() => { menuRef.current.close(); }}><Text style={{ color: '#ffffff' }}>Cancel</Text></TouchableOpacity>
-          </View>
+        <MenuOptions style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', backgroundColor: colors.background, borderColor: colors.text, borderWidth: 1, borderStyle: 'solid', borderRadius: 10, width: 100, paddingLeft: 15, paddingTop: 5, paddingBottom: 5 }}>
+          <TouchableOpacity style={{ padding: 5, width: '100%' }} onPress={async () => {
+            menuRef.current.close();
+            await contextPosition.rename();
+            await onRefresh();
+          }} ><Text style={{ color: colors.text }}>Rename</Text></TouchableOpacity>
+          <TouchableOpacity style={{ padding: 5, width: '100%' }} onPress={async () => {
+            menuRef.current.close();
+            await contextPosition.archive();
+            await onRefresh();
+          }}><Text style={{ color: colors.delete }}>{archived ? 'Unarchive' : 'Archive'}</Text></TouchableOpacity>
+          <TouchableOpacity style={{ padding: 5, width: '100%' }}
+            onPress={() => { menuRef.current.close(); }}><Text style={{ color: colors.text }}>Cancel</Text></TouchableOpacity>
         </MenuOptions>
       </Menu>
     </View>

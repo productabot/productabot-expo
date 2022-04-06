@@ -23,6 +23,7 @@ export interface Props {
   wrapperStyle?: React.CSSProperties;
   value: React.ReactNode;
   onRefresh?(): void;
+  setContextPosition?(): void;
   onRemove?(): void;
   renderItem?(args: {
     dragOverlay: boolean;
@@ -61,6 +62,7 @@ export const Item = React.memo(
         value,
         wrapperStyle,
         onRefresh,
+        setContextPosition,
         ...props
       },
       ref
@@ -97,7 +99,15 @@ export const Item = React.memo(
           onClick={() => { navigation.push('task', { id: value.id }); }}
           onContextMenu={async (e) => {
             e.preventDefault();
-            if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${value.id}") {id}}`)); onRefresh(); }
+            setContextPosition({
+              x: e.nativeEvent.pageX, y: e.nativeEvent.pageY,
+              rename: async () => {
+                navigation.push('edit_task', { id: value.id });
+              },
+              delete: async () => {
+                if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${value.id}") {id}}`)); onRefresh(); }
+              }
+            });
           }}
         >
           <div

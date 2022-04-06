@@ -3,6 +3,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { MultipleContainers } from "../components/dndkit/MultipleContainers";
 import { useTheme } from '@react-navigation/native';
+import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
+import ContextMenuRenderer from '../components/ContextMenuRenderer';
+import { Text, TouchableOpacity } from 'react-native';
 
 export default function TasksDesktopScreen({ refresh, setLoading, loading, navigation, projectScreen, givenProjectId = '' }: any) {
     const [tasks, setTasks] = React.useState({ backlog: [], selected: [], in_progress: [], done: [] });
@@ -14,6 +17,8 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
     const [category, setCategory] = React.useState('');
     const [showContainers, setShowContainers] = React.useState({ backlog: true, selected: true, in_progress: true, done: true });
     const { colors } = useTheme();
+    const [contextPosition, setContextPosition] = React.useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
+    const menuRef = React.useRef(null);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -24,6 +29,10 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
     React.useEffect(() => {
         onRefresh();
     }, [refresh, project, hiddenProject, category, details, priority]);
+
+    React.useEffect(() => {
+        if (contextPosition.x > 0 && contextPosition.y > 0) { menuRef.current.open(); }
+    }, [contextPosition]);
 
     let onRefresh = async () => {
         setLoading(true);
@@ -102,12 +111,27 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', color: '#ccc', fontFamily: 'arial', marginBottom: 5, fontSize: 14 }}>
                 {[{ key: 'backlog', label: 'backlog', icon: '◔', leftDistance: 10 }, { key: 'selected', label: 'selected', icon: '◑', leftDistance: (showContainers.backlog && showContainers.in_progress && showContainers.done) ? '33%' : (showContainers.backlog && showContainers.in_progress || showContainers.backlog && showContainers.done) ? '50%' : 40 }, { key: 'in_progress', label: 'in progress', icon: '◕', rightDistance: (showContainers.backlog && showContainers.selected && showContainers.done) ? '33%' : (showContainers.selected && showContainers.done || showContainers.backlog && showContainers.done) ? '50%' : 40 }, { key: 'done', label: 'done', icon: '⬤', rightDistance: 10 }].map(({ key, label, icon, leftDistance, rightDistance }) =>
                     showContainers[key] ?
-                        <div onClick={() => { setShowContainers({ ...showContainers, [key]: !showContainers[key] }) }} style={{ color: colors.subtitle, cursor: 'pointer' }}>{icon} {label} ({tasks[key].length}) <span onClick={() => { navigation.push('edit_task', { status: 'backlog', project_id: project }) }} style={{ cursor: 'pointer', backgroundColor: '#0075ff', borderRadius: 5, padding: '2px 5px', color: '#ffffff', marginLeft: 5 }}>add +</span></div>
+                        <div style={{ color: colors.subtitle }}><span onClick={() => { setShowContainers({ ...showContainers, [key]: !showContainers[key] }) }} style={{ cursor: 'pointer' }}>{icon}</span> {label} ({tasks[key].length}) <span onClick={() => { navigation.push('edit_task', { status: key, project_id: project }) }} style={{ cursor: 'pointer', backgroundColor: '#0075ff', borderRadius: 5, padding: '2px 5px', color: '#ffffff', marginLeft: 5 }}>add +</span></div>
                         :
                         <div onClick={() => { setShowContainers({ ...showContainers, [key]: !showContainers[key] }) }} style={{ color: colors.subtitle, cursor: 'pointer', position: 'absolute', ...(leftDistance && { left: leftDistance }), ...(rightDistance && { right: rightDistance }) }}>{icon}</div>
                 )}
             </div>
-            <MultipleContainers activationConstraint={{ distance: 1 }} scrollable items={tasks} setItems={setTasks} saveTasks={saveTasks} heightOffset={projectScreen ? 220 : 130} onRefresh={onRefresh} showContainers={showContainers} />
+            <MultipleContainers activationConstraint={{ distance: 1 }} scrollable items={tasks} setItems={setTasks} saveTasks={saveTasks} heightOffset={projectScreen ? 220 : 130} onRefresh={onRefresh} showContainers={showContainers} setContextPosition={setContextPosition} />
+            <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer} >
+                <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y - (projectScreen ? 180 : 0), left: contextPosition.x - (projectScreen ? 10 : 0) } }} />
+                <MenuOptions style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', backgroundColor: colors.background, borderColor: colors.text, borderWidth: 1, borderStyle: 'solid', borderRadius: 10, width: 100, paddingLeft: 15, paddingTop: 5, paddingBottom: 5 }}>
+                    {contextPosition.rename && <TouchableOpacity style={{ padding: 5, width: '100%' }} onPress={async () => {
+                        menuRef.current.close();
+                        await contextPosition.rename();
+                    }} ><Text style={{ color: colors.text }}>Edit</Text></TouchableOpacity>}
+                    {contextPosition.delete && <TouchableOpacity style={{ padding: 5, width: '100%' }} onPress={async () => {
+                        menuRef.current.close();
+                        await contextPosition.delete();
+                    }}><Text style={{ color: colors.delete }}>Delete</Text></TouchableOpacity>}
+                    <TouchableOpacity style={{ padding: 5, width: '100%' }}
+                        onPress={() => { menuRef.current.close(); }}><Text style={{ color: colors.text }}>Cancel</Text></TouchableOpacity>
+                </MenuOptions>
+            </Menu>
         </div>
     );
 }
