@@ -90,27 +90,28 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                     data={task?.comments}
                     contentContainerStyle={{ width: '100%' }}
                     renderItem={({ item, index }) => (
-                        <TouchableOpacity
-                            onLongPress={async () => {
-                                const deleteFunction = async () => {
-                                    await API.graphql(graphqlOperation(`mutation {delete_comments_by_pk(id: "${item.id}") {id}}`));
-                                    await onRefresh(true);
-                                }
-                                if (Platform.OS !== 'web') {
-                                    Alert.alert('Warning', 'Are you sure you want to delete this comment?',
-                                        [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                }
-                                else if (confirm('Are you sure you want to delete this comment?')) { await deleteFunction() }
-                            }}
+                        <View
                             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: colors.card }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', maxWidth: '100%' }}>
-                                <View style={{ height: 30, width: 2, backgroundColor: colors.subtitle, marginLeft: 0, marginRight: 10 }} />
+                                <TouchableOpacity
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    onLongPress={async () => {
+                                        const deleteFunction = async () => {
+                                            await API.graphql(graphqlOperation(`mutation {delete_comments_by_pk(id: "${item.id}") {id}}`));
+                                            await onRefresh(true);
+                                        }
+                                        if (Platform.OS !== 'web') {
+                                            Alert.alert('Warning', 'Are you sure you want to delete this comment?',
+                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                        }
+                                        else if (confirm('Are you sure you want to delete this comment?')) { await deleteFunction() }
+                                    }} style={{ height: 30, width: 2, backgroundColor: colors.subtitle, marginLeft: 0, marginRight: 10 }} />
                                 <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
                                     <Text style={{ color: colors.subtitle, fontSize: 10, textAlign: 'left' }}>{item.created_at ? new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : ' '}</Text>
                                     <Text style={{ textDecorationLine: task.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
                                 </View>
                             </View>
-                        </TouchableOpacity>
+                        </View>
                     )}
                     keyExtractor={item => item}
                     refreshControl={

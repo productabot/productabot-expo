@@ -37,8 +37,6 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     const [entries, setEntries] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [events, setEvents] = useState([]);
-    const [firstLoad, setFirstLoad] = useState(false);
-    const [markedDates, setMakedDates] = useState({});
     const [hide, setHide] = React.useState(true);
     const scrollRef = useRef();
     const { colors } = useTheme();
@@ -57,7 +55,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         textDisabledColor: '#aaaaaa',
         dotColor: colors.text,
         selectedDotColor: colors.text,
-        arrowColor: Platform.OS === 'web' ? colors.text : '#ffffff00',
+        arrowColor: '#ffffff00',
         monthTextColor: '#ffffff00',
         indicatorColor: colors.text,
         textDayFontFamily: 'Arial',
@@ -77,7 +75,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 month = innerMonth.toLocaleDateString('fr-CA');
                 onRefresh();
                 changingMonths = false;
-            }, Platform.OS === 'web' ? 700 : 0);
+            }, 0);
         }
     }
 
@@ -91,26 +89,15 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 month = innerMonth.toLocaleDateString('fr-CA');
                 onRefresh();
                 changingMonths = false;
-            }, Platform.OS === 'web' ? 700 : 0);
+            }, 0);
         }
     }
     useFocusEffect(
         React.useCallback(() => {
-            setHide(false)
+            setHide(false);
             if (!route.params) { route.params = {}; }
             onRefresh();
-
-            const wheelListener = (e) => {
-                if (!menuOpen) {
-                    if (e.deltaY < 0) { goToPreviousMonth(); }
-                    else if (e.deltaY > 0) { goToNextMonth(); }
-                }
-            }
-            Platform.OS === 'web' && window.addEventListener("wheel", wheelListener);
-            return () => {
-                Platform.OS === 'web' && window.removeEventListener('wheel', wheelListener);
-                setHide(true);
-            }
+            return () => { setHide(true); }
         }, [refresh, route.params])
     );
 
@@ -176,7 +163,6 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         setEvents(data.data.events);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
         scrollRef.current && scrollRef.current.scrollTo({ x: windowDimensions.width, animated: false });
-        setMakedDates({});
     }
 
     const CustomCalendar = ({ givenMonth }) => {
@@ -187,7 +173,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 theme={calendarTheme}
                 hideExtraDays={false}
                 firstDay={0}
-                renderArrow={(direction) => (<Text style={{ color: Platform.OS === 'web' ? colors.text : '#ffffff00' }}>{direction === 'left' ? '←' : '→'}</Text>)}
+                renderArrow={(direction) => (<Text style={{ color: '#ffffff00' }}>{direction === 'left' ? '←' : '→'}</Text>)}
                 onPressArrowLeft={() => { goToPreviousMonth(); }}
                 onPressArrowRight={() => { goToNextMonth(); }}
                 dayComponent={({ date, state }) => <DayComponent date={date} state={state} />}
@@ -203,9 +189,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 theme={{ ...calendarTheme, monthTextColor: '#ffffff00' }}
                 hideExtraDays={false}
                 firstDay={0}
-                renderArrow={(direction) => (<Text style={{ color: Platform.OS === 'web' ? colors.text : '#ffffff00' }}>{direction === 'left' ? '←' : '→'}</Text>)}
+                renderArrow={(direction) => (<Text style={{ color: '#ffffff00' }}>{direction === 'left' ? '←' : '→'}</Text>)}
                 dayComponent={({ date, state }) =>
-                    <View style={{ borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0, width: windowDimensions.width / 7, height: Platform.OS === 'web' ? 130 : 100 }} />
+                    <View style={{ borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0, width: windowDimensions.width / 7, height: 100 }} />
                 }
             />
         )
@@ -223,7 +209,6 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <Text style={{ margin: 5, textAlign: 'left', color: colors.text, fontSize: 12 }}>
                         {date.day}
                     </Text>
-                    {/* <TouchableOpacity onPress={() => { navigation.push('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity> */}
                     <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={date.date} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                         <MenuTrigger>
                             <Text style={{ color: '#aaaaaa', marginRight: 2, width: 25, textAlign: 'right' }}>+</Text>
@@ -278,11 +263,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                             await onRefresh();
                                             setLoading(false);
                                         }
-                                        if (Platform.OS !== 'web') {
-                                            Alert.alert('Warning', 'Are you sure you want to delete this time entry?',
-                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                        }
-                                        else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
+                                        Alert.alert('Warning', 'Are you sure you want to delete this time entry?',
+                                            [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
                                     }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
                                     <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
                                         navigation.push('entry', { id: obj.id, date: undefined })
@@ -328,11 +310,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                             await onRefresh();
                                             setLoading(false);
                                         }
-                                        if (Platform.OS !== 'web') {
-                                            Alert.alert('Warning', 'Are you sure you want to delete this task?',
-                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                        }
-                                        else if (confirm('Are you sure you want to delete this task?')) { await deleteFunction() }
+                                        Alert.alert('Warning', 'Are you sure you want to delete this task?',
+                                            [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
                                     }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
                                     <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
                                         navigation.push('task', { id: obj.id })
@@ -378,11 +357,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                             await onRefresh();
                                             setLoading(false);
                                         }
-                                        if (Platform.OS !== 'web') {
-                                            Alert.alert('Warning', 'Are you sure you want to delete this event?',
-                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                        }
-                                        else if (confirm('Are you sure you want to delete this event?')) { await deleteFunction() }
+                                        Alert.alert('Warning', 'Are you sure you want to delete this event?',
+                                            [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
                                     }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
                                     <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
                                         navigation.push('event', { id: obj.id })
@@ -396,80 +372,50 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         );
     }
 
-    const LeanDayComponent = ({ date, state }) => {
-        return (
-            <View
-                style={[
-                    { borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0 },
-                    root.desktopWeb ? { width: windowDimensions.width / 7, height: 130 } :
-                        { width: windowDimensions.width / 7.5, height: 100 }
-                ]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? '#333333' : 'unset' }}>
-                    <Text style={{ margin: 5, textAlign: 'left', color: state === 'disabled' ? '#aaaaaa' : colors.text, fontSize: 12 }}>
-                        {date.day}
-                    </Text>
-                    <TouchableOpacity onPress={() => { navigation.push('entry', { date: date.dateString, id: undefined }); }} style={{ paddingRight: 3 }}><Text style={{ color: '#aaaaaa' }}>+</Text></TouchableOpacity>
+    return (
+        <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginTop: root.desktopWeb ? 50 : 0 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: root.desktopWeb ? 'center' : 'space-between', marginBottom: -35, marginTop: 5, zIndex: 1, paddingLeft: 10, paddingRight: 10 }}>
+                <Text style={{ color: colors.text, fontSize: 20, marginRight: root.desktopWeb ? 10 : 0, fontWeight: '600' }}>{new Date(month).toLocaleDateString('en-US', { month: 'long' }).toLowerCase()} {new Date(month).getFullYear()}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => { setShowEntries(!showEntries) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
+                        <View
+                            style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showEntries ? 0 : 1, borderColor: '#767676', flexDirection: 'row', marginLeft: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: showEntries ? '#0075ff' : '#ffffff' }}>
+                            {showEntries && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
+                        </View>
+                        <Text style={{ marginLeft: 5 }}>entries</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setShowTasks(!showTasks) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
+                        <View
+                            style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showTasks ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: showTasks ? '#0075ff' : '#ffffff' }}>
+                            {showTasks && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
+                        </View>
+                        <Text style={{ marginLeft: 5 }}>tasks</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setShowEvents(!showEvents) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
+                        <View
+                            style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showEvents ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: showEvents ? '#0075ff' : '#ffffff' }}>
+                            {showEvents && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
+                        </View>
+                        <Text style={{ marginLeft: 5 }}>events</Text>
+                    </TouchableOpacity>
                 </View>
-                {entries.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
-                    <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text numberOfLines={1} style={{ fontSize: 12 }}>{root.desktopWeb ? obj.project.name : obj.project.key}</Text>
-                        <Text numberOfLines={1} style={{ fontSize: 12, minWidth: obj.hours.toString().length * 6 }}>{obj.hours}</Text>
-                    </View>)}
             </View>
-        );
-    }
-
-    if (hide && Platform.OS === 'web') {
-        return (<View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginTop: root.desktopWeb ? 50 : 0, alignItems: 'center' }}>
-            <GhostCalendar />
-        </View>);
-    }
-    else {
-        return (
-            <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginTop: root.desktopWeb ? 50 : 0 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: root.desktopWeb ? 'center' : 'space-between', marginBottom: -35, marginTop: 5, zIndex: 1, paddingLeft: 10, paddingRight: 10 }}>
-                    <Text style={{ color: colors.text, fontSize: 20, marginRight: root.desktopWeb ? 10 : 0, fontWeight: '600' }}>{new Date(month).toLocaleDateString('en-US', { month: 'long' }).toLowerCase()} {new Date(month).getFullYear()}</Text>
-                    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                        <TouchableOpacity onPress={() => { setShowEntries(!showEntries) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
-                            {Platform.OS === 'web' ? <input checked={showEntries} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> : <View
-                                style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showEntries ? 0 : 1, borderColor: '#767676', flexDirection: 'row', marginLeft: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: showEntries ? '#0075ff' : '#ffffff' }}>
-                                {showEntries && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
-                            </View>}
-                            <Text style={{ marginLeft: 5 }}>entries</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => { setShowTasks(!showTasks) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
-                            {Platform.OS === 'web' ? <input checked={showTasks} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> : <View
-                                style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showTasks ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: showTasks ? '#0075ff' : '#ffffff' }}>
-                                {showTasks && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
-                            </View>}
-                            <Text style={{ marginLeft: 5 }}>tasks</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => { setShowEvents(!showEvents) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
-                            {Platform.OS === 'web' ? <input checked={showEvents} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> : <View
-                                style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showEvents ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: showEvents ? '#0075ff' : '#ffffff' }}>
-                                {showEvents && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
-                            </View>}
-                            <Text style={{ marginLeft: 5 }}>events</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
+            {hide ? <GhostCalendar /> :
                 <ScrollView
                     scrollEnabled={root.desktopWeb ? false : true}
                     showsHorizontalScrollIndicator={false}
                     onMomentumScrollEnd={(e) => {
-                        if (Platform.OS !== 'web') {
-                            if (e.nativeEvent.contentOffset.x === 0) {
-                                const innerMonth = new Date(month);
-                                innerMonth.setMonth(innerMonth.getMonth() - 1);
-                                month = innerMonth.toLocaleDateString('fr-CA');
-                                onRefresh();
-                            }
-                            else if (e.nativeEvent.contentOffset.x >= windowDimensions.width * 2) {
-                                const innerMonth = new Date(month);
-                                innerMonth.setMonth(innerMonth.getMonth() + 1);
-                                month = innerMonth.toLocaleDateString('fr-CA');
-                                onRefresh();
-                            }
+                        if (e.nativeEvent.contentOffset.x === 0) {
+                            const innerMonth = new Date(month);
+                            innerMonth.setMonth(innerMonth.getMonth() - 1);
+                            month = innerMonth.toLocaleDateString('fr-CA');
+                            onRefresh();
+                        }
+                        else if (e.nativeEvent.contentOffset.x >= windowDimensions.width * 2) {
+                            const innerMonth = new Date(month);
+                            innerMonth.setMonth(innerMonth.getMonth() + 1);
+                            month = innerMonth.toLocaleDateString('fr-CA');
+                            onRefresh();
                         }
                     }}
                     ref={scrollRef}
@@ -493,8 +439,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <GhostCalendar />
                     <CustomCalendar givenMonth={month} />
                     <GhostCalendar />
-                </ScrollView>
-            </View >
-        );
-    }
+                </ScrollView>}
+        </View >
+    );
 }

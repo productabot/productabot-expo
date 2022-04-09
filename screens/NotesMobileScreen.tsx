@@ -20,15 +20,12 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     const [addingTag, setAddingTag] = useState(false);
     const { colors } = useTheme();
 
-    // useFocusEffect(
-    //     React.useCallback(() => {
-    //         onRefresh();
-    //     }, [])
-    // );
-
-    useEffect(() => {
-        onRefresh();
-    }, [refresh]);
+    useFocusEffect(
+        React.useCallback(() => {
+            if (!route.params) { route.params = {}; }
+            onRefresh();
+        }, [tag])
+    );
 
     let onRefresh = async (showRefreshControl = false) => {
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
