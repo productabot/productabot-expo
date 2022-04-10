@@ -4,7 +4,7 @@ import { Text, View } from '../components/Themed';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '@react-navigation/native';
 
-export default function InputComponent({ type, options, optionImage = false, optionCharacterImage = false, value, setValue, canClear = false, initialValue = null, width = '100%' }: any) {
+export default function InputComponent({ type, options, optionImage = false, optionCharacterImage = false, value, setValue, canClear = false, initialValue = null, width = '100%', marginTop = 0 }: any) {
     const { colors } = useTheme();
     const webViewRef = React.useRef(null);
     React.useEffect(() => {
@@ -72,7 +72,7 @@ export default function InputComponent({ type, options, optionImage = false, opt
                                     <img id="image" style="height:22px;width:22px;border-radius:5px;border-color:${colors.text};border-width:1px;border-style:solid;margin-top:-3px;margin-right:5px;"/>`
                                         : ``}
                                     ${type === 'select' ?
-                                        `<select style="all:unset;width:80%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" 
+                                        `<select style="all:unset;width:80%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;margin-top:${marginTop}px;" id="editor" 
                                     onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)">
                                     ${options.map(obj => `<option value="${obj.id}">${obj.name}</option>`)}
                                     </select>`

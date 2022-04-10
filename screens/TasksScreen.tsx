@@ -32,8 +32,10 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
 
     useFocusEffect(
         React.useCallback(() => {
-            onRefresh();
-        }, [index, projectId])
+            if (!checked) {
+                onRefresh();
+            }
+        }, [index, projectId, checked])
     );
 
     React.useEffect(() => {
@@ -41,7 +43,6 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
     }, [refresh, index, projectId]);
 
     let onRefresh = async (showRefreshControl = false) => {
-        setChecked([]);
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
         let tasksData = await API.graphql(graphqlOperation(`{
             tasks(order_by: {root_order: desc}, where: {${projectId ? `project_id: {_eq:"${projectId}"},` : givenProjectId ? `project_id: {_eq:"${givenProjectId}"},` : ``}status: {_eq: "${index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done'}"}}) {
@@ -115,6 +116,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                         onPress={async () => {
                             Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
                             await API.graphql(graphqlOperation(`mutation {${checked.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task}"}, _set: {status: "${index === 1 ? 'backlog' : index === 2 ? 'selected' : index === 3 ? 'in_progress' : 'done'}", root_order: 10000}) {id}`)}}`));
+                            setChecked([]);
                             await onRefresh();
                         }}><Text style={{ color: '#ffffff' }}>{`move to `}<Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{index === 1 ? 'backlog' : index === 2 ? 'selected' : index === 3 ? 'in progress' : 'done'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
                     {checked.length !== 0 &&
@@ -124,6 +126,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                         style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10, marginRight: 5 }}
                         onPress={async () => {
                             await API.graphql(graphqlOperation(`mutation {${checked.map((task, taskIndex) => `data${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task}"}, _set: {status: "${index === 0 ? 'selected' : index === 1 ? 'in_progress' : index === 2 ? 'done' : 'backlog'}", root_order: 10000}) {id}`)}}`));
+                            setChecked([]);
                             await onRefresh();
                             if (index === 2) {
                                 Platform.OS !== 'web' && [...Array(25).keys()].map(i => setTimeout(() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }, i * 25));

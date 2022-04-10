@@ -33,36 +33,27 @@ class CustomRenderItem extends React.PureComponent {
     onPressFunction = async () => { await this.props.onPress(this.props.item); }
     styleFunction = (state) => [{ cursor: this.props.draggable ? 'grab' : 'pointer', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: state.pressed ? this.props.colors.background : this.props.item.isActive ? this.props.colors.hover : state.hovered ? this.props.colors.hover : this.props.colors.card }, this.props.renderItemStyle]
     onPressInFunction = async () => {
-        // if (Platform.OS === 'web') { setTimeout(() => { updateLik(); }, 10); }
-        if (Platform.OS === 'web' && this.props.draggable && !this.props.delayDragOnWeb) {
-            dragged = false;
-            setTimeout(() => { dragged = true; }, 100);
-            this.props.item.drag();
-        }
-        else if (Platform.OS !== 'web') {
-            const mobileContext = async () => {
-                // this.props.dragRef.current.resetHoverState();
-                let options = ['Cancel'];
-                this.props.onRename && options.push('Rename');
-                this.props.onDelete && options.push('Delete');
-                ActionSheetIOS.showActionSheetWithOptions(
-                    {
-                        options: options,
-                        cancelButtonIndex: 0,
-                        destructiveButtonIndex: options.indexOf('Delete')
-                    },
-                    async (buttonIndex) => {
-                        if (buttonIndex === options.indexOf('Rename')) {
-                            await this.props.onRename(this.props.item);
-                        }
-                        else if (buttonIndex === options.indexOf('Delete')) {
-                            await this.props.onDelete(this.props.item);
-                        }
+        const mobileContext = async () => {
+            let options = ['Cancel'];
+            this.props.onRename && options.push('Rename');
+            this.props.onDelete && options.push('Delete');
+            ActionSheetIOS.showActionSheetWithOptions(
+                {
+                    options: options,
+                    cancelButtonIndex: 0,
+                    destructiveButtonIndex: options.indexOf('Delete')
+                },
+                async (buttonIndex) => {
+                    if (buttonIndex === options.indexOf('Rename')) {
+                        await this.props.onRename(this.props.item);
                     }
-                );
-            }
-            mobileContextTimeout = setTimeout(mobileContext, 1000);
+                    else if (buttonIndex === options.indexOf('Delete')) {
+                        await this.props.onDelete(this.props.item);
+                    }
+                }
+            );
         }
+        mobileContextTimeout = setTimeout(mobileContext, 1250);
     }
     onTouchMoveFunction = (e) => {
         if (!pageX || !pageY) {
@@ -97,9 +88,7 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
     const { colors } = useTheme();
     if (Platform.OS === 'ios') {
         const dragRef = useRef(null);
-        const [lik, setLik] = useState(`${0}`);
-        const updateLik = () => { setLik(`${new Date().toISOString()}`) }
-        const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} updateLik={updateLik} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} draggable={draggable} delayDragOnWeb={delayDragOnWeb} colors={colors} />
+        const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} draggable={draggable} delayDragOnWeb={delayDragOnWeb} colors={colors} />
 
         return (
             <DraggableFlatList
@@ -108,15 +97,14 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                 data={data}
                 containerStyle={{ maxHeight: '100%' }}
                 contentContainerStyle={{ width: '100%' }}
-                layoutInvalidationKey={lik}
                 autoscrollSpeed={200}
                 renderItem={internalRenderItem}
                 keyExtractor={(item, index) => { return `draggable-item-${item ? item.id : new Date().toISOString()}` }}
                 onEndReached={() => { onEndReached(); }}
                 ListEmptyComponent={ListEmptyComponent}
                 dragItemOverflow={true}
-                onDragBegin={() => { if (Platform.OS !== 'web') { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } }}
-                onDragEnd={(props) => { onDragEnd(props); setTimeout(() => { updateLik(); }, 20); }}
+                onDragBegin={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
+                onDragEnd={(props) => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); onDragEnd(props); }}
                 ListFooterComponent={ListFooterComponent}
                 refreshControl={refreshControl}
                 initialNumToRender={20}

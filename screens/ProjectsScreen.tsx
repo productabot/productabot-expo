@@ -66,7 +66,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
     let currentHour = new Date().getHours();
     setGreeting(<View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
       {(Platform.OS === 'web' && window.width > 800) && <Text>{(currentHour < 12 && currentHour > 6) ? `good morning, ` : (currentHour < 18 && currentHour >= 12) ? `good afternoon, ` : (currentHour < 22 && currentHour >= 18) ? `good evening, ` : `good night, `}</Text>}
-      <TouchableOpacity onPress={() => { navigation.navigate('settingsTab') }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }} >
+      <TouchableOpacity href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab') }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }} >
         <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.border, borderRadius: 5, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${data.data.users[0].image}` }} />
         <Text>{data.data.users[0].username}</Text>
       </TouchableOpacity>
@@ -84,7 +84,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
           ${projects.filter(obj => obj.id).map((project, projectIndex) => `projects${projectIndex}: update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {order: ${projectIndex}}) {id}`)}
       }`));
     }
-    projects.length > 0 && async();
+    (projects.length > 0 && projects[0]?.id?.length === 36) && async();
   }, [projects]);
 
   return (
@@ -128,7 +128,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
               title=""
             />}
           renderHeaderView={
-            <View style={{ marginTop: Platform.OS === 'web' ? 30 : 0, flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: -10, zIndex: 1 }}>
+            <View style={{ marginTop: Platform.OS === 'web' ? 30 : -10, flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: 10, zIndex: 1 }}>
               <Text style={{ color: colors.text, fontSize: 20 }}>{greeting}</Text>
               <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
                 <Text style={{ marginRight: 5 }}>archived</Text>
@@ -143,14 +143,14 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
               </TouchableOpacity>
             </View>}
           minOpacity={100}
-          delayLongPress={100}
-          onDragStart={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
-          onDragEnd={() => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+          delayLongPress={200}
+          onDragStart={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); }}
+          onDragEnd={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
           sortable={true}
           dataSource={projects}
           parentWidth={window.width}
-          marginChildrenTop={25}
-          marginChildrenBottom={25}
+          marginChildrenTop={0}
+          marginChildrenBottom={40}
           marginChildrenLeft={root.desktopWeb ? (window.width - ((window.width < 600 ? 3 : window.width < 800 ? 4 : 5) * 141)) / (window.width < 600 ? 6 : window.width < 800 ? 8 : 10) : (window.width - (2 * 140)) / 6}
           marginChildrenRight={root.desktopWeb ? (window.width - ((window.width < 600 ? 3 : window.width < 800 ? 4 : 5) * 141)) / (window.width < 600 ? 6 : window.width < 800 ? 8 : 10) : (window.width - (2 * 140)) / 6}
           childrenWidth={140}
@@ -166,8 +166,10 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
           onClickItem={async (array, item) => {
             if (item.id) {
               navigation.push('project', { id: item.id })
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }
             else {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setLoading(true);
               let data = await API.graphql(graphqlOperation(`mutation {
               insert_projects_one(object: {name: "new project", key: "NP", description: "Add a description to your new project", color: "#ff0000"}) {
@@ -176,6 +178,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
             }`));
               setLoading(false);
               navigation.push('project', { id: data.data.insert_projects_one.id });
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             }
           }}
           renderItem={(item, index) => (
@@ -220,7 +223,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
                   menuRef.current.open();
                 }}
                 onPress={() => { navigation.push('project', { id: item.id }) }}
-                style={{ alignItems: 'center', width: 140, cursor: 'grab' }}
+                style={{ alignItems: 'center', width: 140, cursor: 'grab'}}
                 key={item.id}>
                 <View style={{ width: 140, height: 140, borderColor: colors.text, borderWidth: 1, borderRadius: 20 }}>
                   <Animated.Image

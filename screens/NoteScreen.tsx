@@ -94,7 +94,7 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
                     <TouchableOpacity onPress={() => {
                         navigation.goBack();
                     }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                    <TextInput spellCheck={false} style={{ color: colors.text, fontSize: 20 }} value={note.title} onChangeText={(value) => {
+                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} style={{ color: colors.text, fontSize: 20 }} value={note.title} onChangeText={(value) => {
                         setNote({ ...note, title: value });
                     }} onBlur={() => {
                         setNote({ ...note });

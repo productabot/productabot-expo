@@ -9,6 +9,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 import { DrawerActions } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
+import InputComponent from '../components/InputComponent';
 
 export default function NotesScreen({ route, navigation, refresh, setLoading }: any) {
     const [refreshControl, setRefreshControl] = useState(false);
@@ -149,19 +150,8 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
             justifyContent: 'flex-start',
             paddingBottom: 50
         }}>
-            <View style={{ padding: 10, paddingTop: 0, paddingBottom: 10, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Text style={{ fontSize: 30, opacity: 0 }}>☰</Text>
-                </TouchableOpacity>
-                <RNPickerSelect
-                    placeholder={{}}
-                    style={{
-                        inputIOS: { backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10 }
-                    }}
-                    value={tag.id}
-                    onValueChange={(value) => setTag({ title: tags.filter(obj => obj.id === value).length > 0 ? tags.filter(obj => obj.id === value)[0].title : 'null', id: value })}
-                    items={tags.map(obj => { return ({ label: '📁 ' + obj.title, value: obj.id }) })}
-                />
+            <View style={{ padding: 10, paddingTop: 0, marginTop:-3, paddingBottom: 0, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <InputComponent width='75%' type='select' value={tag.id} options={tags.map(obj => { return { name: '📁 ' + obj.title, id: obj.id } })} setValue={(value) => setTag({ title: tags.filter(obj => obj.id === value).length > 0 ? tags.filter(obj => obj.id === value)[0].title : 'null', id: value })} marginTop={-5} />
                 <TouchableOpacity onPress={async () => {
                     let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
                     let data = await API.graphql(graphqlOperation(`mutation {
@@ -170,7 +160,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                             }
                         }`));
                     navigation.push('note', { id: data.data.insert_notes_one.id });
-                }}><Text style={{ fontSize: 30 }}>+</Text></TouchableOpacity>
+                }}><Text style={{ fontSize: 20 }}>add note +</Text></TouchableOpacity>
             </View>
             <CustomDraggableFlatList
                 data={notes}

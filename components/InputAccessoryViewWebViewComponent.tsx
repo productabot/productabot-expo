@@ -7,7 +7,7 @@ export function InputAccessoryViewWebViewComponent({ injectJavascript }: any) {
     const { colors } = useTheme();
     return (
         <View style={{ backgroundColor: colors.background, height: 45, borderTopColor: colors.border, borderTopWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <TextInput ref={inputRef} style={{ display: 'none' }} />
+            <TextInput placeholderTextColor={colors.placeholder} ref={inputRef} style={{ display: 'none' }} />
             <ScrollView horizontal={true} contentContainerStyle={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => {
                     injectJavascript(null, new Date().toLocaleTimeString('en-US', { hour12: true, hour: "numeric", minute: "numeric" }));

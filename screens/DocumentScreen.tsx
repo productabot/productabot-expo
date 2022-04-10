@@ -84,7 +84,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                 <TouchableOpacity onPress={() => {
                     navigation.goBack()
                 }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                <TextInput spellCheck={false} inputAccessoryViewID='main' style={[{ color: colors.text, fontSize: 20, textAlign: 'center', width: '80%' }, root.desktopWeb && { outlineWidth: 0 }]} value={document.title} onChangeText={(value) => {
+                <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' style={[{ color: colors.text, fontSize: 20, textAlign: 'center', width: '80%' }, root.desktopWeb && { outlineWidth: 0 }]} value={document.title} onChangeText={(value) => {
                     setUpdate(false);
                     setDocument({ ...document, title: value });
                 }} onBlur={() => {
@@ -134,7 +134,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
                 behavior={"height"}
                 style={[{ width: '100%', height: '100%', paddingBottom: 45 }]}
             >
-                <TextInput
+                <TextInput placeholderTextColor={colors.placeholder}
                     spellCheck={false}
                     // autoFocus={true}
                     ref={inputRef}

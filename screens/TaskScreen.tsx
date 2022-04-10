@@ -67,7 +67,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                         <Text style={{ fontSize: 30, opacity: 0 }}>←</Text>
                     </View>}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: colors.card }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: Platform.OS === 'web' ? 'calc(100% - 100px)' : '70%' }}>
                         <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7 }}>
                             <Image style={{ height: 30, width: 30, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${task.project?.image}` }} />
                         </View>
@@ -114,18 +114,9 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                         </View>
                     )}
                     keyExtractor={item => item}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={loading}
-                            onRefresh={onRefresh}
-                            colors={[colors.text]}
-                            tintColor={colors.text}
-                            titleColor={colors.text}
-                            title=""
-                        />}
                     ListFooterComponent={() =>
                         <>
-                            {task?.id && <TextInput
+                            {task?.id && <TextInput placeholderTextColor={colors.placeholder}
                                 style={{ color: colors.text, padding: 5, margin: 15, borderBottomColor: colors.subtitle, borderBottomWidth: 1 }}
                                 placeholder="add a comment"
                                 returnKeyType='send'

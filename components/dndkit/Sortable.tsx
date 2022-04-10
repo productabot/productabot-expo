@@ -54,11 +54,25 @@ export function Sortable({
                 if (over) {
                     const overIndex = items.map(obj => obj.id).indexOf(over.id);
                     if (items.map(obj => obj.id).indexOf(activeId) !== overIndex) {
-                        setItems((items) => reorderItems(items, items.map(obj => obj.id).indexOf(activeId), overIndex));
+                        const reorderedItems = reorderItems(items, items.map(obj => obj.id).indexOf(activeId), overIndex);
+                        setItems(reorderedItems.map(obj => { return { ...obj, id: obj.id ? obj.id + '1' : null } }));
+                        setTimeout(() => { setItems(reorderedItems); }, 0);
+                    }
+                    else {
+                        const originalItems = items;
+                        setItems(originalItems.map(obj => { return { ...obj, id: obj.id ? obj.id + '1' : null } }));
+                        setTimeout(() => { setItems(originalItems); }, 0);
                     }
                 }
             }}
-            onDragCancel={() => setActiveId(null)}
+            onDragCancel={() => {
+                setActiveId(null);
+                alert('cancel back')
+                setItems(items.map(obj => { return { ...obj, id: obj.id ? obj.id + '1' : null } }));
+                setTimeout(() => {
+                    setItems(items.map(obj => { return { ...obj, id: obj.id ? obj.id.slice(0, obj.id.length - 1) : null } }));
+                }, 0);
+            }}
             measuring={measuring}
             modifiers={modifiers}
         >
@@ -215,10 +229,9 @@ const Item = React.memo(
                         {...listeners}
                         {...props}
                         tabIndex={!handle ? 0 : undefined}
-
                     >
                         {value.id ?
-                            <div
+                            <a
                                 className='projectTile'
                                 onContextMenu={(e) => {
                                     e.preventDefault(); setContextPosition({
@@ -258,7 +271,8 @@ const Item = React.memo(
                                     });
                                     menuRef.current.open();
                                 }}
-                                onClick={() => { navigation.push('project', { id: value.id }) }}
+                                href={`/project/${value.id}`}
+                                onClick={(e) => { e.preventDefault(); navigation.push('project', { id: value.id }) }}
                                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', cursor: dragging ? 'grabbing' : 'grab' }}>
                                 <div style={{ height: 140, width: 140, border: `1px solid ${colors.text}`, borderRadius: 20 }}>
                                     <img style={{ width: 140, height: 140, borderRadius: 19, objectFit: 'cover' }} src={`https://files.productabot.com/public/${value.image}`} />
@@ -270,7 +284,7 @@ const Item = React.memo(
                                     <div style={{ flexDirection: 'row', width: 120, height: 5, backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', borderRadius: 5, alignItems: 'flex-start', alignContent: 'flex-start' }}>
                                         <div style={{ height: '100%', backgroundColor: value.color === '#000000' ? '#ffffff' : value.color, width: `${(Math.min(value.entries_aggregate.aggregate.sum.hours / value.goal, 1) * 100).toFixed(0)}%`, borderRadius: 3 }} />
                                     </div>}
-                            </div>
+                            </a>
                             :
                             <div
                                 className='projectTile'

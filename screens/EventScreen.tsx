@@ -164,8 +164,8 @@ export default function EventScreen({ route, navigation, refresh, setLoading }: 
                     <Text style={{ width: '10%', textAlign: 'center', marginTop: Platform.OS === 'web' ? 15 : 10 }}>to</Text>
                     <InputComponent width='45%' type="date" value={event.date_to} setValue={(value) => { setEvent({ ...event, date_to: value }) }} />
                 </View>
-                <TextInput inputAccessoryViewID='main' spellCheck={false} value={event.category} keyboardType='default' onChangeText={value => { setEvent({ ...event, category: value }) }} placeholder='category' style={[styles.textInput]} />
-                <TextInput inputAccessoryViewID='main' spellCheck={false} value={event.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setEvent({ ...event, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={event.category} keyboardType='default' onChangeText={value => { setEvent({ ...event, category: value }) }} placeholder='category' style={[styles.textInput]} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={event.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setEvent({ ...event, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
 
                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>

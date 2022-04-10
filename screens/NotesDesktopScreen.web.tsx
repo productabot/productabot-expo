@@ -357,7 +357,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                     </View>
                     <View style={[{ width: `100%`, height: '100%', borderWidth: 1, borderColor: '#444444', borderLeftWidth: 0, borderRightWidth: 0 }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <TextInput spellCheck={false}
+                            <TextInput placeholderTextColor={colors.placeholder} spellCheck={false}
                                 style={[{ width: '100%', height: 49, color: colors.text, padding: 10 }, root.desktopWeb && { outlineWidth: 0 }]}
                                 numberOfLines={1}
                                 value={noteTitle || ''}

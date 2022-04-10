@@ -284,9 +284,9 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            marginTop: Platform.OS === 'web' ? -40 : 0
+            marginTop: Platform.OS === 'web' ? -30 : 0
         }}>
-            <View style={{ maxWidth: window.width, width: '100%', padding: 10, height: '100%' }}>
+            <View style={{ maxWidth: window.width, width: '100%', padding: 10, height: '100%', paddingTop: 0 }}>
                 {Platform.OS !== 'web' ? <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginTop: -5, marginBottom: 5 }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                     <TouchableOpacity onPress={() => { setSettings(!settings); }} ><Text style={{ fontSize: 30, marginTop: 3 }}>⚙️</Text></TouchableOpacity>
@@ -305,7 +305,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             }
                         </TouchableOpacity>
                         <Animated.View style={{ opacity: opacity }}>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: colors.text }, root.desktopWeb && { outlineWidth: 0 }]}
+                            <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: colors.text }, root.desktopWeb && { outlineWidth: 0 }]}
                                 onChangeText={(value) => { setProject({ ...project, name: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`mutation {
@@ -315,7 +315,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                   }`));
                                 }}
                             />
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.description} numberOfLines={2} style={[{ fontSize: 20, color: colors.text }, root.desktopWeb && { outlineWidth: 0 }]}
+                            <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={project.description} numberOfLines={2} style={[{ fontSize: 20, color: colors.text }, root.desktopWeb && { outlineWidth: 0 }]}
                                 onChangeText={(value) => { setProject({ ...project, description: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`
@@ -334,7 +334,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                     <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: 10, width: root.desktopWeb ? 600 : '100%', alignSelf: 'center' }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
                             <Text style={{ fontSize: 20, color: colors.text, width: '22%', textAlign: 'center' }}>key: </Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.key} numberOfLines={2} style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 80 }}
+                            <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={project.key} numberOfLines={2} style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 80 }}
                                 onChangeText={(value) => { setProject({ ...project, key: value }); }}
                                 onBlur={async () => { await API.graphql(graphqlOperation(`mutation {update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {key: "${project.key}"}) {id} }`)); }}
                             />
@@ -361,14 +361,13 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                         style={{ backgroundColor: 'transparent' }}
                                         ref={inputRef}
                                         source={{
-                                            html: `
-                                                    <head>
-                                                    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
-                                                    </head>
-                                                    <body style="background-color:#000000;">
-                                                    <input id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="color" value="${project.color}"/>
-                                                    </body>
-                                                `}}
+                                            html: `<head>
+                                                <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
+                                                </head>
+                                                <body>
+                                                <input id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="color" value="${project.color}"/>
+                                                </body>
+                                            `}}
                                         keyboardDisplayRequiresUserAction={false}
                                         showsHorizontalScrollIndicator={false}
                                         scrollEnabled={false}
@@ -391,7 +390,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
                             <Text style={{ fontSize: 20, color: colors.text, width: '22%', textAlign: 'center' }}>goal:</Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={`${project.goal ? project.goal : ''}`} numberOfLines={2} style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 50 }}
+                            <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={`${project.goal ? project.goal : ''}`} numberOfLines={2} style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: 50 }}
                                 onChangeText={(value) => { setProject({ ...project, goal: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`
@@ -406,7 +405,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center', marginBottom: 10, height: 40, width: '100%' }}>
                             <Text style={{ fontSize: 20, color: colors.text, width: '22%', textAlign: 'center' }}>website: </Text>
-                            <TextInput inputAccessoryViewID='main' spellCheck={false} value={project.website} numberOfLines={2} style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: '78%' }}
+                            <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={project.website} numberOfLines={2} style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, width: '78%' }}
                                 onChangeText={(value) => { setProject({ ...project, website: value }); }}
                                 onBlur={async () => {
                                     await API.graphql(graphqlOperation(`
@@ -431,9 +430,9 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             <Text onPress={async () => {
                                 const archiveFunction = async () => {
                                     setLoading(true);
-                                    // await API.graphql(graphqlOperation(`mutation {delete_projects_by_pk(id: "${project.id}") {id}}`));
+                                    await API.graphql(graphqlOperation(`mutation {update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {archived: true}) {id}}`));
                                     setLoading(false);
-                                    navigation.push('projectsTab');
+                                    navigation.goBack();
                                 }
                                 if (Platform.OS === 'ios') {
                                     Alert.alert('Warning', 'Are you sure you want to archive this project?', [{ style: 'cancel', text: 'no' }, {
@@ -457,7 +456,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     setLoading(true);
                                     await API.graphql(graphqlOperation(`mutation {delete_projects_by_pk(id: "${project.id}") {id}}`));
                                     setLoading(false);
-                                    navigation.push('projectsTab');
+                                    navigation.goBack();
                                 }
                                 if (Platform.OS === 'ios') {
                                     Alert.alert('Warning', 'Are you sure you want to delete this project?', [{ style: 'cancel', text: 'no' }, {
@@ -484,7 +483,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             selectedIndex={index}
                             onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                         />
-                        <Animated.View style={{ opacity: opacity, width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 330) }}>
+                        <Animated.View style={{ opacity: opacity, width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 320) }}>
                             {index === 0 &&
                                 <>
                                     <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'flex-end' }}>

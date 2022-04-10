@@ -191,7 +191,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 firstDay={0}
                 renderArrow={(direction) => (<Text style={{ color: '#ffffff00' }}>{direction === 'left' ? '←' : '→'}</Text>)}
                 dayComponent={({ date, state }) =>
-                    <View style={{ borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0, width: windowDimensions.width / 7, height: 100 }} />
+                    <View style={{ borderWidth: 1, borderColor: colors.card, borderStyle: 'solid', marginBottom: -15, marginLeft: 0, width: windowDimensions.width / 7, height: 100 }} />
                 }
             />
         )
@@ -201,7 +201,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         return (
             <ScrollView
                 style={[
-                    { borderWidth: 1, borderColor: '#222222', borderStyle: 'solid', marginBottom: -15, marginLeft: 0 },
+                    { borderWidth: 1, borderColor: colors.card, borderStyle: 'solid', marginBottom: -15, marginLeft: 0 },
                     root.desktopWeb ? { width: windowDimensions.width / 7, height: 130 } :
                         { width: windowDimensions.width / 7, height: 100 }
                 ]}>

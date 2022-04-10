@@ -166,8 +166,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                     { id: 'medium', name: 'medium priority' },
                     { id: 'high', name: 'high priority' },
                 ]} optionCharacterImage={true} setValue={(value) => { setTask({ ...task, priority: value }) }} />
-                <TextInput inputAccessoryViewID='main' spellCheck={false} value={task.category} keyboardType='default' onChangeText={value => { setTask({ ...task, category: value }) }} placeholder='category' style={[styles.textInput]} />
-                <TextInput inputAccessoryViewID='main' spellCheck={false} value={task.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTask({ ...task, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={task.category} keyboardType='default' onChangeText={value => { setTask({ ...task, category: value }) }} placeholder='category' style={[styles.textInput]} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={task.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTask({ ...task, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={submit} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{route.params.id ? `save` : `add`}</Text></TouchableOpacity>

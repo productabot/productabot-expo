@@ -237,7 +237,7 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
                 <TouchableOpacity style={{ width: 20 }} onPress={() => {
                     navigation.goBack()
                 }}><Text style={{ fontSize: 30, color: colors.text }}>←</Text></TouchableOpacity>
-                <TextInput spellCheck={false} inputAccessoryViewID='main' style={[{ color: colors.text, fontSize: 20, textAlign: 'center', width: '50%' }]} value={sheet.title} onChangeText={(value) => {
+                <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' style={[{ color: colors.text, fontSize: 20, textAlign: 'center', width: '50%' }]} value={sheet.title} onChangeText={(value) => {
                     setSheet({ ...sheet, title: value });
                     sheetTitle = value;
                 }} onBlur={() => {
