@@ -12,6 +12,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@react-navigation/native';
 import RNPickerSelect from 'react-native-picker-select';
+import InputComponent from '../components/InputComponent';
 
 const oldDate = new Date();
 oldDate.setDate(oldDate.getDate() - 2);
@@ -32,7 +33,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
     useFocusEffect(
         React.useCallback(() => {
             onRefresh();
-        }, [index])
+        }, [index, projectId])
     );
 
     React.useEffect(() => {
@@ -88,7 +89,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
           }`));
         setTasks(tasksData.data.tasks);
         setCount({ backlog: tasksData.data.backlog.aggregate.count, selected: tasksData.data.selected.aggregate.count, in_progress: tasksData.data.in_progress.aggregate.count, done: tasksData.data.done.aggregate.count })
-        setProjects([{ label: 'show all projects', value: '' }, ...tasksData.data.projects.map(obj => { return ({ label: obj.name, value: obj.id }) })]);
+        setProjects([{ name: 'show all projects', id: '' }, ...tasksData.data.projects]);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
 
@@ -96,24 +97,19 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0 }}>
             <View style={{ width: Math.min(950, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : projectScreen ? 300 : 120), paddingLeft: 10, paddingRight: 10 }}>
-                {!projectScreen &&
-                    <RNPickerSelect
-                        placeholder={{}}
-                        style={{
-                            inputIOS: { backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#cccccc', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, borderRadius: 10, paddingLeft: 10 }
-                        }}
-                        value={projectId}
-                        onValueChange={(value) => { setProjectId(value); }}
-                        items={projects}
-                    />}
-                <SegmentedControl
-                    appearance={colors.background === '#000000' ? 'dark' : 'light'}
-                    style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
-                    values={[`backlog`, `selected`, `in progress`, `done`]}
-                    selectedIndex={index}
-                    onChange={(e) => { setChecked([]); setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                />
-                <View style={{ width: '100%', height: 40, flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10, marginBottom: -10 }}>
+                <View style={{ width: '100%', height: 40, flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10, marginBottom: -10, marginTop: projectScreen ? 10 : 5 }}>
+                    {(!projectScreen && checked.length === 0) &&
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                            <InputComponent type="select" value={projectId} options={projects} optionImage={true} setValue={(value) => { setProjectId(value) }} width={'75%'} />
+                            <TouchableOpacity
+                                style={{ backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
+                                onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.push('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done', project_id: projectId ?? null }) }}><Text>{`add task +`}</Text></TouchableOpacity>
+                        </View>
+                    }
+                    {(projectScreen && checked.length === 0) &&
+                        <TouchableOpacity
+                            style={{ marginLeft: 'auto', padding: 5 }}
+                            onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.push('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done', project_id: projectId ?? null }) }}><Text>{`add task +`}</Text></TouchableOpacity>}
                     {(checked.length > 0 && index !== 0) ? <TouchableOpacity
                         style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10, marginLeft: 5 }}
                         onPress={async () => {
@@ -122,7 +118,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                             await onRefresh();
                         }}><Text style={{ color: '#ffffff' }}>{`move to `}<Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{index === 1 ? 'backlog' : index === 2 ? 'selected' : index === 3 ? 'in progress' : 'done'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
                     {checked.length !== 0 &&
-                        <View style={{ alignSelf: 'center', backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}><Text>{`${checked.length}${index !== 1 ? ' selected' : ''}`}</Text></View>
+                        <View style={{ alignSelf: 'center', backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}><Text>{`${checked.length}${![1, 2].includes(index) ? ' selected' : ''}`}</Text></View>
                     }
                     {(checked.length > 0 && index !== 3) ? <TouchableOpacity
                         style={{ backgroundColor: '#3F0054', padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10, marginRight: 5 }}
@@ -134,12 +130,14 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                                 setConfetti(true); setTimeout(() => { setConfetti(false) }, 2500);
                             }
                         }}><Text style={{ color: '#ffffff' }}>{`move to `}<Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{index === 0 ? 'selected' : index === 1 ? 'in progress' : index === 2 ? 'done' : 'backlog'}</Text></Text></TouchableOpacity> : <Text>{``}</Text>}
-                    {checked.length === 0 &&
-                        <TouchableOpacity
-                            style={{ backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
-                            onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.push('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'in_progress' : 'done' }) }}><Text>{`add task +`}</Text></TouchableOpacity>
-                    }
                 </View>
+                <SegmentedControl
+                    appearance={colors.background === '#000000' ? 'dark' : 'light'}
+                    style={{ width: '100%', marginTop: projectScreen ? 5 : 10 }}
+                    values={[`backlog`, `selected`, `in progress`, `done`]}
+                    selectedIndex={index}
+                    onChange={(e) => { setChecked([]); setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                />
                 <CustomDraggableFlatList
                     noBorder={true}
                     data={tasks}
@@ -242,7 +240,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                             titleColor={colors.text}
                             title=""
                         />}
-                    style={{ height: windowDimensions.height - (projectScreen ? 370 : 260) }}
+                    style={{ height: windowDimensions.height - (projectScreen ? 370 : 200) }}
                 />
             </View>
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>

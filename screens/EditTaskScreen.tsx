@@ -8,6 +8,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '@react-navigation/native';
+import InputComponent from '../components/InputComponent';
 
 export default function TaskScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
@@ -22,8 +23,6 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
         priority: 'low'
     });
     const [refreshControl, setRefreshControl] = useState(false);
-    const [webViewLag, setWebViewLag] = useState('none');
-    const [uri, setUri] = useState('https://productabot.com/blank.png');
     const inputRef = useRef(null);
     const { colors } = useTheme();
     const styles = makeStyles(colors);
@@ -31,14 +30,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
     useEffect(() => {
         if (!route.params) { route.params = {}; }
         onRefresh();
-        setTimeout(() => { setWebViewLag('relative') }, 100);
     }, [refresh]);
-
-    useEffect(() => {
-        if (task.project) {
-            setUri(`https://files.productabot.com/public/${projects.filter(obj => obj.value === task.project)[0]?.image}`);
-        }
-    }, [task]);
 
     let onRefresh = async (showRefreshControl = false) => {
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
@@ -51,7 +43,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             dates.push({ label: date.toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), value: await root.exportDate(date) });
         }
         //get all projects
-        let projects = await API.graphql(graphqlOperation(`{
+        let projectsData = await API.graphql(graphqlOperation(`{
             projects(order_by: {name: asc}, where: {archived: {_eq: false}}) {
               id
               name
@@ -61,7 +53,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
           `));
 
         //check if the user has any projects
-        if (projects.data.projects.length === 0) {
+        if (projectsData.data.projects.length === 0) {
             alert('You must add a project before adding a task');
             navigation.push('projectsTab');
         }
@@ -102,7 +94,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             status: route.params.id ? task.status : route.params.status ? route.params.status : 'backlog',
             priority: route.params.id ? task.priority : 'low',
         });
-        setProjects(projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id, image: obj.image }) }));
+        setProjects(projectsData.data.projects);
         setDates(dates);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
@@ -161,121 +153,19 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                 keyboardShouldPersistTaps="always"
             >
                 {Platform.OS === 'web' && <TouchableOpacity style={{ alignSelf: 'flex-start', marginLeft: -40, marginBottom: -40 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>}
-                <RNPickerSelect
-                    placeholder={{}}
-                    Icon={() => <Image style={{ height: 25, width: 25, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: uri }} />}
-                    style={{
-                        inputWeb: styles.picker,
-                        inputIOS: styles.picker,
-                        iconContainer: {
-                            top: Platform.OS === 'web' ? 10 : 8,
-                            left: Platform.OS === 'web' ? 8 : 6,
-                            width: 10
-                        },
-                    }}
-                    value={task.project}
-                    onValueChange={(value) => setTask({ ...task, project: value })}
-                    items={projects}
-                />
-                <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-                    {Platform.OS === 'web' ?
-                        <input id="date" type="date" value={task.date} onChange={(e) => { setTask({ ...task, date: e.target.value }) }}
-                            style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(100% - 12px)', fontFamily: 'arial', borderRadius: 10 }}
-                        />
-                        :
-                        <View style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 0, marginTop: 5, marginBottom: 5, height: 30, width: '100%', borderRadius: 10 }}>
-                            {task.date ?
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: '100%' }}>
-                                    <WebView
-                                        style={{ display: webViewLag, borderRadius: 10 }}
-                                        ref={inputRef}
-                                        source={{
-                                            html: `
-                                <head>
-                                <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
-                                <style>
-                                input::-webkit-date-and-time-value{ text-align:left;margin-left:5px; }
-                                </style>
-                                </head>
-                                <body style="background-color:${colors.background};margin:0px;padding:5px;">
-                                <input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${task.date}"/>
-                                </body>
-                            `}}
-                                        keyboardDisplayRequiresUserAction={false}
-                                        showsHorizontalScrollIndicator={false}
-                                        scrollEnabled={false}
-                                        scalesPageToFit={false}
-                                        javaScriptEnabled={true}
-                                        automaticallyAdjustContentInsets={false}
-                                        onMessage={async (e) => {
-                                            let value = e.nativeEvent.data;
-                                            setTask({ ...task, date: value });
-                                        }}
-                                    />
-
-                                    <TouchableOpacity onPress={() => { setTask({ ...task, date: null }); }} style={{ flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: 10 }}><Text>clear</Text></TouchableOpacity>
-                                </View>
-                                :
-                                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', height: '100%', paddingLeft: 10 }} onPress={() => setTask({ ...task, date: new Date().toISOString().split('T')[0] })}><Text>tap to set</Text></TouchableOpacity>
-                            }
-                        </View>
-                    }
-                </View>
-                <RNPickerSelect
-                    placeholder={{}}
-                    Icon={() => Platform.OS === 'web' ?
-                        <Text style={{ fontSize: 30, margin: 0, padding: 0, marginTop: -9, width: 30 }}>{task.status === 'backlog' ? '◔' : task.status === 'selected' ? '◑' : task.status === 'in_progress' ? '◕' : '⬤'}</Text>
-                        :
-                        <Text style={{ fontSize: ['selected', 'done'].includes(task.status) ? 30 : 40, margin: 0, padding: 0, marginTop: ['selected', 'done'].includes(task.status) ? -3 : -10, marginLeft: ['selected', 'done'].includes(task.status) ? 0 : 2, width: 30 }}>{task.status === 'backlog' ? '◔' : task.status === 'selected' ? '◑' : task.status === 'in_progress' ? '◕' : '●'}</Text>
-                    }
-                    style={{
-                        inputWeb: styles.picker,
-                        inputIOS: styles.picker,
-                        iconContainer: {
-                            top: Platform.OS === 'web' ? 10 : 8,
-                            left: Platform.OS === 'web' ? 8 : 6,
-                            width: 10
-                        },
-                    }}
-                    value={task.status}
-                    onValueChange={(value) => setTask({ ...task, status: value })}
-                    items={[{ label: 'backlog', value: 'backlog' }, { label: 'selected', value: 'selected' }, { label: 'in progress', value: 'in_progress' }, { label: 'done', value: 'done' }]}
-                />
-                <RNPickerSelect
-                    placeholder={{}}
-                    Icon={() =>
-                        Platform.OS === 'web' ?
-                            (task.priority === 'low' ?
-                                <Text style={{ fontSize: 31, margin: 0, padding: 0, marginTop: -11, width: 30 }}>⨀</Text>
-                                : task.priority === 'medium' ?
-                                    <Text style={{ fontSize: 28, margin: 0, padding: 0, marginTop: -9, width: 30 }}>⦿</Text>
-                                    : task.priority === 'high' ?
-                                        <Text style={{ fontSize: 30, margin: 0, padding: 0, marginTop: -9, width: 30, marginLeft: 1 }}>⬤</Text>
-                                        :
-                                        <Text />)
-                            :
-                            (task.priority === 'low' ?
-                                <Text style={{ fontSize: 32, margin: 0, padding: 0, marginTop: 2, width: 30 }}>⨀</Text>
-                                : task.priority === 'medium' ?
-                                    <Text style={{ fontSize: 42, margin: 0, padding: 0, marginTop: -1, width: 30 }}>⦿</Text>
-                                    : task.priority === 'high' ?
-                                        <Text style={{ fontSize: 32, margin: 0, padding: 0, marginTop: -4, width: 30, marginLeft: 0 }}>●</Text>
-                                        :
-                                        <Text />)
-                    }
-                    style={{
-                        inputWeb: styles.picker,
-                        inputIOS: styles.picker,
-                        iconContainer: {
-                            top: Platform.OS === 'web' ? 10 : 8,
-                            left: Platform.OS === 'web' ? 8 : 6,
-                            width: 10
-                        },
-                    }}
-                    value={task.priority}
-                    onValueChange={(value) => setTask({ ...task, priority: value })}
-                    items={[{ label: 'low priority', value: 'low' }, { label: 'medium priority', value: 'medium' }, { label: 'high priority', value: 'high' }]}
-                />
+                <InputComponent type="select" value={task.project} options={projects} optionImage={true} setValue={(value) => { setTask({ ...task, project: value }) }} />
+                <InputComponent type="date" value={task.date} setValue={(value) => { setTask({ ...task, date: value }) }} canClear={true} initialValue={new Date().toISOString().split('T')[0]} />
+                <InputComponent type="select" value={task.status} options={[
+                    { id: 'backlog', name: 'backlog' },
+                    { id: 'selected', name: 'selected' },
+                    { id: 'in_progress', name: 'in progress' },
+                    { id: 'done', name: 'done' },
+                ]} optionCharacterImage={true} setValue={(value) => { setTask({ ...task, status: value }) }} />
+                <InputComponent type="select" value={task.priority} options={[
+                    { id: 'low', name: 'low priority' },
+                    { id: 'medium', name: 'medium priority' },
+                    { id: 'high', name: 'high priority' },
+                ]} optionCharacterImage={true} setValue={(value) => { setTask({ ...task, priority: value }) }} />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={task.category} keyboardType='default' onChangeText={value => { setTask({ ...task, category: value }) }} placeholder='category' style={[styles.textInput]} />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={task.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTask({ ...task, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>

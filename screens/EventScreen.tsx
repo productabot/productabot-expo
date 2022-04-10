@@ -7,6 +7,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '@react-navigation/native';
+import InputComponent from '../components/InputComponent';
 
 export default function EventScreen({ route, navigation, refresh, setLoading }: any) {
     const [projects, setProjects] = useState([]);
@@ -97,7 +98,7 @@ export default function EventScreen({ route, navigation, refresh, setLoading }: 
             category: route.params.id ? event.category : null,
             details: route.params.id ? event.details : null
         });
-        setProjects(projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id, image: obj.image }) }));
+        setProjects(projects.data.projects);
         setDates(dates);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
@@ -156,91 +157,13 @@ export default function EventScreen({ route, navigation, refresh, setLoading }: 
                 keyboardShouldPersistTaps="always"
             >
                 {Platform.OS === 'web' && <TouchableOpacity style={{ alignSelf: 'flex-start', marginLeft: -40, marginBottom: -40 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>}
-                <RNPickerSelect
-                    placeholder={{}}
-                    Icon={() => <Image style={{ height: 25, width: 25, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: uri }} />}
-                    style={{
-                        inputWeb: styles.picker,
-                        inputIOS: styles.picker,
-                        iconContainer: {
-                            top: Platform.OS === 'web' ? 10 : 8,
-                            left: Platform.OS === 'web' ? 8 : 6,
-                            width: 10
-                        },
-                    }}
-                    value={event.project}
-                    onValueChange={(value) => setEvent({ ...event, project: value })}
-                    items={projects}
-                />
-                {Platform.OS === 'web' ?
-                    <>
-                        <input id="date_from" type="date" value={event.date_from} onChange={(e) => { setEvent({ ...event, date_from: e.target.value }) }}
-                            style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(100% - 12px)', fontFamily: 'arial', borderRadius: 10 }}
-                        />
-                        <input id="date_to" type="date" value={event.date_to} onChange={(e) => { setEvent({ ...event, date_to: e.target.value }) }}
-                            style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(100% - 12px)', fontFamily: 'arial', borderRadius: 10 }}
-                        />
-                    </>
-                    :
-                    <>
-                        <View style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 0, marginTop: 5, marginBottom: 5, height: 30, width: '100%', borderRadius: 10 }}>
-                            <WebView
-                                style={{ display: webViewLag, borderRadius: 10 }}
-                                ref={inputRef}
-                                source={{
-                                    html: `
-                                <head>
-                                <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
-                                <style>
-                                input::-webkit-date-and-time-value{ text-align:left;margin-left:5px; }
-                                </style>
-                                </head>
-                                <body style="background-color:${colors.background};margin:0px;padding:5px;">
-                                <input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${event.date_from}"/>
-                                </body>
-                            `}}
-                                keyboardDisplayRequiresUserAction={false}
-                                showsHorizontalScrollIndicator={false}
-                                scrollEnabled={false}
-                                scalesPageToFit={false}
-                                javaScriptEnabled={true}
-                                automaticallyAdjustContentInsets={false}
-                                onMessage={async (e) => {
-                                    let value = e.nativeEvent.data;
-                                    setEvent({ ...event, date_from: value });
-                                }}
-                            />
-                        </View>
-                        <View style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 0, marginTop: 5, marginBottom: 5, height: 30, width: '100%', borderRadius: 10 }}>
-                            <WebView
-                                style={{ display: webViewLag, borderRadius: 10 }}
-                                ref={inputRef}
-                                source={{
-                                    html: `
-                                <head>
-                                <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
-                                <style>
-                                input::-webkit-date-and-time-value{ text-align:left;margin-left:5px; }
-                                </style>
-                                </head>
-                                <body style="background-color:${colors.background};margin:0px;padding:5px;">
-                                <input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${event.date_to}"/>
-                                </body>
-                            `}}
-                                keyboardDisplayRequiresUserAction={false}
-                                showsHorizontalScrollIndicator={false}
-                                scrollEnabled={false}
-                                scalesPageToFit={false}
-                                javaScriptEnabled={true}
-                                automaticallyAdjustContentInsets={false}
-                                onMessage={async (e) => {
-                                    let value = e.nativeEvent.data;
-                                    setEvent({ ...event, date_to: value });
-                                }}
-                            />
-                        </View>
-                    </>
-                }
+
+                <InputComponent type="select" value={event.project} options={projects} optionImage={true} setValue={(value) => { setEvent({ ...event, project: value }) }} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+                    <InputComponent width='45%' type="date" value={event.date_from} setValue={(value) => { setEvent({ ...event, date_from: value }) }} />
+                    <Text style={{ width: '10%', textAlign: 'center', marginTop: Platform.OS === 'web' ? 15 : 10 }}>to</Text>
+                    <InputComponent width='45%' type="date" value={event.date_to} setValue={(value) => { setEvent({ ...event, date_to: value }) }} />
+                </View>
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={event.category} keyboardType='default' onChangeText={value => { setEvent({ ...event, category: value }) }} placeholder='category' style={[styles.textInput]} />
                 <TextInput inputAccessoryViewID='main' spellCheck={false} value={event.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setEvent({ ...event, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
 

@@ -356,7 +356,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     }, 1000);
                                 }} />
                                 :
-                                <View style={{ width: 100, height: 35, marginLeft: -5 }}>
+                                <View style={{ width: 100, height: 40, marginLeft: -5 }}>
                                     <WebView
                                         style={{ backgroundColor: 'transparent' }}
                                         ref={inputRef}

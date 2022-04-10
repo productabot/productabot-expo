@@ -19,7 +19,6 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
     useFocusEffect(
         React.useCallback(() => {
             if (!route.params) { route.params = {}; }
-            setLoading(true);
             const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (e) => { setKeyboardHeight(e.endCoordinates.height); });
             const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => { setKeyboardHeight(0); });
             return () => {
@@ -28,6 +27,10 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
             };
         }, [route.params])
     );
+
+    React.useEffect(() => {
+        setLoading(true);
+    }, []);
 
     const onRefresh = async () => {
         setLoading(true);

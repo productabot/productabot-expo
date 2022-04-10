@@ -59,7 +59,8 @@ export default function Navigation({ navigation, authenticated, setLoading, load
       border: '#666666',
       notification: '#ffffff',
       subtitle: '#aaaaaa',
-      delete: '#ff5555'
+      delete: '#ff5555',
+      placeholder: '#444444'
     },
   };
 
@@ -74,7 +75,8 @@ export default function Navigation({ navigation, authenticated, setLoading, load
       border: '#666666',
       notification: '#000000',
       subtitle: '#666666',
-      delete: '#ff0000'
+      delete: '#ff0000',
+      placeholder: '#bbbbbb'
     },
   };
 

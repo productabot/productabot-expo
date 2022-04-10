@@ -8,6 +8,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '@react-navigation/native';
+import InputComponent from '../components/InputComponent';
 
 export default function EntryScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
@@ -101,7 +102,7 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
             hours: route.params.id ? timesheet.hours.toString() : null,
             details: route.params.id ? timesheet.details : null
         });
-        setProjects(projects.data.projects.map(obj => { return ({ label: obj.name, value: obj.id, image: obj.image }) }));
+        setProjects(projects.data.projects);
         setDates(dates);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
@@ -177,61 +178,13 @@ export default function EntryScreen({ route, navigation, refresh, setLoading }: 
                 keyboardShouldPersistTaps="always"
             >
                 {Platform.OS === 'web' && <TouchableOpacity style={{ alignSelf: 'flex-start', marginLeft: -40, marginBottom: -40 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>}
-                <RNPickerSelect
-                    placeholder={{}}
-                    Icon={() => <Image style={{ height: 25, width: 25, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: uri }} />}
-                    style={{
-                        inputWeb: styles.picker,
-                        inputIOS: styles.picker,
-                        iconContainer: {
-                            top: Platform.OS === 'web' ? 10 : 8,
-                            left: Platform.OS === 'web' ? 8 : 6,
-                            width: 10
-                        },
-                    }}
-                    value={timesheet.project}
-                    onValueChange={(value) => setTimesheet({ ...timesheet, project: value })}
-                    items={projects}
-                />
-                {Platform.OS === 'web' ?
-                    <input id="date" type="date" value={timesheet.date} onChange={(e) => { setTimesheet({ ...timesheet, date: e.target.value }) }}
-                        style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(100% - 12px)', fontFamily: 'arial', borderRadius: 10 }}
-                    />
-                    :
-                    <View style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 0, marginTop: 5, marginBottom: 5, height: 30, width: '100%', borderRadius: 10 }}>
-                        <WebView
-                            style={{ display: webViewLag, borderRadius: 10 }}
-                            ref={inputRef}
-                            source={{
-                                html: `
-                                <head>
-                                <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;" />
-                                <style>
-                                input::-webkit-date-and-time-value{ text-align:left;margin-left:5px; }
-                                </style>
-                                </head>
-                                <body style="background-color:${colors.background};margin:0px;padding:5px;">
-                                <input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="date" value="${timesheet.date}"/>
-                                </body>
-                            `}}
-                            keyboardDisplayRequiresUserAction={false}
-                            showsHorizontalScrollIndicator={false}
-                            scrollEnabled={false}
-                            scalesPageToFit={false}
-                            javaScriptEnabled={true}
-                            automaticallyAdjustContentInsets={false}
-                            onMessage={async (e) => {
-                                let value = e.nativeEvent.data;
-                                setTimesheet({ ...timesheet, date: value });
-                            }}
-                        />
-                    </View>
-                }
-                <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.category} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, category: value }) }} placeholder='category' style={[styles.textInput]} />
-                <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.hours} keyboardType='numeric' onChangeText={value => { setTimesheet({ ...timesheet, hours: value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1') }) }} placeholder='hours' style={[styles.textInput]} />
-                <TextInput inputAccessoryViewID='main' spellCheck={false} value={timesheet.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
+                <InputComponent type="select" value={timesheet.project} options={projects} optionImage={true} setValue={(value) => { setTimesheet({ ...timesheet, project: value }) }} />
+                <InputComponent type="date" value={timesheet.date} setValue={(value) => { setTimesheet({ ...timesheet, date: value }) }} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={timesheet.category} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, category: value }) }} placeholder='category' style={[styles.textInput]} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={timesheet.hours} keyboardType='numeric' onChangeText={value => { setTimesheet({ ...timesheet, hours: value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1') }) }} placeholder='hours' style={[styles.textInput]} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={timesheet.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setTimesheet({ ...timesheet, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
 
-                {githubCommits.length === 0 ? <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 10}}><Text style={{ alignSelf: 'center' }} onPress={async () => { await pullGithubCommits(); }}>{!githubLoading ? `pull latest commits from github →` : `pulling commits...  `}</Text>{githubLoading && <ActivityIndicator />}</View> : <RNPickerSelect
+                {githubCommits.length === 0 ? <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}><Text style={{ alignSelf: 'center' }} onPress={async () => { await pullGithubCommits(); }}>{!githubLoading ? `pull latest commits from github →` : `pulling commits...  `}</Text>{githubLoading && <ActivityIndicator />}</View> : <RNPickerSelect
                     placeholder={{ label: 'select a recent commit from github' }}
                     Icon={() => <Image style={{ height: 25, width: 25, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={require('../assets/images/github.png')} />}
                     style={{
