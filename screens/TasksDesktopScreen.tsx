@@ -5,7 +5,9 @@ import { MultipleContainers } from "../components/dndkit/MultipleContainers";
 import { useTheme } from '@react-navigation/native';
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, useWindowDimensions } from 'react-native';
+import InputComponent from '../components/InputComponent';
+import ConfettiCannon from 'react-native-confetti-cannon';
 
 export default function TasksDesktopScreen({ refresh, setLoading, loading, navigation, projectScreen, givenProjectId = '' }: any) {
     const [tasks, setTasks] = React.useState({ backlog: [], selected: [], in_progress: [], done: [] });
@@ -13,22 +15,23 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
     const [project, setProject] = React.useState(givenProjectId);
     const [hiddenProject, setHiddenProject] = React.useState('');
     const [priority, setPriority] = React.useState('');
-    const [details, setDetails] = React.useState('');
-    const [category, setCategory] = React.useState('');
+    const [search, setSearch] = React.useState('');
     const [showContainers, setShowContainers] = React.useState({ backlog: true, selected: true, in_progress: true, done: true });
     const { colors } = useTheme();
     const [contextPosition, setContextPosition] = React.useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
+    const [confetti, setConfetti] = React.useState(false);
+    const windowDimensions = useWindowDimensions();
     const menuRef = React.useRef(null);
 
     useFocusEffect(
         React.useCallback(() => {
             onRefresh();
-        }, [refresh, project, hiddenProject, category, details, priority])
+        }, [refresh, project, hiddenProject, search, priority])
     );
 
     React.useEffect(() => {
         onRefresh();
-    }, [refresh, project, hiddenProject, category, details, priority]);
+    }, [refresh, project, hiddenProject, search, priority]);
 
     React.useEffect(() => {
         if (contextPosition.x > 0 && contextPosition.y > 0) { menuRef.current.open(); }
@@ -40,8 +43,7 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
             ${['backlog', 'selected', 'in_progress', 'done'].map(obj => `${obj}: tasks(order_by: {root_order: desc}, where: {status: {_eq: "${obj}"}
             ${project.length > 0 ? `, project_id: {_eq: "${project}"}` : ``}
             ${hiddenProject.length > 0 ? `, project_id: {_neq: "${hiddenProject}"}` : ``}
-            ${category.length > 0 ? `, category: {_ilike: "%${category}%"}` : ``}
-            ${details.length > 0 ? `, details: {_ilike: "%${details}%"}` : ``}
+            ${search.length > 0 ? `, details: {_ilike: "%${search}%"}` : ``}
             ${priority.length > 0 ? `, priority: {_eq: "${priority}"}` : ``}
         }) {
               id
@@ -75,13 +77,17 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
         setLoading(false);
     }
 
-    const saveTasks = async (tasks, task) => {
-        if (tasks) {
+    const saveTasks = async (newTasks, task) => {
+        if (newTasks) {
+            console.log(tasks.done.filter(obj => obj.id === task.id));
+            if (task.status === 'done') {
+                setConfetti(true); setTimeout(() => { setConfetti(false) }, 2500);
+            }
             //save the order of all tasks
             await API.graphql(graphqlOperation(`mutation {
                 ${task.id ? `saveTask: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {status: "${task.status}"}) {id}` : ''}
-                ${['backlog', 'in_progress', 'done'].map(
-                status => tasks[status].map((task, taskIndex) => `saveTasks${status}${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {root_order: ${tasks[status].length - taskIndex - 1}}) {id}`).join(', ')
+                ${['backlog', 'selected', 'in_progress', 'done'].map(
+                status => newTasks[status].map((task, taskIndex) => `saveTasks${status}${taskIndex}: update_tasks_by_pk(pk_columns: {id: "${task.id}"}, _set: {root_order: ${newTasks[status].length - taskIndex - 1}}) {id}`).join(', ')
             ).join(',')}}`));
         }
     }
@@ -89,24 +95,19 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
     return (
         <div style={{ width: '100%', paddingTop: projectScreen ? 0 : 50, marginLeft: 'auto', marginRight: 'auto', height: '100%' }}>
             {!projectScreen &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', color: '#fff', fontFamily: 'arial', marginBottom: 10 }}>
-                    filters:
-                    <select style={{ width: 150, backgroundColor: colors.background, color: colors.text, padding: 5, borderRadius: 5, marginLeft: 5, marginRight: 5 }} onChange={(e) => { setProject(e.target.value) }}>
-                        <option value="">show all projects</option>
-                        {projects.map(obj => { return (<option value={obj.id}>{obj.name}</option>) })}
-                    </select>
-                    <select style={{ width: 150, backgroundColor: colors.background, color: colors.text, padding: 5, borderRadius: 5, marginLeft: 5, marginRight: 5 }} onChange={(e) => { setHiddenProject(e.target.value) }}>
-                        <option value="">hide no projects</option>
-                        {projects.map(obj => { return (<option value={obj.id}>{obj.name}</option>) })}
-                    </select>
-                    <select style={{ width: 150, backgroundColor: colors.background, color: colors.text, padding: 5, borderRadius: 5, marginLeft: 5, marginRight: 5 }} onChange={(e) => { setPriority(e.target.value) }}>
-                        <option value="">show all priorities</option>
-                        <option value="low">low priority</option>
-                        <option value="medium">medium priority</option>
-                        <option value="high">high priority</option>
-                    </select>
-                    <input placeholder="search by tag" style={{ width: 150, backgroundColor: colors.background, color: colors.text, padding: 5, borderRadius: 5, borderStyle: 'solid', borderWidth: 1, height: 17, marginLeft: 5, marginRight: 5 }} onChange={(e) => { setCategory(e.target.value) }} />
-                    <input placeholder="search by details" style={{ width: 150, backgroundColor: colors.background, color: colors.text, padding: 5, borderRadius: 5, borderStyle: 'solid', borderWidth: 1, height: 17, marginLeft: 5, marginRight: 5 }} onChange={(e) => { setDetails(e.target.value) }} />
+                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', color: '#fff', fontFamily: 'arial', marginBottom: 10, maxWidth: 1250, marginLeft: 'auto', marginRight: 'auto', transform: 'scale(0.85)' }}>
+                    <div style={{ width: '25%', marginLeft: 5, marginRight: 5 }}>
+                        <InputComponent type={'select'} value={project} setValue={(value) => { setProject(value) }} options={[{ id: '', name: 'show all projects', image: null }, ...projects]} optionImage={true} width={'100%'} />
+                    </div>
+                    <div style={{ width: '25%', marginLeft: 5, marginRight: 5 }}>
+                        <InputComponent type={'select'} value={hiddenProject} setValue={(value) => { setHiddenProject(value) }} options={[{ id: '', name: 'hide no projects', image: null }, ...projects]} optionImage={true} width={'100%'} />
+                    </div>
+                    <div style={{ width: '25%', marginLeft: 5, marginRight: 5 }}>
+                        <InputComponent type={'select'} value={priority} setValue={(value) => { setPriority(value) }} options={[{ id: '', name: 'show all priorities' }, { id: 'low', name: 'low priority' }, { id: 'medium', name: 'medium priority' }, { id: 'high', name: 'high priority' }]} optionCharacterImage={true} width={'100%'} />
+                    </div>
+                    <div style={{ width: '25%', marginLeft: 5, marginRight: 5 }}>
+                        <input placeholder="search" style={{ width: '100%', fontSize: 20, padding: 5, backgroundColor: colors.background, color: colors.text, borderRadius: 10, borderStyle: 'solid', borderWidth: 1 }} onChange={(e) => { setSearch(e.target.value) }} />
+                    </div>
                 </div>}
             <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', color: '#ccc', fontFamily: 'arial', marginBottom: 5, fontSize: 14 }}>
                 {[{ key: 'backlog', label: 'backlog', icon: '◔', leftDistance: 10 }, { key: 'selected', label: 'selected', icon: '◑', leftDistance: (showContainers.backlog && showContainers.in_progress && showContainers.done) ? '33%' : (showContainers.backlog && showContainers.in_progress || showContainers.backlog && showContainers.done) ? '50%' : 40 }, { key: 'in_progress', label: 'in progress', icon: '◕', rightDistance: (showContainers.backlog && showContainers.selected && showContainers.done) ? '33%' : (showContainers.selected && showContainers.done || showContainers.backlog && showContainers.done) ? '50%' : 40 }, { key: 'done', label: 'done', icon: '⬤', rightDistance: 10 }].map(({ key, label, icon, leftDistance, rightDistance }) =>
@@ -132,6 +133,7 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
                         onPress={() => { menuRef.current.close(); }}><Text style={{ color: colors.text }}>Cancel</Text></TouchableOpacity>
                 </MenuOptions>
             </Menu>
+            {confetti && <ConfettiCannon count={50} origin={{ x: windowDimensions.width / 2, y: -15 }} autoStart={true} fadeOut={true} explosionSpeed={350} fallSpeed={2000} />}
         </div>
     );
 }

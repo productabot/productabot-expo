@@ -17,10 +17,19 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
   const [projects, setProjects] = useState([]);
   const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, archive: () => { }, rename: () => { } });
   const [greeting, setGreeting] = useState(<View />);
+  const [user, setUser] = useState({});
   const [archived, setArchived] = useState(false);
   const opacity = Array(20).fill(0).map(() => useRef(new Animated.Value(0)).current);
   const menuRef = useRef(null);
   const { colors } = useTheme();
+  const fadeValue = new Animated.Value(0.4);
+  Animated.loop(
+    Animated.sequence(
+      [
+        Animated.timing(fadeValue, { toValue: 1, duration: 1000, easing: Easing.sin, useNativeDriver: true }),
+        Animated.timing(fadeValue, { toValue: 0.4, duration: 1000, easing: Easing.sin, useNativeDriver: true })
+      ]
+    )).start();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -59,6 +68,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
       users {
         username
         image
+        plan
       }
     }
     `));
@@ -71,6 +81,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
         <Text>{data.data.users[0].username}</Text>
       </TouchableOpacity>
     </View >);
+    setUser(data.data.users[0]);
     showRefreshControl ? setRefreshControl(false) : setLoading(false);
   }
 
@@ -130,17 +141,24 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
           renderHeaderView={
             <View style={{ marginTop: Platform.OS === 'web' ? 30 : -10, flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: 10, zIndex: 1 }}>
               <Text style={{ color: colors.text, fontSize: 20 }}>{greeting}</Text>
-              <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
-                <Text style={{ marginRight: 5 }}>archived</Text>
-                {Platform.OS === 'web' ?
-                  <input checked={archived} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" />
-                  :
+              {user.plan === 'paid' ?
+                <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
+                  <Text style={{ marginRight: 5 }}>archived</Text>
                   <View
                     style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20, backgroundColor: archived ? '#0075ff' : '#ffffff' }}>
                     {archived && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
                   </View>
-                }
-              </TouchableOpacity>
+                </TouchableOpacity>
+                :
+                user.plan === 'free' ?
+                  <Animated.View style={{ opacity: fadeValue }}>
+                    <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 10, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 30, marginRight: 30, marginTop: -5, paddingTop: 0, paddingBottom: 0, paddingLeft: 10, paddingRight: 10 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
+                      <Text style={{ color: colors.text, fontSize: 15 }}>{`upgrade ✦`}</Text>
+                    </TouchableOpacity>
+                  </Animated.View>
+                  :
+                  <View />
+              }
             </View>}
           minOpacity={100}
           delayLongPress={200}
@@ -223,7 +241,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
                   menuRef.current.open();
                 }}
                 onPress={() => { navigation.push('project', { id: item.id }) }}
-                style={{ alignItems: 'center', width: 140, cursor: 'grab'}}
+                style={{ alignItems: 'center', width: 140, cursor: 'grab' }}
                 key={item.id}>
                 <View style={{ width: 140, height: 140, borderColor: colors.text, borderWidth: 1, borderRadius: 20 }}>
                   <Animated.Image

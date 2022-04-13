@@ -2,7 +2,7 @@ import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import * as React from 'react';
-import { View, Platform, Text, TouchableOpacity, useWindowDimensions, Pressable, StatusBar } from 'react-native';
+import { View, Platform, Text, TouchableOpacity, useWindowDimensions, Pressable, StatusBar, Animated, Easing } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -32,6 +32,7 @@ import TasksDesktopScreen from '../screens/TasksDesktopScreen';
 import SheetScreen from '../screens/SheetScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@react-navigation/native';
+import { API, graphqlOperation } from "@aws-amplify/api";
 
 export default function Navigation({ navigation, authenticated, setLoading, loading, setBackgroundColor }: any) {
   const [theme, setTheme] = React.useState('dark');
@@ -101,7 +102,7 @@ const AppStack = createStackNavigator<any>();
 // const MobileNotesStack = createDrawerNavigator<any>();
 
 function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: any) {
-  const window = useWindowDimensions();
+  const windowDimensions = useWindowDimensions();
   const [refresh, setRefresh] = React.useState(false);
   const { colors } = useTheme();
   return (
@@ -132,9 +133,9 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                       <TouchableOpacity {...props}
                         href={`/`}
                         onPress={(e) => { e.preventDefault(); navigation.navigate('app', { screen: 'projectsTab', params: { screen: 'projects' } }); }}
-                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: window.width > 940 ? 160 : 30 }}>
+                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', minWidth: windowDimensions.width > 800 ? 160 : 30 }}>
                         <AnimatedLogo loading={loading} size={1} />
-                        {(window.width > 940) && <Text style={{ color: colors.text, fontSize: 20 }}>productabot</Text>}
+                        {(windowDimensions.width > 800) && <Text style={{ color: colors.text, fontSize: 20 }}>productabot</Text>}
                       </TouchableOpacity>
                     )
                   }
@@ -145,8 +146,9 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             }
             <AppBottomTab.Screen name="projectsTab" options={{
               title: `⧉ projects`,
-              tabBarItemStyle: { maxWidth: 140, width: 140 },
-              ...((root.desktopWeb && window.width < 940) ? { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15, marginTop: 3 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>⧉</Text></Pressable> } : { tabBarButton: (props) => <Pressable {...props} href={`/projects`} onPress={(e) => { e.preventDefault(); props.onPress(); }} /> })
+              tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
+              tabBarLabelStyle: { fontSize: Platform.OS === 'web' ? 13 : 15 },
+              tabBarButton: (props) => <Pressable {...props} href={`/projects`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
                 return (
@@ -181,8 +183,9 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="calendarTab" options={{
               title: `▦ calendar`,
-              tabBarItemStyle: { maxWidth: 140, width: 140 },
-              ...((root.desktopWeb && window.width < 940) ? { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>▦</Text></Pressable> } : { tabBarButton: (props) => <Pressable {...props} href={`/calendar`} onPress={(e) => { e.preventDefault(); props.onPress(); }} /> })
+              tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
+              tabBarLabelStyle: { fontSize: Platform.OS === 'web' ? 13 : 15 },
+              tabBarButton: (props) => <Pressable {...props} href={`/calendar`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
                 return (
@@ -208,13 +211,14 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="tasksTab" options={{
               title: `☉ tasks`,
-              tabBarItemStyle: { maxWidth: 140, width: 140 },
-              ...((root.desktopWeb && window.width < 940) ? { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>☉</Text></Pressable> } : { tabBarButton: (props) => <Pressable {...props} href={`/tasks`} onPress={(e) => { e.preventDefault(); props.onPress(); }} /> })
+              tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
+              tabBarLabelStyle: { fontSize: Platform.OS === 'web' ? 13 : 15 },
+              tabBarButton: (props) => <Pressable {...props} href={`/tasks`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="tasks">
-                    {(window.width < 940) ?
+                    {(windowDimensions.width < 800) ?
                       <AppStack.Screen name="tasks">
                         {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                       </AppStack.Screen>
@@ -234,13 +238,14 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="notesTab" options={{
               title: `≡ notes`,
-              tabBarItemStyle: { maxWidth: 140, width: 140 },
-              ...((root.desktopWeb && window.width < 940) ? { tabBarButton: (props) => <Pressable {...props} style={{ width: (window.width - 250) / 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 15, marginRight: -15 }}><Text style={{ fontSize: 24, color: props.accessibilityState.selected ? '#ffffff' : '#7c7c7d' }}>≡</Text></Pressable> } : { tabBarButton: (props) => <Pressable {...props} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} /> })
+              tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
+              tabBarLabelStyle: { fontSize: Platform.OS === 'web' ? 13 : 15 },
+              tabBarButton: (props) => <Pressable {...props} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="notes">
-                    {(window.width < 400) ?
+                    {(windowDimensions.width < 400) ?
                       <AppStack.Screen name="notes">
                         {props => <NotesMobileScreen {...props} refresh={refresh} setLoading={setLoading} />}
                       </AppStack.Screen>
@@ -276,10 +281,29 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                 options={{
                   tabBarButton: props => {
                     const navigation = useNavigation();
+                    const [user, setUser] = React.useState({});
+                    React.useEffect(() => {
+                      const async = async () => {
+                        let data = await API.graphql(graphqlOperation(`{users {plan} }`));
+                        setUser(data.data.users[0]);
+                      }
+                      async();
+                    }, []);
+                    const fadeValue = new Animated.Value(0.4);
+                    Animated.loop(
+                      Animated.sequence(
+                        [
+                          Animated.timing(fadeValue, { toValue: 1, duration: 1000, easing: Easing.sin, useNativeDriver: true }),
+                          Animated.timing(fadeValue, { toValue: 0.4, duration: 1000, easing: Easing.sin, useNativeDriver: true })
+                        ]
+                      )).start();
                     return (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, marginRight: 20, marginLeft: 'auto' }}><TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab') }} >
-                        <Text style={{ color: colors.text, fontSize: 14 }}>{window.width > 400 ? 'upgrade ' : ''}✦</Text>
-                      </TouchableOpacity>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, marginRight: 20, marginLeft: 'auto' }}>
+                        {user.plan === 'free' &&
+                          <Animated.View style={{ opacity: fadeValue }}>
+                            <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
+                              <Text style={{ color: colors.text, fontSize: Platform.OS === 'web' ? 13 : 15 }}>{windowDimensions.width > 400 ? 'upgrade ' : ''}✦</Text>
+                            </TouchableOpacity></Animated.View>}
                         <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: 25 }} onPress={async (e) => {
                           e.preventDefault();
                           let currentTheme = await AsyncStorage.getItem('theme');
@@ -290,13 +314,13 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                           await AsyncStorage.setItem('theme', nextTheme);
                           setTheme(nextTheme);
                         }} >
-                          <Text style={{ color: colors.text, fontSize: 14 }}>{theme === 'dark' ? '☀' : '◗*'}</Text>
+                          <Text style={{ color: colors.text, fontSize: Platform.OS === 'web' ? 13 : 15 }}>{theme === 'dark' ? '☀' : '◗*'}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: 25 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab') }} >
-                          <Text style={{ color: colors.text, fontSize: 14 }}>⚙️</Text>
+                          <Text style={{ color: colors.text, fontSize: Platform.OS === 'web' ? 13 : 15 }}>⚙️</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 0, width: 25 }} onPress={(e) => { e.preventDefault(); setRefresh(!refresh); }} >
-                          <Text style={{ color: colors.text, fontSize: 14 }}>↻</Text>
+                          <Text style={{ color: colors.text, fontSize: Platform.OS === 'web' ? 13 : 15 }}>↻</Text>
                         </TouchableOpacity>
                         {/* <NotificationsComponent /> */}
                       </View>

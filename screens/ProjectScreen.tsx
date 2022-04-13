@@ -487,15 +487,16 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             {index === 0 &&
                                 <>
                                     <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                        <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                            onPress={async () => { addAction('sheet'); }}
-                                        ><Text>{'add sheet'} +</Text></TouchableOpacity>
+                                        {Platform.OS === 'web' &&
+                                            <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                                onPress={async () => { addAction('sheet'); }}
+                                            ><Text>{'add sheet'} +</Text></TouchableOpacity>}
                                         <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
                                             onPress={async () => { addAction('document'); }}
                                         ><Text>{'add doc'} +</Text></TouchableOpacity>
                                         <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
                                             onPress={async () => { addAction('file'); }}
-                                        ><Text>{'upload file'} +</Text></TouchableOpacity>
+                                        ><Text>{'upload'} +</Text></TouchableOpacity>
                                     </View>
                                     <CustomDraggableFlatList
                                         data={project.files}

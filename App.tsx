@@ -15,6 +15,8 @@ import { WebSocketLink } from "@apollo/client/link/ws";
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { enableScreens } from 'react-native-screens';
+import Purchases from 'react-native-purchases';
+
 enableScreens(true);
 
 Amplify.configure({
@@ -69,8 +71,14 @@ export default function App() {
   const [backgroundColor, setBackgroundColor] = React.useState('dark');
 
   React.useEffect(() => {
-    console.log(backgroundColor);
-  }, [backgroundColor]);
+    const async = async () => {
+      if (Platform.OS === 'ios' && Constants.appOwnership !== 'expo') {
+        Purchases.setDebugLogsEnabled(true);
+        await Purchases.setup("appl_XhFtNHlywNlrGoNXQddwsdenqll");
+      }
+    }
+    async();
+  }, []);
 
   React.useEffect(() => {
     const async = async () => {
@@ -80,6 +88,11 @@ export default function App() {
       ]);
       try {
         let user = await Auth.currentSession();
+
+        if (Platform.OS === 'ios' && Constants.appOwnership !== 'expo') {
+          await Purchases.logIn(user.getIdToken().decodePayload().sub);
+        }
+
         if (user) {
           Platform.OS === 'ios' && registerForPushNotificationsAsync();
           client.setLink(new WebSocketLink({
@@ -88,7 +101,7 @@ export default function App() {
               reconnect: true,
               connectionParams: async () => ({
                 headers: {
-                  Authorization: "Bearer " + (await Auth.currentSession()).idToken.jwtToken
+                  Authorization: "Bearer " + (await Auth.currentSession()).getIdToken().getJwtToken()
                 }
               })
             }

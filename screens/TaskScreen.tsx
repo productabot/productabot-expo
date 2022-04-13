@@ -117,10 +117,10 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                     ListFooterComponent={() =>
                         <>
                             {task?.id && <TextInput placeholderTextColor={colors.placeholder}
-                                style={{ color: colors.text, padding: 5, margin: 15, borderBottomColor: colors.subtitle, borderBottomWidth: 1 }}
+                                inputAccessoryViewID='main'
+                                style={{ color: colors.text, padding: 5, margin: 15, borderBottomColor: colors.placeholder, borderBottomWidth: 1 }}
                                 placeholder="add a comment"
                                 returnKeyType='send'
-                                type='text'
                                 onSubmitEditing={async (e) => {
                                     let content = e.nativeEvent.text;
                                     let newComment = await API.graphql(graphqlOperation(`mutation($task_id: uuid, $details: String) {

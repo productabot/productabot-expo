@@ -205,7 +205,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     root.desktopWeb ? { width: windowDimensions.width / 7, height: 130 } :
                         { width: windowDimensions.width / 7, height: 100 }
                 ]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? colors.card : 'unset' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? colors.placeholder : 'unset' }}>
                     <Text style={{ margin: 5, textAlign: 'left', color: colors.text, fontSize: 12 }}>
                         {date.day}
                     </Text>

@@ -19,15 +19,16 @@ export default function InputComponent({ type, options, optionImage = false, opt
         Platform.OS === 'web' ?
             (type === 'date' ?
                 <input id={type} type={type} value={value} onChange={(e) => { setValue(e.target.value) }}
-                    style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(100% - 12px)', fontFamily: 'arial', borderRadius: 10 }}
+                    style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(' + width + ' - 12px)', fontFamily: 'arial', borderRadius: 10 }}
                 />
                 : type === 'select' ?
-                    <div style={{ width: '100%' }}>
-                        {optionImage && <img style={{ position: 'absolute', top: 10, left: 6, width: 25, height: 25, border: '1px solid white', borderRadius: 5 }} src={`https://files.productabot.com/public/${options.filter(obj => obj.id === value)[0]?.image}`} />}
+                    <div style={{ width: width, display: 'inline-block', position: 'relative' }}>
+                        {optionImage && <img style={{ position: 'absolute', top: 10, left: 6, width: 25, height: 25, border: '1px solid white', borderRadius: 5 }} src={`https://files.productabot.com/public/${options.filter(obj => obj.id === value)[0]?.image ?? 'blank.png'}`} />}
                         {optionCharacterImage && <div style={{ position: 'absolute', zIndex: 1, color: colors.text }}>
+                            {value === '' && <div style={{ fontSize: 60, marginLeft: 1, marginTop: -16 }}>○</div>}
                             {value === 'low' && <div style={{ fontSize: 34, marginLeft: 4, marginTop: 1 }}>⨀</div>}
                             {value === 'medium' && <div style={{ fontSize: 32, marginLeft: 4, marginTop: 2 }}>⦿</div>}
-                            {value === 'high' && <div style={{ fontSize: 60, marginTop: -14, marginLeft: 1 }}>●</div>}
+                            {value === 'high' && <div style={{ fontSize: 60, marginTop: -16, marginLeft: 1 }}>●</div>}
                             {value === 'backlog' && <div style={{ fontSize: 36, marginLeft: 4, marginTop: 2 }}>◔</div>}
                             {value === 'selected' && <div style={{ fontSize: 36, marginLeft: 4, marginTop: 2 }}>◑</div>}
                             {value === 'in_progress' && <div style={{ fontSize: 36, marginLeft: 4, marginTop: 2 }}>◕</div>}

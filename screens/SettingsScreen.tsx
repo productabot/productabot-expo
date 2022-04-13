@@ -3,7 +3,7 @@ import { Text, View } from '../components/Themed';
 import { Storage } from "@aws-amplify/storage";
 import { Auth } from "@aws-amplify/auth";
 import { API, graphqlOperation } from "@aws-amplify/api";
-import { TouchableOpacity, useWindowDimensions, Image, TextInput, StyleSheet, Alert, ScrollView, RefreshControl, Platform, KeyboardAvoidingView, FlatList } from 'react-native';
+import { TouchableOpacity, useWindowDimensions, Image, TextInput, StyleSheet, Alert, ScrollView, RefreshControl, Platform, KeyboardAvoidingView, FlatList, Linking } from 'react-native';
 import * as root from '../Root';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@react-navigation/native';
+import Purchases from 'react-native-purchases';
 
 function formatBytes(bytes: number, decimals = 2) {
     if (bytes === 0 || !bytes) return '0 Bytes';
@@ -47,7 +48,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
         let user = await Auth.currentSession();
         let data = await API.graphql(graphqlOperation(`{
-            users{id created_at email username image first_name last_name plan phone github}
+            users{id created_at email username image first_name last_name plan phone github payment_method}
             files_aggregate(where: {project: {user_id: {_eq: "${user.getIdToken().payload.sub}"}}}) {
                 aggregate {
                   sum {
@@ -128,17 +129,16 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
         setUser(oldUser);
     }
 
+    const cancelPlanChanges = async () => {
+        setUser({ ...user, plan: oldUser.plan });
+    }
+
     const saveChanges = async () => {
         setLoading(true);
-        if (user.plan === 'paid' && oldUser.plan === 'free') {
-            await WebBrowser.openBrowserAsync('https://buy.stripe.com/test_eVa4hW8aC7AuaeQ8ww');
-            //now, check if the payment went through
-            //if it didn't, don't update plan!!
-        }
         try {
             await API.graphql(graphqlOperation(`
             mutation {
-                update_users_by_pk(pk_columns: {id: "${user.id}"}, _set: {username: "${user.username}", email: "${user.email}", first_name: "${user.first_name}", last_name: "${user.last_name}", plan: "${user.plan}", phone: "${user.phone}"}) {
+                update_users_by_pk(pk_columns: {id: "${user.id}"}, _set: {username: "${user.username}", email: "${user.email}", first_name: "${user.first_name}", last_name: "${user.last_name}", phone: "${user.phone}"}) {
                     id
                 }
             }`));
@@ -146,13 +146,68 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
             onRefresh();
         }
         catch (err) {
-            Alert.alert('There was an error saving your changes');
+            Alert.alert('There was an error saving your changes, please try again.');
             setLoading(false);
             onRefresh();
             console.log(err);
         }
         setLoading(false);
 
+    }
+
+    const upgrade = async () => {
+        setLoading(true);
+        if (Platform.OS === 'web') {
+            window.open('https://buy.stripe.com/test_14k7u81Me1c6ev6cMO');
+        }
+        else if (Platform.OS === 'ios') {
+            try {
+                await Purchases.purchaseProduct("44750f17");
+                //delay a second to process the added subscription
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                await onRefresh();
+            }
+            catch (err) {
+                // alert(JSON.stringify(err));
+                if (err?.code === '1') {
+                    Alert.alert(`Warning`, `You didn't complete your purchase! You're still on the free plan.`);
+                    setUser({ ...user, plan: 'free' });
+                }
+                setLoading(false);
+            }
+        }
+        setLoading(false);
+    }
+    const downgrade = async () => {
+        if (oldUser.payment_method === 'stripe') {
+            if (Platform.OS === 'web') {
+                if (confirm(`Are you sure you want to move back to the free plan? You will lose access to everything except your first 4 projects, and if you have more than 25 mb of storage used, your latest data beyond 25mb will be deleted in 30 days.`)) {
+                    await API.get('1', '/auth/cancelStripe', {});
+                    alert(`Success! You're back on the free plan.`);
+                }
+            }
+            else if (Platform.OS === 'ios') {
+                alert(`Sorry, this plan is managed through a web-based subscription. Please login through a browser to cancel your subscription, or cancel by contacing support@productabot.com if you're unable to login through your browser.`);
+            }
+        }
+        else if (oldUser.payment_method === 'ios') {
+            if (Platform.OS === 'web') {
+                alert(`Sorry, this plan is managed through an iOS subscription. Please use the app to cancel your subscription, or cancel by contacing support@productabot.com if you're unable to reach your device.`);
+            }
+            else if (Platform.OS === 'ios') {
+                Alert.alert('Warning', 'Are you sure you want to move back to the free plan? You will lose access to everything except your first 4 projects, and if you have more than 25 mb of storage used, your latest data beyond 25mb will be deleted in 30 days.\n\nIf click you click "Yes", you will be redirected to the App Store Manage Subscriptions page where you can cancel your subscription.',
+                    [{ text: "No", style: "cancel" }, {
+                        text: "Yes", style: "destructive", onPress: async () => {
+                            const purchaserInfo = await Purchases.getPurchaserInfo();
+                            Linking.openURL(purchaserInfo?.managementURL);
+                        }
+                    }]);
+            }
+        }
+        else {
+            alert(`There was an error processing your request, please contact support@productabot.com for more assistance.`);
+        }
+        setLoading(false);
     }
 
     return (
@@ -208,43 +263,65 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                     <SegmentedControl
                         appearance={colors.background === '#000000' ? 'dark' : 'light'}
                         style={{ marginTop: 10 }}
-                        values={[`account`, `payment`, `integrations`]}
+                        values={[`plan`, `account`, `integrations`]}
                         selectedIndex={index}
                         onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                     />
                     <View style={{ flexDirection: 'column', width: '100%' }}>
                         {index == 0 &&
                             <>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'free' }) }} style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 200, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'free' ? '#3F0054' : colors.background }}>
-                                        <Image style={{ height: Platform.OS === 'web' ? 150 : 80, width: Platform.OS === 'web' ? 150 : 80, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === 'free' ? '#ffffff' : colors.text }} source={require('../assets/images/free.png')} />
-                                        <View style={{ flexDirection: 'column' }}>
-                                            <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
-                                                <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 20, fontWeight: 'bold' }}>free</Text>
-                                                <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 20 }}>$0.00 per month</Text>
-                                            </View>
-                                            <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                                <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 14 }}>• 25 MB storage</Text>
-                                                <Text style={{ color: user.plan === 'free' ? '#ffffff' : colors.text, fontSize: 14 }}>• 4 projects</Text>
-                                            </View>
-                                        </View>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => { setUser({ ...user, plan: 'paid' }) }} style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: 'center', width: '45%', height: 200, borderRadius: 10, borderColor: '#444444', borderWidth: 1, margin: 20, backgroundColor: user.plan === 'paid' ? '#3F0054' : colors.background }}>
-                                        <Image style={{ height: Platform.OS === 'web' ? 150 : 80, width: Platform.OS === 'web' ? 150 : 80, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === 'paid' ? '#ffffff' : colors.text }} source={require('../assets/images/premium.png')} />
-                                        <View style={{ flexDirection: 'column' }}>
-                                            <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
-                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 20, fontWeight: 'bold' }}>✦ premium</Text>
-                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 20 }}>$2.49 per month</Text>
-                                            </View>
-                                            <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 14 }}>• 250 GB storage</Text>
-                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 14 }}>• unlimited projects</Text>
-                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 14 }}>• website & blog</Text>
-                                                <Text style={{ color: user.plan === 'paid' ? '#ffffff' : colors.text, fontSize: 14 }}>• API integrations</Text>
-                                            </View>
-                                        </View>
-                                    </TouchableOpacity>
+                                <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 0, width: '100%', justifyContent:'center' }}>
+                                    {user.plan ?
+                                        <Text style={{ fontSize: 16, textAlign: 'center' }}>You are currently subscribed to the <Text style={{ fontSize: 16, fontWeight: 'bold', backgroundColor: '#3F0054', color:'#ffffff' }}>{user.plan === 'free' ? ' free ' : ' premium '}</Text> plan.</Text>
+                                        :
+                                        <Text style={{ fontSize: 16 }}>{` `}</Text>
+                                    }
                                 </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    {[{
+                                        key: 'free', image: require('../assets/images/free.png'), label: 'free', price: '$0.00 per month', points: [
+                                            '25 MB storage', '2 projects', 'no website', 'no integrations'
+                                        ]
+                                    },
+                                    {
+                                        key: 'paid', image: require('../assets/images/premium.png'), label: '✦ premium', price: '$2.49 per month', points: [
+                                            '250 GB storage', 'unlimited projects', 'custom website', 'API integrations'
+                                        ]
+                                    }].map(obj =>
+                                        <View style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start', width: '45%', height: Platform.OS === 'web' ? 300 : 400, borderRadius: 10, borderColor: colors.border, borderWidth: 1, margin: 10, backgroundColor: user.plan === obj.key ? '#3F0054' : colors.background }}>
+                                            <Image style={{ height: 150, width: 150, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === obj.key ? '#ffffff' : colors.text }} source={obj.image} />
+                                            <View style={{ flexDirection: 'column', padding: 10 }}>
+                                                <View style={{ flexDirection: 'column', alignItems: 'flex-start', marginBottom: 10 }}>
+                                                    <Text style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 20, fontWeight: 'bold' }}>{obj.label}</Text>
+                                                    <Text style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 20 }}>{obj.price}</Text>
+                                                </View>
+                                                <View style={{ flexDirection: 'column', padding: 5 }}>
+                                                    {obj.points.map(innerObj =>
+                                                        <Text style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 14, marginBottom: 5 }}>• {innerObj}</Text>
+                                                    )}
+                                                </View>
+                                                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+                                                    {user.plan ?
+                                                        (user.plan !== obj.key ?
+                                                            <TouchableOpacity onPress={obj.key === 'free' ? downgrade : upgrade} style={{ borderRadius: 10, padding: 10, width: '85%', backgroundColor: '#3F0054' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{obj.key === 'free' ? `downgrade` : `upgrade`}</Text></TouchableOpacity>
+                                                            :
+                                                            <TouchableOpacity style={{ borderRadius: 10, padding: 10, width: '100%', backgroundColor: '#000000' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{`subscribed ✓`}</Text></TouchableOpacity>)
+                                                        :
+                                                        <TouchableOpacity style={{ borderRadius: 10, padding: 10, width: '100%', backgroundColor: '#000000' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{` `}</Text></TouchableOpacity>}
+                                                </View>
+                                            </View>
+                                        </View>)}
+                                </View>
+                                <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 0, width: '100%', justifyContent: 'center' }}>
+                                    {user.plan ?
+                                        <Text style={{ fontSize: 16, textAlign: 'center' }}>Need help? Contact us anytime through <Text href='mailto:support@productabot.com' onPress={(e) => { e.preventDefault(); Linking.openURL('mailto:support@productabot.com') }} style={{ fontSize: 16, fontWeight: 'bold', textDecorationLine: 'underline' }}>support@productabot.com</Text>.</Text>
+                                        :
+                                        <Text style={{ fontSize: 16 }}>{` `}</Text>
+                                    }
+                                </View>
+                            </>}
+                        {index == 1 &&
+                            <View style={{ padding: 10 }}>
 
                                 <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
                                     <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>website </Text>
@@ -282,18 +359,11 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                                         {`change password →`}
                                     </Text>
                                 </View>
-                                {(!user.username || user !== oldUser) &&
+                                {(user !== oldUser) &&
                                     <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
                                         <TouchableOpacity onPress={cancelChanges} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>
                                         <TouchableOpacity onPress={saveChanges} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>save changes</Text></TouchableOpacity>
                                     </View>}
-                            </>}
-                        {index == 1 &&
-                            <View style={{ padding: 10 }}>
-                                <Text style={{ width: '100%', marginBottom: 5 }}>cards</Text>
-                                <FlatList style={{ width: '100%', height: 150, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 20 }} data={[]} renderItem={(item) => <View></View>} />
-                                <Text style={{ width: '100%', marginBottom: 5 }}>invoices</Text>
-                                <FlatList style={{ width: '100%', height: 300, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 5 }} data={[]} renderItem={(item) => <View></View>} />
                             </View>}
                         {index == 2 &&
                             <View style={{ padding: 10 }}>
