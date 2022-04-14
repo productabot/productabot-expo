@@ -31,7 +31,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
                     connectWebsocket();
                     setState({ ...state, errorMessage: '', successMessage: '', email: '', password: '' });
                     setLoading(false);
-                    navigation.push('app');
+                    navigation.navigate('app');
                 });
             });
         }
@@ -49,7 +49,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
             connectWebsocket();
             setLoading(false);
             setState({ ...state, errorMessage: '', successMessage: '', email: '', password: '' });
-            navigation.push('app');
+            navigation.navigate('app');
         }
         catch (err) {
             console.log(err);

@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import * as React from 'react';
 import { View, Platform, Text, TouchableOpacity, useWindowDimensions, Pressable, StatusBar, Animated, Easing } from 'react-native';
+import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -33,6 +34,7 @@ import SheetScreen from '../screens/SheetScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@react-navigation/native';
 import { API, graphqlOperation } from "@aws-amplify/api";
+import { TransitionPresets } from '@react-navigation/stack';
 
 export default function Navigation({ navigation, authenticated, setLoading, loading, setBackgroundColor }: any) {
   const [theme, setTheme] = React.useState('dark');
@@ -107,20 +109,23 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
   const { colors } = useTheme();
   return (
     <RootStack.Navigator initialRouteName={authenticated ? 'app' : 'auth'} screenOptions={{ headerShown: false }}>
-      <RootStack.Screen name="auth" options={{ animationEnabled: false }}>
-        {props => <AuthStack.Navigator {...props} initialRouteName="login" screenOptions={{ headerShown: false }} >
-          <AuthStack.Screen name="login" options={{ animationEnabled: false }}>
-            {props => <LoginScreen {...props} setLoading={setLoading} loading={loading} />}
+      <RootStack.Screen name="auth" options={{ animationEnabled: true }}>
+        {props => <AuthStack.Navigator {...props} initialRouteName={Platform.OS === 'web' ? 'login' : 'welcome'} screenOptions={{ headerShown: false }} >
+          <AuthStack.Screen name="login" options={{ animationEnabled: true, ...TransitionPresets.ScaleFromCenterAndroid }}>
+            {props => <LoginScreen {...props} setLoading={setLoading} loading={loading} setTheme={setTheme} theme={theme} />}
           </AuthStack.Screen>
-          <AuthStack.Screen name="signup" options={{ animationEnabled: false }} >
+          <AuthStack.Screen name="signup" options={{ animationEnabled: true, ...TransitionPresets.ScaleFromCenterAndroid }} >
             {props => <SignupScreen {...props} setLoading={setLoading} loading={loading} />}
           </AuthStack.Screen>
-          <AuthStack.Screen name="reset" options={{ animationEnabled: false }} >
+          <AuthStack.Screen name="reset" options={{ animationEnabled: true, ...TransitionPresets.ScaleFromCenterAndroid }} >
             {props => <ResetScreen {...props} setLoading={setLoading} loading={loading} />}
+          </AuthStack.Screen>
+          <AuthStack.Screen name="welcome" options={{ animationEnabled: true, ...TransitionPresets.ScaleFromCenterAndroid }}>
+            {props => <WelcomeScreen {...props} setLoading={setLoading} loading={loading} setTheme={setTheme} theme={theme} />}
           </AuthStack.Screen>
         </AuthStack.Navigator>}
       </RootStack.Screen>
-      <RootStack.Screen name="app" options={{ animationEnabled: false }}>
+      <RootStack.Screen name="app" options={{ animationEnabled: true }}>
         {props =>
           <AppBottomTab.Navigator {...props} initialRouteName="projectsTab" backBehavior={'history'}
             screenOptions={{ lazy: true, headerShown: false, tabBarActiveTintColor: colors.text, tabBarStyle: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: '100%', marginLeft: 'auto', marginRight: 'auto', backgroundColor: colors.background, borderTopWidth: 0 } : { backgroundColor: colors.background, borderTopWidth: 0 }, tabBarLabelStyle: Platform.OS !== 'web' ? { top: -13, fontSize: 18 } : {}, tabBarIconStyle: { display: 'none' } }}>
@@ -148,33 +153,34 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               title: `⧉ projects`,
               tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
               tabBarLabelStyle: { fontSize: Platform.OS === 'web' ? 13 : 15 },
-              tabBarButton: (props) => <Pressable {...props} href={`/projects`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
+              tabBarButton: (props) => <Pressable {...props} href={`/projects`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />,
             }}>
               {props => {
+                const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: true } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="projects" >
-                    <AppStack.Screen name="projects">
+                    <AppStack.Screen name="projects" options={{ ...defaultAnimation }}>
                       {props => <ProjectsScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="project">
+                    <AppStack.Screen name="project" options={{ ...defaultAnimation, ...TransitionPresets.ScaleFromCenterAndroid }}>
                       {props => <ProjectScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="document">
+                    <AppStack.Screen name="document" options={{ ...defaultAnimation }}>
                       {props => <DocumentScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="sheet">
+                    <AppStack.Screen name="sheet" options={{ ...defaultAnimation }}>
                       {props => <SheetScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="entry">
+                    <AppStack.Screen name="entry" options={{ ...defaultAnimation }}>
                       {props => <EntryScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="event">
+                    <AppStack.Screen name="event" options={{ ...defaultAnimation }}>
                       {props => <EventScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="task">
+                    <AppStack.Screen name="task" options={{ ...defaultAnimation }}>
                       {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="edit_task">
+                    <AppStack.Screen name="edit_task" options={{ ...defaultAnimation }}>
                       {props => <EditTaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>
@@ -188,21 +194,22 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               tabBarButton: (props) => <Pressable {...props} href={`/calendar`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
+                const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: true } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="calendar">
-                    <AppStack.Screen name="calendar">
+                    <AppStack.Screen name="calendar" options={{ ...defaultAnimation }}>
                       {props => <CalendarScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="entry">
+                    <AppStack.Screen name="entry" options={{ ...defaultAnimation }}>
                       {props => <EntryScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="task">
+                    <AppStack.Screen name="task" options={{ ...defaultAnimation }}>
                       {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="event">
+                    <AppStack.Screen name="event" options={{ ...defaultAnimation }}>
                       {props => <EventScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="edit_task">
+                    <AppStack.Screen name="edit_task" options={{ ...defaultAnimation }}>
                       {props => <EditTaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>
@@ -216,21 +223,22 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               tabBarButton: (props) => <Pressable {...props} href={`/tasks`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
+                const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: true } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="tasks">
                     {(windowDimensions.width < 800) ?
-                      <AppStack.Screen name="tasks">
+                      <AppStack.Screen name="tasks" options={{ ...defaultAnimation }}>
                         {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                       </AppStack.Screen>
                       :
-                      <AppStack.Screen name="tasks">
+                      <AppStack.Screen name="tasks" options={{ ...defaultAnimation }}>
                         {props => <TasksDesktopScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                       </AppStack.Screen>
                     }
-                    <AppStack.Screen name="task">
+                    <AppStack.Screen name="task" options={{ ...defaultAnimation }}>
                       {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="edit_task">
+                    <AppStack.Screen name="edit_task" options={{ ...defaultAnimation }}>
                       {props => <EditTaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>)
@@ -243,18 +251,19 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               tabBarButton: (props) => <Pressable {...props} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
+                const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="notes">
                     {(windowDimensions.width < 400) ?
-                      <AppStack.Screen name="notes">
+                      <AppStack.Screen name="notes" options={{ ...defaultAnimation }}>
                         {props => <NotesMobileScreen {...props} refresh={refresh} setLoading={setLoading} />}
                       </AppStack.Screen>
                       :
-                      <AppStack.Screen name="notes">
+                      <AppStack.Screen name="notes" options={{ ...defaultAnimation }}>
                         {props => <NotesDesktopScreen {...props} refresh={refresh} setLoading={setLoading} />}
                       </AppStack.Screen>
                     }
-                    <AppStack.Screen name="note">
+                    <AppStack.Screen name="note" options={{ ...defaultAnimation }}>
                       {props => <NoteScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>)
@@ -264,13 +273,11 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               tabBarButton: props => <View />
             }}>
               {props => {
+                const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
                   <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="settings">
-                    <AppStack.Screen name="settings">
+                    <AppStack.Screen name="settings" options={{ ...defaultAnimation }}>
                       {props => <SettingsScreen {...props} refresh={refresh} setLoading={setLoading} setTheme={setTheme} theme={theme} />}
-                    </AppStack.Screen>
-                    <AppStack.Screen name="test">
-                      {props => <TestScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>)
               }}

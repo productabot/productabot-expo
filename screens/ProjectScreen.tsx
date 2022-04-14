@@ -148,7 +148,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                   }
               }
             }
-            files(order_by: {order: asc}) {
+            files(order_by: {order: desc}) {
               id
               title
               type

@@ -59,7 +59,7 @@ export default function ResetScreen({ route, navigation, setLoading, loading }: 
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
-                    onPress={() => { navigation.push('login') }}>
+                    onPress={() => { navigation.goBack() }}>
                     <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
                 </TouchableOpacity>
             </KeyboardAvoidingView>

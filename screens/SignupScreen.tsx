@@ -36,7 +36,7 @@ export default function SignupScreen({ route, navigation, setLoading, loading }:
             try {
                 await Auth.signUp({ username: uuidv4(), password: state.password, attributes: { 'custom:username': state.username, email: state.email, 'custom:userType': 'user' } });
                 setLoading(false);
-                navigation.push('login', { success: true });
+                navigation.navigate('login', { success: true });
             }
             catch (err) {
                 console.log(err);
@@ -87,7 +87,7 @@ export default function SignupScreen({ route, navigation, setLoading, loading }:
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
-                    onPress={() => { navigation.push('login') }}>
+                    onPress={() => { navigation.goBack(); }}>
                     <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
                 </TouchableOpacity>
                 <InputAccessoryViewComponent />

@@ -22,7 +22,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.productabot",
       "usesIcloudStorage": true,
-      "buildNumber": "2022.04.11"
+      "buildNumber": "2022.04.12.1",
+      "associatedDomains": [
+        "applinks:app.productabot.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {

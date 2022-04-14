@@ -60,8 +60,8 @@ export default function EventScreen({ route, navigation, refresh, setLoading }: 
 
         //check if the user has any projects
         if (projects.data.projects.length === 0) {
-            alert('You must add a project before adding a time event');
-            navigation.push('projectsTab');
+            alert('You must add a project before adding an event');
+            navigation.goBack();
         }
 
         //load existing event if editing

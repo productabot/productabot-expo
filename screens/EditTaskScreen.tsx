@@ -55,7 +55,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
         //check if the user has any projects
         if (projectsData.data.projects.length === 0) {
             alert('You must add a project before adding a task');
-            navigation.push('projectsTab');
+            navigation.goBack();
         }
 
         //load existing task if editing
@@ -83,11 +83,11 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                   project_id
                 }
               }`));
-            lastProject = data.data.tasks[0]?.project_id;
+            lastProject = data.data.tasks[0]?.project_id ?? '';
         }
 
         setTask({
-            project: route.params.id ? task.project_id : route.params.project_id ? route.params.project_id : lastProject ? lastProject : projects.data.projects.length !== 0 ? projects.data.projects[0].id : null,
+            project: route.params.id ? task.project_id : route.params.project_id ? route.params.project_id : lastProject ? lastProject : projectsData.data.projects.length !== 0 ? projectsData.data.projects[0].id : null,
             date: route.params.id ? task.date : route.params.date ? await root.exportDate(new Date(route.params.date), 1) : null,
             category: route.params.id ? task.category : null,
             details: route.params.id ? task.details : null,
@@ -115,7 +115,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                 mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String, $priority: String) {
                     insert_tasks_one(object: {project_id: $project_id, date: $date, details: $details, category: $category, status: $status, priority: $priority, root_order: 10000 }) {id}
                 }
-              `, { project_id: task.project, date: task.date, details: task.details, category: task.category, status: task.status, priority: task.priority }));
+              `, { project_id: task.project, date: ['', null].includes(task.date) ? null : task.date, details: task.details, category: task.category, status: task.status, priority: task.priority }));
             console.log(response);
             setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value, status: 'backlog', priority: 'low' });
             setLoading(false);

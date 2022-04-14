@@ -29,6 +29,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
     const windowDimensions = useWindowDimensions();
     const [contextPosition, setContextPosition] = React.useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
     const menuRef = React.useRef(null);
+    const flatListRef = React.useRef(null);
     const [confetti, setConfetti] = React.useState(false);
     const { colors } = useTheme();
 
@@ -93,6 +94,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
         setTasks(tasksData.data.tasks);
         setCount({ backlog: tasksData.data.backlog.aggregate.count, selected: tasksData.data.selected.aggregate.count, in_progress: tasksData.data.in_progress.aggregate.count, done: tasksData.data.done.aggregate.count })
         setProjects([{ name: 'show all projects', id: '' }, ...tasksData.data.projects]);
+        flatListRef.current.scrollToOffset({ animated: false, offset: 0 })
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
 
@@ -103,7 +105,8 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
             onHandlerStateChange={({ nativeEvent }) => {
                 if (nativeEvent.state === State.ACTIVE) {
                     if (index !== 3) {
-                        setIndex(index + 1)
+                        setChecked([]);
+                        setIndex(index + 1);
                     }
                 }
             }}>
@@ -112,6 +115,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                 onHandlerStateChange={({ nativeEvent }) => {
                     if (nativeEvent.state === State.ACTIVE) {
                         if (index !== 0) {
+                            setChecked([]);
                             setIndex(index - 1);
                         }
                     }
@@ -162,6 +166,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                             onChange={(e) => { setChecked([]); setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                         />
                         <CustomDraggableFlatList
+                            flatListRef={flatListRef}
                             noBorder={true}
                             data={tasks}
                             renderItem={({ item, index }) =>

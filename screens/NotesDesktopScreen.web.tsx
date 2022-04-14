@@ -84,7 +84,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                 setTag(tagId.length > 0 ? data.tags.filter(obj => obj.id === tagId)[0] : data.tags[0]);
                 setNotes(tagId.length > 0 ? data.tags.filter(obj => obj.id === tagId)[0].notes : data.tags[0].notes)
                 if (noteId.length === 0) {
-                    setNoteId(data.tags[0].notes[0].id);
+                    setNoteId(data.tags[0]?.notes[0]?.id);
                 }
             }
         });
