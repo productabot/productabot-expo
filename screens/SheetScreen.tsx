@@ -39,6 +39,9 @@ export default function SheetScreen({ route, navigation, refresh, setLoading }: 
                 let decrypted = CryptoJS.AES.decrypt(data.data.files_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
                 data.data.files_by_pk.content = decrypted;
             }
+            else {
+                data.data.files_by_pk.content = '[[]]';
+            }
         }
         catch (err) { console.log(err) }
         setSheet(data.data.files_by_pk);

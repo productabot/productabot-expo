@@ -163,7 +163,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     <AppStack.Screen name="projects" options={{ ...defaultAnimation }}>
                       {props => <ProjectsScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="project" options={{ ...defaultAnimation, ...TransitionPresets.ScaleFromCenterAndroid }}>
+                    <AppStack.Screen name="project" options={{ ...defaultAnimation }}>
                       {props => <ProjectScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="document" options={{ ...defaultAnimation }}>

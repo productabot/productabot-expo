@@ -3,6 +3,7 @@ import { StyleSheet, TouchableOpacity, Image, TextInput, useWindowDimensions, Pl
 import { Text, View } from '../components/Themed';
 import { Storage } from "@aws-amplify/storage";
 import { API, graphqlOperation } from "@aws-amplify/api";
+import { Auth } from "@aws-amplify/auth";
 import * as root from '../Root';
 import { useFocusEffect } from '@react-navigation/native';
 import 'react-native-get-random-values';
@@ -73,9 +74,18 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
     const [settings, setSettings] = useState(false);
     const [count, setCount] = useState({});
     const [folder, setFolder] = useState('');
+    const [identityId, setIdentityId] = useState('');
     const [itemToMove, setItemToMove] = useState(null);
     const { colors } = useTheme();
     const opacity = useRef(new Animated.Value(0)).current;
+
+    React.useEffect(() => {
+        const async = async () => {
+            let user = await Auth.currentCredentials()
+            setIdentityId(user.identityId);
+        }
+        async();
+    }, [])
 
     React.useEffect(() => {
         if (Platform.OS === 'web') {
@@ -254,32 +264,46 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         Animated.sequence([Animated.timing(opacity, { toValue: 1, duration: Platform.OS === 'web' ? 1 : 100, easing: Easing.linear, useNativeDriver: true })]).start();
     }
 
-    const pickImage = async () => {
+    const pickImage = async (type = 'thumbnail') => {
         try {
             let selectedMedia = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.All,
-                allowsEditing: true,
-                aspect: [1, 1],
-                quality: 1,
+                allowsEditing: type === 'thumbnail' ? true : false,
+                quality: 0.5,
                 videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
             });
             if (!selectedMedia.cancelled) {
                 setLoading(true);
-                let media = await ImageManipulator.manipulateAsync(selectedMedia.uri, [{ resize: { width: 500 } }], { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG });
-                let response = await fetch(media.uri);
-                let blob = await response.blob();
-                let filename = `${uuidv4()}.jpg`;
-                await Storage.put(filename, blob, { contentType: 'image/jpeg', level: 'public' });
-                try { project.image && await Storage.remove(project.image); }
-                catch (err) { console.log(err); }
-                setProject({ ...project, image: filename });
-                // let user = await Auth.currentSession(); "us-east-2:${user.getIdToken().payload.sub}/"
-                await API.graphql(graphqlOperation(`
-                mutation {
-                    update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {image: "${filename}"}) {
-                        id
-                    }
-                }`));
+                if (type === 'thumbnail') {
+                    let media = await ImageManipulator.manipulateAsync(selectedMedia.uri, [{ resize: { width: 500 } }], { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG });
+                    let response = await fetch(media.uri);
+                    let blob = await response.blob();
+                    let filename = `${uuidv4()}.jpg`;
+                    await Storage.put(filename, blob, { contentType: 'image/jpeg', level: 'public' });
+                    try { project.image && await Storage.remove(project.image); }
+                    catch (err) { console.log(err); }
+                    setProject({ ...project, image: filename });
+                    // let user = await Auth.currentSession(); "us-east-2:${user.getIdToken().payload.sub}/"
+                    await API.graphql(graphqlOperation(`
+                    mutation {
+                        update_projects_by_pk(pk_columns: {id: "${project.id}"}, _set: {image: "${filename}"}) {
+                            id
+                        }
+                    }`));
+                }
+                else if (type === 'file') {
+                    Alert.prompt(`New ${selectedMedia.type} title`, '', async (text) => {
+                        setLoading(true);
+                        let response = await fetch(selectedMedia.uri);
+                        let blob = await response.blob();
+                        let filename = `${text}.${selectedMedia.type === 'image' ? 'jpg' : 'mp4'}`;
+                        await Storage.put(`${project.id}/${folder ? `${folder.id}/` : ''}${filename}`, blob, { contentType: blob.type, level: 'private' });
+                        await API.graphql(graphqlOperation(`mutation {
+                            insert_files_one(object: {title: "${filename}", type: "${blob.type}", size: "${blob.size}", order: ${project.files.length}, project_id: "${project.id}"${folder ? `, folder_id: "${folder.id}"` : ''}}) {id}
+                        }`));
+                        onRefresh();
+                    }, 'plain-text');
+                }
             }
             setLoading(false);
         } catch (err) {
@@ -296,7 +320,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             navigation.push('edit_task', { project_id: project.id })
         }
         else if (type === 'document') {
-            const renameFunction = async (text) => {
+            const nameFunction = async (text) => {
                 setLoading(true);
                 let data = await API.graphql(graphqlOperation(`mutation {
                     insert_files_one(object: {title: "${text}", content: "", order: ${project.files.length}, project_id: "${project.id}"${folder ? `, folder_id: "${folder.id}"` : ''}}) {id}
@@ -307,24 +331,27 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
 
             if (Platform.OS !== 'web') {
                 Alert.prompt('New Document Title', '', async (text) => {
-                    await renameFunction(text);
+                    await nameFunction(text);
                 }, 'plain-text');
             }
             else {
-                let rename = prompt('New Document Title');
-                if (rename) {
-                    await renameFunction(rename);
+                let text = prompt('New Document Title');
+                if (text) {
+                    await nameFunction(text);
                 }
             }
         }
         else if (type === 'sheet') {
             if (Platform.OS === 'web') {
-                setLoading(true);
-                let data = await API.graphql(graphqlOperation(`mutation {
-                    insert_files_one(object: {title: "New Sheet", content: "", order: ${project.files.length}, project_id: "${project.id}", type: "sheet"${folder ? `, folder_id: "${folder.id}"` : ''}}) {id}
-                }`));
-                setLoading(false);
-                navigation.push('sheet', { id: data.data.insert_files_one.id })
+                let text = prompt('New Sheet Title');
+                if (text) {
+                    setLoading(true);
+                    let data = await API.graphql(graphqlOperation(`mutation {
+                        insert_files_one(object: {title: "New Sheet", content: "", order: ${project.files.length}, project_id: "${project.id}", type: "sheet"${folder ? `, folder_id: "${folder.id}"` : ''}}) {id}
+                    }`));
+                    setLoading(false);
+                    navigation.push('sheet', { id: data.data.insert_files_one.id })
+                }
             }
             else {
                 alert('Sorry! Sheets are not supported on the mobile app at this time');
@@ -372,8 +399,11 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         else if (type === 'budget') {
             navigation.push('budget', { project_id: project.id })
         }
+        else if (type === 'image') {
+            pickImage('file');
+        }
         else if (type === 'mobile') {
-            let options = ['Cancel', 'Add Folder', 'Add Document', 'Upload File'];
+            let options = ['Cancel', 'Add Folder', 'Add Document', 'Upload Image/Video', 'Upload File'];
             ActionSheetIOS.showActionSheetWithOptions(
                 {
                     options: options,
@@ -385,6 +415,9 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                     }
                     else if (buttonIndex === options.indexOf('Add Document')) {
                         addAction('document');
+                    }
+                    else if (buttonIndex === options.indexOf('Upload Image/Video')) {
+                        addAction('image');
                     }
                     else if (buttonIndex === options.indexOf('Upload File')) {
                         addAction('file');
@@ -404,8 +437,8 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
             <View style={{ maxWidth: window.width, width: '100%', padding: 10, height: '100%', paddingTop: 0 }}>
                 {Platform.OS === 'web' && <View style={{ height: 80 }} />}
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <TouchableOpacity style={{ marginRight: 10 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', width: '90%' }}>
+                        <TouchableOpacity style={{ marginRight: 5 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
                         <TouchableOpacity onPress={() => { pickImage(); }}>
                             {project.image ?
                                 <Image
@@ -416,7 +449,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 <View style={{ width: Platform.OS === 'web' ? 80 : 60, height: Platform.OS === 'web' ? 80 : 60, marginRight: 10, borderColor: colors.text, borderWidth: 1, borderRadius: 10 }} />
                             }
                         </TouchableOpacity>
-                        <Animated.View style={{ opacity: opacity }}>
+                        <Animated.View style={{ opacity: opacity, width: window.width - 145 }}>
                             <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: colors.text }, root.desktopWeb && { outlineWidth: 0 }]}
                                 onChangeText={(value) => { setProject({ ...project, name: value }); }}
                                 onBlur={async () => {
@@ -440,7 +473,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             />
                         </Animated.View>
                     </View>
-                    <TouchableOpacity style={{ position: 'absolute', right: 5 }} onPress={() => { setSettings(!settings); }} ><Text style={{ fontSize: 30, marginTop:-15 }}>⚙️</Text></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setSettings(!settings); }} ><Text style={{ fontSize: 30 }}>⚙️</Text></TouchableOpacity>
                 </View>
                 {settings ?
                     <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: 10, width: root.desktopWeb ? 600 : '100%', alignSelf: 'center' }}>
@@ -636,9 +669,9 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                             <>
                                                 <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
                                                     <Text style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7, fontSize: 30 }}>
-                                                        {item.type === 'folder' ? '📁' : item.type === 'document' ? '📄' : item.type === 'sheet' ? '📈' : item.type.startsWith('image') ? '🖼️' : item.type.endsWith('pdf') ? '📃' : '💻'}
+                                                        {item.type === 'folder' ? '📁' : item.type === 'document' ? '📄' : item.type === 'sheet' ? '📈' : item.type.startsWith('image') ? <Image source={{ uri: `https://files.productabot.com/private/${identityId}/${project.id}/${item.title}` }} style={{ borderRadius: 5, marginBottom: -5, width: Platform.OS === 'web' ? 40 : 30, height: Platform.OS === 'web' ? 40 : 30 }} /> : item.type.endsWith('pdf') ? '📃' : item.type.startsWith('video') ? '📹' : item.type.startsWith('audio') ? '🎧' : '💻'}
                                                     </Text>
-                                                    <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
+                                                    <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '80%' }}>
                                                         <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.updated_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
                                                         <Text style={{ fontSize: 14 }}>{item.title}</Text>
                                                         <Text style={{ fontSize: 10, color: colors.subtitle }}>{`${['document', 'sheet', 'folder'].includes(item.type) ? item.type : item.type + ' | ' + formatBytes(item.size)}`}</Text>
@@ -664,7 +697,8 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                             }
                                             else {
                                                 let link = await Storage.get(`${project.id}/${folder ? `${folder.id}/` : ''}${item.item.title}`, { level: 'private', expires: 10 });
-                                                await WebBrowser.openBrowserAsync(link.replace('https://pbot-prod-files.s3.us-east-2.amazonaws.com', 'https://files.productabot.com'));
+                                                link = link.replace('https://pbot-prod-files.s3.us-east-2.amazonaws.com', 'https://files.productabot.com')
+                                                await WebBrowser.openBrowserAsync(link);
                                             }
                                         }}
                                         onMove={async (item) => {
@@ -1039,7 +1073,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                 <MenuOptions style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', backgroundColor: colors.background, borderColor: colors.text, borderWidth: 1, borderStyle: 'solid', borderRadius: 10, width: Platform.OS === 'web' ? 400 : window.width * 0.8, height: Platform.OS === 'web' ? 300 : window.height * 0.6, paddingLeft: 15, paddingTop: 5, paddingBottom: 5 }}>
                     <FlatList
                         style={{ width: '100%', height: '100%' }}
-                        data={[{ id: null, title: '/' }, ...project?.folders.filter(obj =>
+                        data={[{ id: null, title: '' }, ...project?.folders.filter(obj =>
                             obj.id !== itemToMove?.id &&
                             obj.folder?.id !== itemToMove?.id &&
                             obj.folder?.folder?.id !== itemToMove?.id &&
@@ -1048,7 +1082,14 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             obj.folder?.folder?.folder?.folder?.folder?.id !== itemToMove?.id &&
                             true
                         )]}
-                        ListHeaderComponent={() => <Text style={{ color: colors.text, padding: 10, backgroundColor: colors.background }}>select a folder</Text>}
+                        ListHeaderComponent={() =>
+                            <View style={{ backgroundColor: colors.background, width: '100%', height: 50, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Text style={{ color: colors.text, padding: 10, backgroundColor: colors.background }}>select a folder</Text>
+                                <TouchableOpacity onPress={() => { folderRef.current.close(); }} style={{ backgroundColor: '#efefef', borderRadius: 10, paddingLeft: 10, paddingRight: 10, paddingTop: 2, paddingBottom: 2, marginRight: 10 }}>
+                                    <Text style={{ color: '#000000', textAlign: 'center' }}>cancel</Text>
+                                </TouchableOpacity>
+                            </View>
+                        }
                         stickyHeaderIndices={[0]}
                         renderItem={({ item }) =>
                             <TouchableOpacity
@@ -1074,7 +1115,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     folderRef.current.close();
                                 }}>
                                 <Text style={{ color: colors.text, margin: 20 }}>
-                                    {`📁 ${item?.folder?.folder?.folder?.folder?.folder ? `${item?.folder?.folder?.folder?.folder?.folder.title} / ` : ''}${item?.folder?.folder?.folder?.folder ? `${item?.folder?.folder?.folder?.folder.title} / ` : ''}${item?.folder?.folder?.folder ? `${item?.folder?.folder?.folder.title} / ` : ''}${item?.folder?.folder ? `${item?.folder?.folder.title} / ` : ''}${item.folder ? `${item.folder.title} / ` : ''}${item.title}`}
+                                    {`📁 / ${item?.folder?.folder?.folder?.folder?.folder ? `${item?.folder?.folder?.folder?.folder?.folder.title} / ` : ''}${item?.folder?.folder?.folder?.folder ? `${item?.folder?.folder?.folder?.folder.title} / ` : ''}${item?.folder?.folder?.folder ? `${item?.folder?.folder?.folder.title} / ` : ''}${item?.folder?.folder ? `${item?.folder?.folder.title} / ` : ''}${item.folder ? `${item.folder.title} / ` : ''}${item.title}`}
                                 </Text>
                             </TouchableOpacity>
                         }
