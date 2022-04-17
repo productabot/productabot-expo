@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AnimatedLogo } from '../components/AnimatedLogo';
 import { useTheme } from '@react-navigation/native';
 
-export default function LoginScreen({ route, navigation, setLoading, loading }: any) {
+export default function LoginScreen({ route, navigation, setLoading, loading, setTheme, theme }: any) {
     const client = useApolloClient();
     const [state, setState] = useState({ email: '', password: '', errorMessage: '', successMessage: '', success: false });
     const { colors } = useTheme();
@@ -31,7 +31,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
                     connectWebsocket();
                     setState({ ...state, errorMessage: '', successMessage: '', email: '', password: '' });
                     setLoading(false);
-                    navigation.navigate('app');
+                    navigation.reset({ index: 0, routes: [{ name: 'app' }] });
                 });
             });
         }
@@ -49,7 +49,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
             connectWebsocket();
             setLoading(false);
             setState({ ...state, errorMessage: '', successMessage: '', email: '', password: '' });
-            navigation.navigate('app');
+            navigation.reset({ index: 0, routes: [{ name: 'app' }] });
         }
         catch (err) {
             console.log(err);
@@ -86,7 +86,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
                 {state.errorMessage.length > 0 && <Text style={[styles.baseText, { marginTop: 5, marginBottom: -21, color: '#cc0000', textAlign: 'center' }]}>{state.errorMessage}</Text>}
                 {state.successMessage.length > 0 && <Text style={[styles.baseText, { marginTop: 5, marginBottom: -21, color: '#006600', textAlign: 'center' }]}>{state.successMessage}</Text>}
                 <View style={{ margin: 20 }}>
-                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' value={state.email} onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address'></TextInput>
+                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' value={state.email} onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email or username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address'></TextInput>
                     <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' value={state.password} onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                         onSubmitEditing={login}></TextInput>
                 </View>
@@ -101,8 +101,20 @@ export default function LoginScreen({ route, navigation, setLoading, loading }: 
                     <Text style={[styles.baseText, styles.buttonText]}>signup</Text>
                 </TouchableOpacity>
                 <View>
-                    <Text style={{ color: colors.text, textDecorationLine: 'underline', marginTop: 10 }} onPress={() => { navigation.push('reset') }}>forgot password?</Text>
-                    <Text style={[styles.baseText, { fontSize: 10, color: '#aaaaaa', marginTop: 30, textAlign: 'center' }]}>© {new Date().getFullYear()} productabot</Text>
+                    <Text style={{ color: colors.text, textDecorationLine: 'underline', marginTop: 10, textAlign: 'center' }} onPress={() => { navigation.push('reset') }}>forgot password?</Text>
+                    <TouchableOpacity style={{ borderColor: colors.placeholder, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, paddingTop: 0, paddingBottom: 0, paddingLeft: 10, paddingRight: 10, marginTop: 30, marginBottom: 10 }} onPress={async (e) => {
+                        e.preventDefault();
+                        let currentTheme = await AsyncStorage.getItem('theme');
+                        let nextTheme = 'dark';
+                        if (!currentTheme || currentTheme === 'dark') {
+                            nextTheme = 'light';
+                        }
+                        await AsyncStorage.setItem('theme', nextTheme);
+                        setTheme(nextTheme);
+                    }} >
+                        <Text style={{ color: colors.text, fontSize: Platform.OS === 'web' ? 13 : 15 }}>{theme === 'dark' ? 'turn on the lights ☀' : 'turn off the lights ◗*'}</Text>
+                    </TouchableOpacity>
+                    <Text style={[styles.baseText, { fontSize: 10, color: '#aaaaaa', textAlign: 'center' }]}>© {new Date().getFullYear()} productabot</Text>
                 </View>
             </KeyboardAvoidingView>
             <InputAccessoryViewComponent />
@@ -138,7 +150,7 @@ const makeStyles = (colors: any) => StyleSheet.create({
     textInput: {
         fontSize: isWeb ? s(30) : 22,
         width: 275,
-        borderBottomColor: colors.text,
+        borderBottomColor: colors.border,
         borderBottomWidth: 1,
         color: colors.text,
         margin: s(10)

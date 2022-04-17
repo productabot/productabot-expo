@@ -48,6 +48,8 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
         }) {
               id
               created_at
+              date
+              time
               category
               details
               status

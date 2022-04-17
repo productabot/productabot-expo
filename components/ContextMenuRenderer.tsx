@@ -103,7 +103,7 @@ export default class ContextMenu extends React.Component {
 
     render() {
         const { style, children, layouts, ...other } = this.props;
-        const animation = { opacity: this.state.scaleAnim };
+        const animation = { opacity: 1 };
         const position = computePosition(layouts);
         return (
             <Animated.View {...other} style={[styles.options, style, animation, position]}>

@@ -58,9 +58,9 @@ export default function ResetScreen({ route, navigation, setLoading, loading }: 
                     <Text style={[styles.baseText, styles.buttonText]}>reset password</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
+                    style={[styles.touchableOpacity, { backgroundColor: 'transparent' }]}
                     onPress={() => { navigation.goBack() }}>
-                    <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
+                    <Text style={[styles.baseText, styles.buttonText, { color: colors.text }]}>go back</Text>
                 </TouchableOpacity>
             </KeyboardAvoidingView>
             <InputAccessoryViewComponent />
@@ -96,7 +96,7 @@ const makeStyles = (colors: any) => StyleSheet.create({
     textInput: {
         fontSize: isWeb ? s(30) : 22,
         width: 275,
-        borderBottomColor: colors.text,
+        borderBottomColor: colors.border,
         borderBottomWidth: 1,
         color: colors.text,
         margin: s(10)

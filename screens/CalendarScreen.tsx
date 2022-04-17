@@ -82,6 +82,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
               category
               details
               date
+              time
+              status
               id
             }
             events(order_by: {date_from: asc, project: {name: asc}}, where: {date_from: {_gte: "${startDate.toLocaleDateString('fr-CA')}", _lt: "${endDate.toLocaleDateString('fr-CA')}"}}) {
@@ -101,7 +103,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         }          
         `));
         setEntries(data.data.entries.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `⏱${obj.project?.name} - ${obj.hours} hrs`, allDay: true, type: 'entry' } }));
-        setTasks(data.data.tasks.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `☉ ${obj.details}`, allDay: true, type: 'task' } }));
+        setTasks(data.data.tasks.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `☉ ${obj.details}${obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }) : ''}`, allDay: true, type: 'task' } }));
         setEvents(data.data.events.map(obj => { return { ...obj, start: new Date(obj.date_from + 'T12:00'), end: new Date(obj.date_to + 'T12:01'), title: `📅 ${obj.details}`, allDay: true, type: 'event' } }));
         setLoading(false);
     }
@@ -219,7 +221,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 onEventResize={resizeEntry}
                 events={[...(showEntries ? entries : []), ...(showTasks ? tasks : []), ...(showEvents ? events : [])]}
                 style={{ height: 'calc(100vh - 60px)', color: colors.text, fontFamily: 'arial' }}
-                eventPropGetter={(event) => { return { style: { backgroundColor: event.project?.color, fontSize: 12 } } }}
+                eventPropGetter={(event) => { return { style: { backgroundColor: event.project?.color, fontSize: 12, textDecorationLine: event.status === 'done' ? 'line-through' : '' } } }}
                 onRangeChange={({ start, end }) => {
                     if (start && end) {
                         startDate = start;

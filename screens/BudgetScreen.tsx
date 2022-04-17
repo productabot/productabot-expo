@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, FlatList, RefreshControl, ScrollView, TextInput, Platform, Keyboard, Alert, useWindowDimensions, Image, ActivityIndicator } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { API, graphqlOperation } from "@aws-amplify/api";
+import { LoadingComponent } from '../components/LoadingComponent';
 import * as root from '../Root';
 import RNPickerSelect from 'react-native-picker-select';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
@@ -9,36 +10,25 @@ import { WebView } from 'react-native-webview';
 import { useTheme } from '@react-navigation/native';
 import InputComponent from '../components/InputComponent';
 
-export default function EventScreen({ route, navigation, refresh, setLoading }: any) {
+export default function BudgetScreen({ route, navigation, refresh, setLoading }: any) {
     const [projects, setProjects] = useState([]);
     const [dates, setDates] = useState([]);
-    const [event, setEvent] = useState({
-        date_from: null,
-        time_from: null,
-        date_to: null,
-        time_to: null,
+    const [budget, setBudget] = useState({
+        date: new Date(),
         project: null,
         category: null,
-        details: null
+        price: null,
+        details: null,
+        type: 'expense'
     });
     const [refreshControl, setRefreshControl] = useState(false);
-    const [webViewLag, setWebViewLag] = useState('none');
-    const [uri, setUri] = useState('https://productabot.com/blank.png');
-    const inputRef = useRef(null);
     const { colors } = useTheme();
     const styles = makeStyles(colors);
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
         onRefresh();
-        setTimeout(() => { setWebViewLag('relative') }, 100);
     }, [refresh]);
-
-    useEffect(() => {
-        if (event.project) {
-            setUri(`https://files.productabot.com/public/${projects.filter(obj => obj.value === event.project)[0]?.image}`);
-        }
-    }, [event]);
 
     let onRefresh = async (showRefreshControl = false) => {
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
@@ -62,47 +52,45 @@ export default function EventScreen({ route, navigation, refresh, setLoading }: 
 
         //check if the user has any projects
         if (projects.data.projects.length === 0) {
-            alert('You must add a project before adding an event');
+            alert('You must add a project before adding a budget entry');
             navigation.goBack();
         }
 
-        //load existing event if editing
-        let event = {};
+        //load existing budget if editing
+        let budget = {};
         let lastProject = null;
         if (route.params.id) {
             let data = await API.graphql(graphqlOperation(`{
-                    events_by_pk(id: "${route.params.id}") {
+                    budget_by_pk(id: "${route.params.id}") {
                       id
                       project_id
-                      date_from
-                      time_from
-                      date_to
-                      time_to
+                      date
                       category
+                      price
                       details
+                      type
                     }
                   }
                   `));
-            event = data.data.events_by_pk;
+            budget = data.data.budget_by_pk;
         }
         else {
             //preselect last project you entered time for, if it exists
             let data = await API.graphql(graphqlOperation(`{
-                events(limit: 1, order_by: {created_at: desc}) {
+                entries(limit: 1, order_by: {date_created: desc}) {
                   project_id
                 }
               }`));
-            lastProject = data.data.events[0]?.project_id;
+            lastProject = data.data.entries[0]?.project_id;
         }
 
-        setEvent({
-            project: route.params.id ? event.project_id : route.params.project_id ? route.params.project_id : lastProject ? lastProject : projects.data.projects.length !== 0 ? projects.data.projects[0].id : null,
-            date_from: route.params.id ? event.date_from : route.params.date_from ? await root.exportDate(new Date(route.params.date_from), 1) : dates[20].value,
-            time_from: route.params.id ? event.time_from : route.params.time_from ? route.params.time_from : null,
-            date_to: route.params.id ? event.date_to : route.params.date_to ? await root.exportDate(new Date(route.params.date_to), 1) : dates[20].value,
-            time_to: route.params.id ? event.time_to : route.params.time_to ? route.params.time_to : null,
-            category: route.params.id ? event.category : null,
-            details: route.params.id ? event.details : null
+        setBudget({
+            project: route.params.id ? budget.project_id : route.params.project_id ? route.params.project_id : lastProject ? lastProject : projects.data.projects.length !== 0 ? projects.data.projects[0].id : null,
+            date: route.params.id ? budget.date : route.params.date ? await root.exportDate(new Date(route.params.date), 1) : dates[20].value,
+            category: route.params.id ? budget.category : null,
+            price: route.params.id ? budget.price.toString() : null,
+            details: route.params.id ? budget.details : null,
+            type: route.params.id ? budget.type : 'expense'
         });
         setProjects(projects.data.projects);
         setDates(dates);
@@ -116,23 +104,22 @@ export default function EventScreen({ route, navigation, refresh, setLoading }: 
             let response = await API.graphql(graphqlOperation(route.params.id
                 ?
                 `            
-                mutation($project_id: uuid, $date_from: date, $time_from: time, $date_to: date, $time_to: time, $details: String, $category: String) {
-                    update_events_by_pk(pk_columns: {id: "${route.params.id}"}, _set: { date_from: $date_from, time_from: $time_from, date_to: $date_to, time_to: $time_to, details: $details, project_id: $project_id, category: $category}) {id}
+                mutation($project_id: uuid, $date: date, $price: numeric, $details: String, $category: String, $type: String) {
+                    update_budget_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, price: $price, details: $details, project_id: $project_id, category: $category, type: $type}) {id}
                 }
                 `
                 :
                 `
-                mutation($project_id: uuid, $date_from: date, $time_from: time, $date_to: date, $time_to: time, $details: String, $category: String) {
-                    insert_events_one(object: {project_id: $project_id,  date_from: $date_from, time_from: $time_from, date_to: $date_to, time_to: $time_to, details: $details, category: $category }) {id}
+                mutation($project_id: uuid, $date: date, $price: numeric, $details: String, $category: String, $type: String) {
+                    insert_budget_one(object: {project_id: $project_id, date: $date, price: $price, details: $details, category: $category, type: $type }) {id}
                 }
-              `, { project_id: event.project, date_from: event.date_from, time_from: event.time_from, date_to: event.date_to, time_to: event.time_to, details: event.details, category: event.category }));
-            console.log(response);
-            setEvent({ details: null, category: null, date_from: dates[20].value, time_from: null, date_to: dates[20].value, date_to: null, project: projects[0].value });
+              `, { project_id: budget.project, date: budget.date, price: parseFloat(budget.price).toFixed(2), details: budget.details, category: budget.category, type: budget.type }));
+            setBudget({ price: null, details: null, category: null, date: dates[20].value, project: projects[0].value, type: 'expense' });
             setLoading(false);
             navigation.goBack();
         }
         catch (err) {
-            setEvent({ details: null, date_from: dates[20].value, time_from: null, date_to: dates[20].value, date_to: null, project: projects[0].value });
+            setBudget({ price: null, details: null, date: dates[20].value, project: projects[0].value, type: 'expense' });
             setLoading(false);
             console.log(err);
         }
@@ -145,7 +132,7 @@ export default function EventScreen({ route, navigation, refresh, setLoading }: 
                 :
                 <View style={{ padding: 10, paddingBottom: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                    <Text>{route.params.id ? 'edit event' : 'add event'}</Text>
+                    <Text>{route.params.id ? 'edit budget entry' : 'add budget entry'}</Text>
                     <Text style={{ fontSize: 30, opacity: 0 }}>←</Text>
                 </View>}
             <ScrollView
@@ -163,18 +150,12 @@ export default function EventScreen({ route, navigation, refresh, setLoading }: 
                 keyboardShouldPersistTaps="always"
             >
                 {Platform.OS === 'web' && <TouchableOpacity style={{ alignSelf: 'flex-start', marginLeft: -40, marginBottom: -40 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>}
-
-                <InputComponent type="select" value={event.project} options={projects} optionImage={true} setValue={(value) => { setEvent({ ...event, project: value }) }} />
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
-                    <InputComponent width={Platform.OS === 'web' ? '23%' : '21%'} type="date" value={event.date_from} setValue={(value) => { setEvent({ ...event, date_from: value }) }} />
-                    <InputComponent width={Platform.OS === 'web' ? '23%' : '24%'} type="time" value={event.time_from} setValue={(value) => { setEvent({ ...event, time_from: value }) }} />
-                    <Text style={{ width: '4%', textAlign: 'center', marginTop: Platform.OS === 'web' ? 15 : 10 }}>-</Text>
-                    <InputComponent width={Platform.OS === 'web' ? '23%' : '21%'} type="date" value={event.date_to} setValue={(value) => { setEvent({ ...event, date_to: value }) }} />
-                    <InputComponent width={Platform.OS === 'web' ? '23%' : '24%'} type="time" value={event.time_to} setValue={(value) => { setEvent({ ...event, time_to: value }) }} />
-                </View>
-                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={event.category} keyboardType='default' onChangeText={value => { setEvent({ ...event, category: value }) }} placeholder='category' style={[styles.textInput]} />
-                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={event.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setEvent({ ...event, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
-
+                <InputComponent type="select" value={budget.project} options={projects} optionImage={true} setValue={(value) => { setBudget({ ...budget, project: value }) }} />
+                <InputComponent type="date" value={budget.date} setValue={(value) => { setBudget({ ...budget, date: value }) }} />
+                <InputComponent type="select" value={budget.type} options={[{ id: 'expense', name: 'expense' }, { id: 'income', name: 'income' }]} setValue={(value) => { setBudget({ ...budget, type: value }) }} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={budget.price} keyboardType='numeric' onChangeText={value => { setBudget({ ...budget, price: value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1') }) }} placeholder='price' style={[styles.textInput]} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={budget.category} keyboardType='default' onChangeText={value => { setBudget({ ...budget, category: value }) }} placeholder='category' style={[styles.textInput]} />
+                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={budget.details} multiline={true} textAlignVertical={'top'} keyboardType='default' onChangeText={value => { setBudget({ ...budget, details: value }) }} placeholder='details' style={[styles.textInput, { height: 200 }]} />
                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => { navigation.goBack(); }} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>
                     <TouchableOpacity onPress={submit} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{route.params.id ? `save` : `add`}</Text></TouchableOpacity>

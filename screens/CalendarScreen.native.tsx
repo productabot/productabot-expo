@@ -140,6 +140,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
               category
               details
               date
+              time
+              status
               id
             }
             events(order_by: {date_from: asc, project: {name: asc}}, where: {date_from: {_gte: "${startMonth.toLocaleDateString('fr-CA')}", _lt: "${endMonth.toLocaleDateString('fr-CA')}"}}) {
@@ -278,7 +280,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                         <MenuTrigger>
                             <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>☉ {obj.details.slice(0, 50)}</Text>
+                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>☉ {obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }) : ''}</Text>
                             </View>
                         </MenuTrigger>
                         <MenuOptions customStyles={{
@@ -300,7 +302,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                             </View>
                                         </TouchableOpacity>
                                     </View>
-                                    <Text style={{ color: colors.text, margin: 5 }}>{obj.details}</Text>
+                                    <Text style={{ color: colors.text, margin: 5, textDecorationLine: obj.status === 'done' ? 'line-through' : '' }}>{obj.details}</Text>
                                 </ScrollView>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                                     <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
@@ -325,7 +327,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                         <MenuTrigger>
                             <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '200%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>📅{obj.details.slice(0, 50)}</Text>
+                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>📅{obj.details}</Text>
                             </View>
                         </MenuTrigger>
                         <MenuOptions customStyles={{

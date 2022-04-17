@@ -245,7 +245,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                         </View>
                         <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
                             <TouchableOpacity onPress={logout}><Text style={{ textAlign: 'center' }}>log out →</Text></TouchableOpacity>
-                            <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: 60 }} onPress={async () => {
+                            <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: Platform.OS === 'web' ? '100%' : 60 }} onPress={async () => {
                                 let currentTheme = await AsyncStorage.getItem('theme');
                                 let nextTheme = 'dark';
                                 if (!currentTheme || currentTheme === 'dark') {
@@ -254,7 +254,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                                 await AsyncStorage.setItem('theme', nextTheme);
                                 setTheme(nextTheme);
                             }} >
-                                <Text style={{ color: colors.text, fontSize: 14 }}>{theme === 'dark' ? '☀ light' : '◗* dark'}</Text>
+                                <Text style={{ color: colors.text, fontSize: 14 }}>{theme === 'dark' ? (Platform.OS === 'web' ? 'turn on the lights ☀' : '☀ light') : (Platform.OS === 'web' ? 'turn off the lights ◗*' : '◗* dark')}</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -270,9 +270,9 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                     <View style={{ flexDirection: 'column', width: '100%' }}>
                         {index == 0 &&
                             <>
-                                <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 0, width: '100%', justifyContent:'center' }}>
+                                <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 0, width: '100%', justifyContent: 'center' }}>
                                     {user.plan ?
-                                        <Text style={{ fontSize: 16, textAlign: 'center' }}>You are currently subscribed to the <Text style={{ fontSize: 16, fontWeight: 'bold', backgroundColor: '#3F0054', color:'#ffffff' }}>{user.plan === 'free' ? ' free ' : ' premium '}</Text> plan.</Text>
+                                        <Text style={{ fontSize: 16, textAlign: 'center' }}>You are currently subscribed to the <Text style={{ fontSize: 16, fontWeight: 'bold', backgroundColor: '#3F0054', color: '#ffffff' }}>{user.plan === 'free' ? ' free ' : ' premium '}</Text> plan.</Text>
                                         :
                                         <Text style={{ fontSize: 16 }}>{` `}</Text>
                                     }

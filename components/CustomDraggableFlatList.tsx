@@ -35,6 +35,7 @@ class CustomRenderItem extends React.PureComponent {
     onPressInFunction = async () => {
         const mobileContext = async () => {
             let options = ['Cancel'];
+            this.props.onMove && options.push('Move');
             this.props.onRename && options.push('Rename');
             this.props.onDelete && options.push('Delete');
             ActionSheetIOS.showActionSheetWithOptions(
@@ -49,6 +50,9 @@ class CustomRenderItem extends React.PureComponent {
                     }
                     else if (buttonIndex === options.indexOf('Delete')) {
                         await this.props.onDelete(this.props.item);
+                    }
+                    else if (buttonIndex === options.indexOf('Move')) {
+                        await this.props.onMove(this.props.item);
                     }
                 }
             );
@@ -84,11 +88,11 @@ class CustomRenderItem extends React.PureComponent {
     }
 }
 
-export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, draggable = true, delayDragOnWeb = false, activationConstraint = { distance: 5 }, virtualHeight = 800, virtualSize = 80, onEndReached = () => { }, flatListRef = useRef(null) }: any) {
+export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyComponent, onDragEnd, noBorder = false, ListFooterComponent, refreshControl, renderItemStyle = {}, style = {}, setContextPosition = () => { }, menuRef = () => { }, onRename = null, onDelete = null, onMove = null, draggable = true, delayDragOnWeb = false, activationConstraint = { distance: 5 }, virtualHeight = 800, virtualSize = 80, onEndReached = () => { }, flatListRef = useRef(null) }: any) {
     const { colors } = useTheme();
     if (Platform.OS === 'ios') {
         const dragRef = flatListRef;
-        const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} draggable={draggable} delayDragOnWeb={delayDragOnWeb} colors={colors} />
+        const internalRenderItem = (item) => <CustomRenderItem item={item} renderItem={renderItem} onPress={onPress} dragRef={dragRef} renderItemStyle={renderItemStyle} setContextPosition={setContextPosition} menuRef={menuRef} onRename={onRename} onDelete={onDelete} onMove={onMove} draggable={draggable} delayDragOnWeb={delayDragOnWeb} colors={colors} />
 
         return (
             <DraggableFlatList
@@ -157,6 +161,13 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                 >
                     {/* {data.map(item => <SortableItem key={item.id} id={item.id} item={item} renderItemStyle={renderItemStyle} draggable={draggable} menuRef={menuRef} onRename={onRename} onDelete={onDelete} setContextPosition={setContextPosition} RenderItem={renderItem} onPress={onPress} />)} */}
                     <VirtualList
+                        onContextMenu={(e) => {
+                            if (e.nativeEvent.target.classList.length === 0) {
+                                e.preventDefault();
+                                setContextPosition({ x: e.nativeEvent.pageX, y: e.nativeEvent.pageY + 30, fileContextMenu: true });
+                                setTimeout(() => { menuRef.current.open() }, 0);
+                            }
+                        }}
                         style={{ borderColor: colors.card, borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }}
                         height={virtualHeight}
                         itemCount={data.length}
@@ -203,6 +214,7 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
 
             return (
                 <div
+                    className='sortableItem'
                     {...draggable && attributes} {...draggable && listeners}
                     index={index}
                     ref={setNodeRef}
@@ -211,9 +223,10 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                     onContextMenu={async (e: any) => {
                         e.preventDefault();
                         setContextPosition({
-                            x: e.nativeEvent.pageX, y: e.nativeEvent.pageY + 40,
+                            x: e.nativeEvent.pageX, y: e.nativeEvent.pageY + 30,
                             ...(onRename && { rename: async () => onRename({ item: item }) }),
-                            ...(onDelete && { delete: async () => onDelete({ item: item }) })
+                            ...(onDelete && { delete: async () => onDelete({ item: item }) }),
+                            ...(onMove && { move: async () => onMove({ item: item }) })
                         });
                         setTimeout(() => { menuRef.current.open() }, 0);
                     }}

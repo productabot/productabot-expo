@@ -17,10 +17,11 @@ export default function InputComponent({ type, options, optionImage = false, opt
     }, [value]);
     return (
         Platform.OS === 'web' ?
-            (type === 'date' ?
-                <input id={type} type={type} value={value} onChange={(e) => { setValue(e.target.value) }}
-                    style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(' + width + ' - 12px)', fontFamily: 'arial', borderRadius: 10 }}
-                />
+            (type === 'date' || type === 'time' ?
+                <div style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(' + width + ' - 12px)', fontFamily: 'arial', borderRadius: 10, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <input id={type} type={type} value={value} onChange={(e) => { setValue(e.target.value) }} style={{ backgroundColor: colors.background, color: colors.text, padding: 0, fontSize: 20, fontFamily: 'arial', border: 'none', width: 'calc(100% - 60px)' }} />
+                    <button style={{ width: 50 }} onClick={() => { setValue(null); document.querySelector(`#${type}`).value = null; }}>clear</button>
+                </div>
                 : type === 'select' ?
                     <div style={{ width: width, display: 'inline-block', position: 'relative' }}>
                         {optionImage && <img style={{ position: 'absolute', top: 10, left: 6, width: 25, height: 25, border: '1px solid white', borderRadius: 5 }} src={`https://files.productabot.com/public/${options.filter(obj => obj.id === value)[0]?.image ?? 'blank.png'}`} />}
@@ -65,8 +66,8 @@ export default function InputComponent({ type, options, optionImage = false, opt
                                     </style>
                                     </head>
                                     <body style="background-color:${colors.background};margin:0px;padding:5px;display:flex;flex-direction:row;">
-                                    ${type === 'date' ?
-                                        `<input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="${type}" value="${value}" />`
+                                    ${['date', 'time'].includes(type) ?
+                                        `<input style="all:unset;width:100%;height:100%;background-color:${colors.background};color:${colors.text};font-family:arial;" id="editor" onchange="window.ReactNativeWebView.postMessage(document.querySelector('#editor').value)" type="${type}" value="${value ?? (type === 'time' ? '00:00' : null)}" />`
                                         : ``}
                                         
                                     ${optionImage ? `
@@ -101,7 +102,7 @@ export default function InputComponent({ type, options, optionImage = false, opt
                             <TouchableOpacity onPress={() => { setValue(null) }} style={{ flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: 10 }}><Text>clear</Text></TouchableOpacity>}
                     </View>
                     :
-                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', height: '100%', paddingLeft: 10 }} onPress={() => setValue(initialValue)}><Text>tap to set</Text></TouchableOpacity>
+                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', height: '100%', paddingLeft: 10 }} onPress={() => setValue(initialValue)}><Text>tap to set {type}</Text></TouchableOpacity>
                 }
             </View>
     );

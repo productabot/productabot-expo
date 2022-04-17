@@ -41,6 +41,9 @@ export default {
               event: {
                 path: 'projects/event/:id?'
               },
+              budget: {
+                path: 'projects/budget/:id?'
+              },
             }
           },
           calendarTab: {

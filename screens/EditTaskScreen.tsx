@@ -16,6 +16,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
     const [dates, setDates] = useState([]);
     const [task, setTask] = useState({
         date: '',
+        time: '',
         project: null,
         category: null,
         details: null,
@@ -67,6 +68,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
                       id
                       project_id
                       date
+                      time
                       category
                       details
                       status
@@ -89,6 +91,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
         setTask({
             project: route.params.id ? task.project_id : route.params.project_id ? route.params.project_id : lastProject ? lastProject : projectsData.data.projects.length !== 0 ? projectsData.data.projects[0].id : null,
             date: route.params.id ? task.date : route.params.date ? await root.exportDate(new Date(route.params.date), 1) : null,
+            time: route.params.id ? task.time : route.params.time ? route.params.time : null,
             category: route.params.id ? task.category : null,
             details: route.params.id ? task.details : null,
             status: route.params.id ? task.status : route.params.status ? route.params.status : 'backlog',
@@ -106,23 +109,23 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             let response = await API.graphql(graphqlOperation(route.params.id
                 ?
                 `            
-                mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String, $priority: String) {
-                    update_tasks_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, details: $details, project_id: $project_id, category: $category, status: $status, priority: $priority}) {id}
+                mutation($project_id: uuid, $date: date, $time: time, $details: String, $category: String, $status: String, $priority: String) {
+                    update_tasks_by_pk(pk_columns: {id: "${route.params.id}"}, _set: {date: $date, time: $time, details: $details, project_id: $project_id, category: $category, status: $status, priority: $priority}) {id}
                 }
                 `
                 :
                 `
-                mutation($project_id: uuid, $date: date, $details: String, $category: String, $status: String, $priority: String) {
-                    insert_tasks_one(object: {project_id: $project_id, date: $date, details: $details, category: $category, status: $status, priority: $priority, root_order: 10000 }) {id}
+                mutation($project_id: uuid, $date: date, $time: time, $details: String, $category: String, $status: String, $priority: String) {
+                    insert_tasks_one(object: {project_id: $project_id, date: $date, time: $time, details: $details, category: $category, status: $status, priority: $priority, root_order: 10000 }) {id}
                 }
-              `, { project_id: task.project, date: ['', null].includes(task.date) ? null : task.date, details: task.details, category: task.category, status: task.status, priority: task.priority }));
+              `, { project_id: task.project, date: ['', null].includes(task.date) ? null : task.date, time: ['', null].includes(task.time) ? null : task.time, details: task.details, category: task.category, status: task.status, priority: task.priority }));
             console.log(response);
-            setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value, status: 'backlog', priority: 'low' });
+            setTask({ details: null, category: null, date: dates[20].value, time: null, project: projects[0].value, status: 'backlog', priority: 'low' });
             setLoading(false);
             navigation.goBack();
         }
         catch (err) {
-            setTask({ details: null, category: null, date: dates[20].value, project: projects[0].value, status: 'backlog', priority: 'low' });
+            setTask({ details: null, category: null, date: dates[20].value, time: null, project: projects[0].value, status: 'backlog', priority: 'low' });
             setLoading(false);
             console.log(err);
         }
@@ -154,7 +157,10 @@ export default function TaskScreen({ route, navigation, refresh, setLoading }: a
             >
                 {Platform.OS === 'web' && <TouchableOpacity style={{ alignSelf: 'flex-start', marginLeft: -40, marginBottom: -40 }} onPress={() => { navigation.goBack(); }} ><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>}
                 <InputComponent type="select" value={task.project} options={projects} optionImage={true} setValue={(value) => { setTask({ ...task, project: value }) }} />
-                <InputComponent type="date" value={task.date} setValue={(value) => { setTask({ ...task, date: value }) }} canClear={true} initialValue={new Date().toISOString().split('T')[0]} />
+                <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
+                    <InputComponent width={'49%'} type="date" value={task.date} setValue={(value) => { setTask({ ...task, date: value }) }} canClear={true} initialValue={new Date().toISOString().split('T')[0]} />
+                    <InputComponent width={'49%'} type="time" value={task.time} setValue={(value) => { setTask({ ...task, time: value }) }} canClear={true} initialValue={new Date().toTimeString().split(':')[0] + ':00'} />
+                </View>
                 <InputComponent type="select" value={task.status} options={[
                     { id: 'backlog', name: 'backlog' },
                     { id: 'selected', name: 'selected' },

@@ -83,7 +83,7 @@ export default function WelcomeScreen({ route, navigation, setTheme, theme }: an
                 await AsyncStorage.setItem('theme', nextTheme);
                 setTheme(nextTheme);
             }} >
-                <Text style={{ color: colors.text, fontSize: Platform.OS === 'web' ? 13 : 15 }}>{theme === 'dark' ? 'switch to light mode ☀' : 'switch to dark mode ◗*'}</Text>
+                <Text style={{ color: colors.text, fontSize: Platform.OS === 'web' ? 13 : 15 }}>{theme === 'dark' ? 'turn on the lights ☀' : 'turn off the lights ◗*'}</Text>
             </TouchableOpacity>
             <View style={{ flexDirection: 'row' }}>
                 {[0, 1, 2].map(obj => <Text key={obj} style={{ color: index === obj ? colors.text : colors.text + '33', fontSize: 60 }}>•</Text>)}

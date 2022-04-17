@@ -83,12 +83,12 @@ export default function SignupScreen({ route, navigation, setLoading, loading }:
                     </View>
                 </View>
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]} onPress={signup}>
-                    <Text style={[styles.baseText, styles.buttonText]}>register</Text>
+                    <Text style={[styles.baseText, styles.buttonText]}>signup</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.touchableOpacity, { backgroundColor: '#000000' }]}
-                    onPress={() => { navigation.goBack(); }}>
-                    <Text style={[styles.baseText, styles.buttonText]}>go back</Text>
+                    style={[styles.touchableOpacity, { backgroundColor: 'transparent' }]}
+                    onPress={() => { navigation.navigate('login'); }}>
+                    <Text style={[styles.baseText, styles.buttonText, { color: colors.text }]}>go back</Text>
                 </TouchableOpacity>
                 <InputAccessoryViewComponent />
             </KeyboardAvoidingView >
@@ -124,7 +124,7 @@ const makeStyles = (colors: any) => StyleSheet.create({
     textInput: {
         fontSize: isWeb ? s(30) : 22,
         width: 275,
-        borderBottomColor: colors.text,
+        borderBottomColor: colors.border,
         borderBottomWidth: 1,
         color: colors.text,
         margin: s(10)

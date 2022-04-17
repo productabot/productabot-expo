@@ -33,13 +33,14 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
     const [confetti, setConfetti] = React.useState(false);
     const { colors } = useTheme();
 
-    useFocusEffect(
-        React.useCallback(() => {
-            if (checked.length === 0) {
-                onRefresh();
-            }
-        }, [index, projectId, checked])
-    );
+    // useFocusEffect(
+    //     React.useCallback(() => {
+    //         console.log(index, projectId, checked);
+    //         if (checked.length === 0) {
+    //             onRefresh();
+    //         }
+    //     }, [index, projectId, checked])
+    // );
 
     React.useEffect(() => {
         onRefresh();
@@ -51,6 +52,8 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
             tasks(order_by: {root_order: desc}, where: {${projectId ? `project_id: {_eq:"${projectId}"},` : givenProjectId ? `project_id: {_eq:"${givenProjectId}"},` : ``}status: {_eq: "${index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done'}"}}) {
               id
               created_at
+              date
+              time
               category
               details
               status
@@ -121,7 +124,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                     }
                 }}>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0 }}>
-                    <View style={{ width: Math.min(950, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : projectScreen ? 300 : 120), paddingLeft: 10, paddingRight: 10 }}>
+                    <View style={{ width: Math.min(950, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : projectScreen ? 230 : 120), paddingLeft: 10, paddingRight: 10 }}>
                         <View style={{ width: '100%', height: 40, flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10, marginBottom: -10, marginTop: projectScreen ? 10 : 5 }}>
                             {(!projectScreen && checked.length === 0) &&
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
@@ -177,7 +180,13 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                                                 <Image style={{ height: 30, width: 30, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${item.project.image}` }} />
                                             </View>
                                             <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
-                                                <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
+                                                {item.date ?
+                                                    <Text style={{ color: '#ffffff', fontSize: 10, textAlign: 'left', marginTop: 5, backgroundColor: '#3F0054', paddingLeft: 2, paddingRight: 2, borderRadius: 5 }}>
+                                                        <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: 'bold' }}>due </Text>
+                                                        {`${new Date(item.date).toLocaleDateString()}${item.time ? `, ${new Date(item.date + 'T' + item.time).toLocaleTimeString([], { timeStyle: 'short' })}` : ``}`}</Text>
+                                                    :
+                                                    <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
+                                                }
                                                 <Text style={{ textDecorationLine: item.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
                                                 <Text style={{ fontSize: 10, color: '#aaaaaa' }}>{item.comments_aggregate.aggregate.count} comment{item.comments_aggregate.aggregate.count !== 1 ? 's' : ''}{item.category ? `, #${item.category}` : ``}</Text>
                                             </View>
@@ -268,7 +277,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                                     titleColor={colors.text}
                                     title=""
                                 />}
-                            style={{ height: windowDimensions.height - (projectScreen ? 370 : 200) }}
+                            style={{ height: windowDimensions.height - (projectScreen ? 300 : 200) }}
                         />
                     </View>
                     <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>

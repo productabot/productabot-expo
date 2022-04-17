@@ -35,6 +35,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                     image
                 }
                 date
+                time
                 category
                 details
                 comments(order_by: {created_at: asc}) {
@@ -72,7 +73,13 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                             <Image style={{ height: 30, width: 30, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${task.project?.image}` }} />
                         </View>
                         <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
-                            <Text style={{ color: colors.subtitle, fontSize: 10, textAlign: 'left' }}>{task.created_at ? new Date(task.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : ' '}</Text>
+                            {task.date ?
+                                <Text style={{ color: '#ffffff', fontSize: 10, textAlign: 'left', marginTop: 5, backgroundColor: '#3F0054', paddingLeft: 2, paddingRight: 2, borderRadius: 5 }}>
+                                    <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: 'bold' }}>due </Text>
+                                    {`${new Date(task.date).toLocaleDateString()}${task.time ? `, ${new Date(task.date + 'T' + task.time).toLocaleTimeString([], { timeStyle: 'short' })}` : ``}`}</Text>
+                                :
+                                <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{task.created_at ? new Date(task.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : ' '}</Text>
+                            }
                             <Text style={{ textDecorationLine: task.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{task.details ? task.details : ' '}</Text>
                             <Text style={{ fontSize: 10, color: colors.subtitle }}>{task?.comments_aggregate?.aggregate?.count} comments{task.category ? `, #${task.category}` : ``}</Text>
                         </View>
