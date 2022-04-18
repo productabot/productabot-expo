@@ -1,8 +1,14 @@
 import * as React from 'react';
-import { View, Text, TouchableOpacity, TextInput, Keyboard, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Keyboard, ScrollView, ActionSheetIOS } from 'react-native';
 import { useTheme } from '@react-navigation/native';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { Storage } from "@aws-amplify/storage";
+import { API, graphqlOperation } from "@aws-amplify/api";
 
-export function InputAccessoryViewWebViewComponent({ injectJavascript }: any) {
+export function InputAccessoryViewWebViewComponent({ injectJavascript, setLoading }: any) {
     const inputRef = React.useRef(null);
     const { colors } = useTheme();
     return (
@@ -19,6 +25,49 @@ export function InputAccessoryViewWebViewComponent({ injectJavascript }: any) {
                 <TouchableOpacity onPress={() => { injectJavascript(`editor.chain().focus().toggleBulletList().run()`) }}><Text style={{ color: colors.text, fontSize: 18, padding: 10 }}>{`≔`}</Text></TouchableOpacity>
                 <TouchableOpacity onPress={() => { injectJavascript(`document.execCommand('outdent', false, null);`) }}><Text style={{ color: colors.text, fontSize: 18, padding: 10 }}>{`←`}</Text></TouchableOpacity>
                 <TouchableOpacity onPress={() => { injectJavascript(`document.execCommand('indent', false, null);`) }}><Text style={{ color: colors.text, fontSize: 18, padding: 10 }}>{`→`}</Text></TouchableOpacity>
+                <TouchableOpacity onPress={async () => {
+                    let options = ['Cancel', 'Select from Camera Roll', 'Take Picture'];
+                    ActionSheetIOS.showActionSheetWithOptions(
+                        {
+                            options: options,
+                            cancelButtonIndex: 0
+                        },
+                        async (buttonIndex) => {
+                            let selectedMedia;
+                            if (buttonIndex === options.indexOf('Select from Camera Roll')) {
+                                selectedMedia = await ImagePicker.launchImageLibraryAsync({
+                                    mediaTypes: ImagePicker.MediaTypeOptions.All,
+                                    allowsEditing: false,
+                                    quality: 1,
+                                    videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
+                                });
+                            }
+                            else if (buttonIndex === options.indexOf('Take Picture')) {
+                                await ImagePicker.requestCameraPermissionsAsync();
+                                selectedMedia = await ImagePicker.launchCameraAsync({
+                                    mediaTypes: ImagePicker.MediaTypeOptions.All,
+                                    allowsEditing: false,
+                                    quality: 1,
+                                    videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
+                                });
+                            }
+                            if (!selectedMedia.cancelled) {
+                                setLoading(true);
+                                let media = await ImageManipulator.manipulateAsync(selectedMedia.uri, [{ resize: { width: 350 } }], { compress: 1, format: ImageManipulator.SaveFormat.JPEG });
+                                let response = await fetch(media.uri);
+                                let blob = await response.blob();
+                                let filename = `${uuidv4()}.jpg`;
+                                await Storage.put(`${filename}`, blob, { contentType: blob.type, level: 'public' });
+                                await API.graphql(graphqlOperation(`mutation {
+                                    insert_files_one(object: {title: "${filename}", type: "${blob.type}", size: "${blob.size}"}) {id}
+                                }`));
+                                injectJavascript(`editor.chain().focus().setImage({ src: 'https://files.productabot.com/public/${filename}' }).run()`);
+                                setLoading(false);
+                            }
+                        }
+                    );
+
+                }}><Text style={{ color: colors.text, fontSize: 18, padding: 10 }}>+ image</Text></TouchableOpacity>
             </ScrollView>
             <TouchableOpacity
                 onPress={() => { inputRef.current.focus(); Keyboard.dismiss(); }}

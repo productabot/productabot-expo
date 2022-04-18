@@ -266,12 +266,25 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
 
     const pickImage = async (type = 'thumbnail') => {
         try {
-            let selectedMedia = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.All,
-                allowsEditing: type === 'thumbnail' ? true : false,
-                quality: 0.5,
-                videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
-            });
+            let selectedMedia;
+
+            if (['thumbnail', 'file'].includes(type)) {
+                selectedMedia = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.All,
+                    allowsEditing: type === 'thumbnail' ? true : false,
+                    quality: 0.5,
+                    videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
+                });
+            }
+            else if (type === 'camera') {
+                await ImagePicker.requestCameraPermissionsAsync();
+                selectedMedia = await ImagePicker.launchCameraAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.All,
+                    allowsEditing: false,
+                    quality: 0.5,
+                    videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
+                });
+            }
             if (!selectedMedia.cancelled) {
                 setLoading(true);
                 if (type === 'thumbnail') {
@@ -291,7 +304,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         }
                     }`));
                 }
-                else if (type === 'file') {
+                else if (['camera', 'file'].includes(type)) {
                     Alert.prompt(`New ${selectedMedia.type} title`, '', async (text) => {
                         setLoading(true);
                         let response = await fetch(selectedMedia.uri);
@@ -402,8 +415,11 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         else if (type === 'image') {
             pickImage('file');
         }
+        else if (type === 'camera') {
+            pickImage('camera');
+        }
         else if (type === 'mobile') {
-            let options = ['Cancel', 'Add Folder', 'Add Document', 'Upload Image/Video', 'Upload File'];
+            let options = ['Cancel', 'Add Folder', 'Add Document', 'Upload from Camera Roll', 'Take Picture/Video', 'Upload File'];
             ActionSheetIOS.showActionSheetWithOptions(
                 {
                     options: options,
@@ -416,8 +432,11 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                     else if (buttonIndex === options.indexOf('Add Document')) {
                         addAction('document');
                     }
-                    else if (buttonIndex === options.indexOf('Upload Image/Video')) {
+                    else if (buttonIndex === options.indexOf('Upload from Camera Roll')) {
                         addAction('image');
+                    }
+                    else if (buttonIndex === options.indexOf('Take Picture/Video')) {
+                        addAction('camera');
                     }
                     else if (buttonIndex === options.indexOf('Upload File')) {
                         addAction('file');

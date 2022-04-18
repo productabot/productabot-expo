@@ -9,9 +9,9 @@ import { WebView } from 'react-native-webview';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
 
-export default function NoteScreen({ route, navigation, setLoading, refresh }: any) {
+export default function DocumentScreen({ route, navigation, setLoading, refresh }: any) {
     const window = useWindowDimensions();
-    const [note, setNote] = useState({});
+    const [file, setFile] = useState({});
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const inputRef = useRef(null);
     const { colors } = useTheme();
@@ -35,18 +35,18 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
     const onRefresh = async () => {
         setLoading(true);
         let data = (await API.graphql(graphqlOperation(`{
-            notes_by_pk(id: "${route.params.id}") {
+            files_by_pk(id: "${route.params.id}") {
                 id
                 title
                 content
             }
         }`))).data;
         let e2eResult = await AsyncStorage.getItem('e2e');
-        data.notes_by_pk.content = CryptoJS.AES.decrypt(data.notes_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
-        setNote(data.notes_by_pk);
+        data.files_by_pk.content = CryptoJS.AES.decrypt(data.files_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
+        setFile(data.files_by_pk);
         inputRef.current.injectJavaScript(`(function() {
             const { from, to } = editor.state.selection;
-            editor.commands.setContent(\`${data.notes_by_pk.content.replace(/<div><br><\/div>/g, '<p></p>').replace(/<div>/g, '<p>').replace(/<\/div>/g, '</p>')}\`);
+            editor.commands.setContent(\`${data.files_by_pk.content.replace(/<div><br><\/div>/g, '<p></p>').replace(/<div>/g, '<p>').replace(/<\/div>/g, '</p>')}\`);
             editor.commands.setTextSelection({ from, to });
         })();`);
         setLoading(false);
@@ -54,7 +54,7 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
 
     const injectJavascript = async (javascript: string, content = null) => {
         if (content) {
-            setNote({ ...note, content: `${note.content}<p></p>${content}<br/><br/>` });
+            setFile({ ...file, content: `${file.content}<p></p>${content}<br/><br/>` });
             inputRef.current.injectJavaScript(`(function() {
                 editor.chain().focus().insertContent(\`${content}\`).run()
             })();`);
@@ -66,19 +66,19 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
         }
     }
 
-    let updateNote = async () => {
-        if (note.title) {
+    let updateFile = async () => {
+        if (file.title) {
             let e2eResult = await AsyncStorage.getItem('e2e');
-            let encrypted = CryptoJS.AES.encrypt(note.content, e2eResult).toString();
+            let encrypted = CryptoJS.AES.encrypt(file.content, e2eResult).toString();
             await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
-                updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
-            }`, { content: encrypted, title: note.title }));
+                updateFile: update_files_by_pk(pk_columns: {id: "${file.id}"}, _set: {content: $content, title: $title}) {id}
+            }`, { content: encrypted, title: file.title }));
         }
     }
 
     useEffect(() => {
         if (!keyboardHeight) {
-            updateNote();
+            updateFile();
         }
     }, [keyboardHeight]);
 
@@ -94,10 +94,10 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
                     <TouchableOpacity onPress={() => {
                         navigation.goBack();
                     }}><Text style={{ fontSize: 30 }}>←</Text></TouchableOpacity>
-                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} style={{ color: colors.text, fontSize: 20 }} value={note.title} onChangeText={(value) => {
-                        setNote({ ...note, title: value });
+                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} style={{ color: colors.text, fontSize: 20 }} value={file.title} onChangeText={(value) => {
+                        setFile({ ...file, title: value });
                     }} onBlur={() => {
-                        setNote({ ...note });
+                        setFile({ ...file });
                     }} />
                     <TouchableOpacity onPress={async () => {
                         Platform.OS === 'ios' &&
@@ -110,7 +110,7 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
                                 buttonIndex => {
                                     if (buttonIndex !== 0) {
                                         API.graphql(graphqlOperation(`mutation {
-                                            delete_notes_by_pk(id: "${note.id}") {
+                                            delete_files_by_pk(id: "${file.id}") {
                                                 id
                                             }
                                         }`)).then((response) => {
@@ -198,7 +198,7 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
                     injectedJavaScript={`(function() {
                     })();`}
                     onMessage={(e) => {
-                        setNote({ ...note, content: e.nativeEvent.data });
+                        setFile({ ...file, content: e.nativeEvent.data });
                     }}
                     onLoad={async () => { onRefresh(); }}
                 />

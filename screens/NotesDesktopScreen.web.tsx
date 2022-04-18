@@ -10,11 +10,17 @@ import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 import SplitPane, { Pane } from 'react-split-pane';
 import 'react-native-get-random-values';
 import { useEditor, EditorContent } from '@tiptap/react';
+import Image from '@tiptap/extension-image'
 import StarterKit from '@tiptap/starter-kit';
 import './NotesDesktopScreen.css';
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';
 import { useTheme } from '@react-navigation/native';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { Storage } from "@aws-amplify/storage";
 
 let noteContentTimeout;
 let originalEditorState;
@@ -40,6 +46,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
     const editor = useEditor({
         extensions: [
             StarterKit,
+            Image,
         ],
         content: '',
         onUpdate: async ({ editor }) => {
@@ -498,6 +505,28 @@ const MenuBar = ({ editor }) => {
                 style={{ color: colors.text, backgroundColor: colors.card }}>
                 ¶
             </button>
+            <button onClick={async () => {
+                let selectedMedia = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.All,
+                    allowsEditing: false,
+                    quality: 1,
+                    videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
+                });
+                if (!selectedMedia.cancelled) {
+                    let media = await ImageManipulator.manipulateAsync(selectedMedia.uri, [{ resize: { width: 350 } }], { compress: 1, format: ImageManipulator.SaveFormat.JPEG });
+                    let response = await fetch(media.uri);
+                    let blob = await response.blob();
+                    let filename = `${uuidv4()}.jpg`;
+                    await Storage.put(`${filename}`, blob, { contentType: blob.type, level: 'public' });
+                    await API.graphql(graphqlOperation(`mutation {
+                        insert_files_one(object: {title: "${filename}", type: "${blob.type}", size: "${blob.size}"}) {id}
+                    }`));
+                    editor.chain().focus().setImage({ src: `https://files.productabot.com/public/${filename}` }).run()
+                }
+            }}
+                style={{ color: colors.text, backgroundColor: colors.card }}>
+                + image
+            </button>
             <button onClick={() => editor.chain().focus().undo().run()}
                 style={{ color: colors.text, backgroundColor: colors.card }}>
                 undo ↺
@@ -506,7 +535,7 @@ const MenuBar = ({ editor }) => {
                 style={{ color: colors.text, backgroundColor: colors.card }}>
                 redo ↻
             </button>
-        </div>
+        </div >
     )
 }
 
