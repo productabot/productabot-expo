@@ -14,10 +14,10 @@ import { Platform, LogBox } from 'react-native';
 import { WebSocketLink } from "@apollo/client/link/ws";
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
-import { enableScreens } from 'react-native-screens';
+import { enableFreeze } from 'react-native-screens';
 import Purchases from 'react-native-purchases';
 
-enableScreens(true);
+enableFreeze(true);
 
 Amplify.configure({
   Auth: {

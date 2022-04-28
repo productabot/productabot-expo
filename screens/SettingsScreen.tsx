@@ -270,14 +270,14 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                     <View style={{ flexDirection: 'column', width: '100%' }}>
                         {index == 0 &&
                             <>
-                                <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 0, width: '100%', justifyContent: 'center' }}>
+                                <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 5, width: '100%', justifyContent: 'center' }}>
                                     {user.plan ?
                                         <Text style={{ fontSize: 16, textAlign: 'center' }}>You are currently subscribed to the <Text style={{ fontSize: 16, fontWeight: 'bold', backgroundColor: '#3F0054', color: '#ffffff' }}>{user.plan === 'free' ? ' free ' : ' premium '}</Text> plan.</Text>
                                         :
                                         <Text style={{ fontSize: 16 }}>{` `}</Text>
                                     }
                                 </View>
-                                <View style={{ flexDirection: 'row' }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
                                     {[{
                                         key: 'free', image: require('../assets/images/free.png'), label: 'free', price: '$0.00 per month', points: [
                                             '25 MB storage', '2 projects', 'no website', 'no integrations'
@@ -288,7 +288,7 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                                             '250 GB storage', 'unlimited projects', 'custom website', 'API integrations'
                                         ]
                                     }].map(obj =>
-                                        <View style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start', width: '45%', height: Platform.OS === 'web' ? 300 : 400, borderRadius: 10, borderColor: colors.border, borderWidth: 1, margin: 10, backgroundColor: user.plan === obj.key ? '#3F0054' : colors.background }}>
+                                        <View style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start', width: '48%', height: Platform.OS === 'web' ? 300 : 400, borderRadius: 10, borderColor: colors.border, borderWidth: 1, margin: 5, backgroundColor: user.plan === obj.key ? '#3F0054' : colors.background }}>
                                             <Image style={{ height: 150, width: 150, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === obj.key ? '#ffffff' : colors.text }} source={obj.image} />
                                             <View style={{ flexDirection: 'column', padding: 10 }}>
                                                 <View style={{ flexDirection: 'column', alignItems: 'flex-start', marginBottom: 10 }}>

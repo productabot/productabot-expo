@@ -652,7 +652,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 <>
                                     <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <View style={{ flexDirection: 'row', marginLeft: 5, marginBottom: 5 }}>
-                                            <Text onPress={() => { setFolder(null) }}>{folder?.title ? `← / ` : `📂 / `}</Text>
+                                            <Text onPress={() => { setFolder(null) }}>{folder?.title ? `← . . / ` : `📂 / `}</Text>
                                             {folder?.folder?.folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder.folder.folder) }}>{`📂 ${folder.folder.folder.folder.folder.title} / `}</Text>}
                                             {folder?.folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder.folder) }}>{`📂 ${folder.folder.folder.folder.title} / `}</Text>}
                                             {folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder) }}>{`📂 ${folder.folder.folder.title} / `}</Text>}
@@ -691,9 +691,8 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                                         {item.type === 'folder' ? '📁' : item.type === 'document' ? '📄' : item.type === 'sheet' ? '📈' : item.type.startsWith('image') ? <Image source={{ uri: `https://files.productabot.com/private/${identityId}/${project.id}/${item.title}` }} style={{ borderRadius: 5, marginBottom: -5, width: Platform.OS === 'web' ? 40 : 30, height: Platform.OS === 'web' ? 40 : 30 }} /> : item.type.endsWith('pdf') ? '📃' : item.type.startsWith('video') ? '📹' : item.type.startsWith('audio') ? '🎧' : '💻'}
                                                     </Text>
                                                     <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '80%' }}>
-                                                        <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.updated_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
-                                                        <Text style={{ fontSize: 14 }}>{item.title}</Text>
-                                                        <Text style={{ fontSize: 10, color: colors.subtitle }}>{`${['document', 'sheet', 'folder'].includes(item.type) ? item.type : item.type + ' | ' + formatBytes(item.size)}`}</Text>
+                                                        <Text style={{ fontSize: 10, color: colors.subtitle, marginBottom: Platform.OS === 'web' ? -3 : 0 }}>{`${['document', 'sheet', 'folder'].includes(item.type) ? item.type : item.type + ' | ' + formatBytes(item.size)}`}</Text>
+                                                        <Text style={{ fontSize: 22 }}>{item.title}</Text>
                                                     </View>
                                                     <Text style={{ fontSize: 14, marginLeft: 'auto' }}>☰</Text>
                                                 </View>
@@ -814,9 +813,9 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 <>
                                     {(count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}
                                     {(project.goal && root.desktopWeb) &&
-                                        <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
+                                        <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
                                             <MenuTrigger onPress={() => { goalRef.current.open(); }} onMouseEnter={(e) => { clearTimeout(goalTimeout); goalTimeout = setTimeout(() => { goalRef.current.open(); }, 750); }} onMouseLeave={(e) => { clearTimeout(goalTimeout) }} style={{ flexDirection: 'row', width: 320, alignSelf: 'center', alignItems: 'center', marginBottom: -15, marginRight: -40 }}>
-                                                <View style={{ flexDirection: 'row', width: 200, height: 15, backgroundColor: '#000000', borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center' }}>
+                                                <View style={{ flexDirection: 'row', width: 200, height: 15, backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center' }}>
                                                     <View style={{ height: '100%', backgroundColor: project.color === '#000000' ? colors.text : project.color, width: `${Math.min(count.weeklyGoal, 100)}%`, borderRadius: 3 }} />
                                                 </View>
                                                 <Text style={{ alignSelf: 'center', marginLeft: 5 }}>{`${count.weeklyGoal}% of goal`}</Text>
@@ -861,7 +860,16 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     <CustomDraggableFlatList
                                         data={project.entries}
                                         draggable={false}
-                                        virtualSize={120}
+                                        virtualSize={(index) => {
+                                            let length = project.entries[index]?.details?.length ?? 0;
+                                            let windowPadding = 10;
+                                            let widthPercentage = 0.5;
+                                            let fontSize = 16;
+                                            let baseHeight = 40;
+                                            let multiplier = 0.11;
+                                            let minimumNumbersOfLines = 3;
+                                            return baseHeight + Math.max(Math.ceil(length / ((window.width - windowPadding) * widthPercentage * multiplier)), minimumNumbersOfLines) * fontSize;
+                                        }}
                                         virtualHeight={window.height - 240}
                                         renderItem={(item) => {
                                             let date = new Date(item.item.date);

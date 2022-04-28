@@ -54,7 +54,9 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
         }
         catch (err) { console.log(err) }
         setDocument(data.data.files_by_pk);
-        editor?.commands.setContent(data.data.files_by_pk.content);
+        const selection = editor?.state.selection;
+        editor?.commands.setContent(data.data.files_by_pk.content.replace(/<div><br><\/div>/g, '<p></p>').replace(/<div>/g, '<p>').replace(/<\/div>/g, '</p>'));
+        editor?.commands.setTextSelection(selection);
         setLoading(false);
     }
 

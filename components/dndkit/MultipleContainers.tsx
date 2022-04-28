@@ -473,13 +473,20 @@ export function MultipleContainers({
                     style={{ overflowY: 'scroll' }}
                     itemCount={items[containerId].length}
                     itemSize={(index) => {
-                      let length = items[containerId][index].details?.length;
-                      if (length) {
-                        return Math.ceil(length / (((windowDimensions.width - 100) / 4) / 10)) * 16 + 70
-                      }
-                      else {
-                        return 80;
-                      }
+                      let length = items[containerId][index].details?.length ?? 0;
+                      let windowPadding = 30 + ((Object.keys(showContainers)?.length ?? 4) * 100);
+                      let widthPercentage = 1 / (Object.keys(showContainers)?.length ?? 4);
+                      let fontSize = 16;
+                      let baseHeight = 70;
+                      let multiplier = 0.12;
+                      let minimumNumbersOfLines = 1;
+                      return baseHeight + Math.max(Math.ceil(length / ((windowDimensions.width - windowPadding) * widthPercentage * multiplier)), minimumNumbersOfLines) * fontSize;
+                      // if (length) {
+                      //   return Math.ceil(length / (((windowDimensions.width - 100) / 4) / 10)) * 16 + 70
+                      // }
+                      // else {
+                      //   return 80;
+                      // }
                     }}
                     renderItem={({ index, style }) => {
                       const item = items[containerId][index];

@@ -525,15 +525,15 @@ const MenuBar = ({ editor }) => {
                 }
             }}
                 style={{ color: colors.text, backgroundColor: colors.card }}>
-                + image
+                image
             </button>
             <button onClick={() => editor.chain().focus().undo().run()}
                 style={{ color: colors.text, backgroundColor: colors.card }}>
-                undo ↺
+                ↺
             </button>
             <button onClick={() => editor.chain().focus().redo().run()}
                 style={{ color: colors.text, backgroundColor: colors.card }}>
-                redo ↻
+                ↻
             </button>
         </div >
     )

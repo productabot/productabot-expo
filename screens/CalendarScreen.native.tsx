@@ -37,7 +37,6 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     const [entries, setEntries] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [events, setEvents] = useState([]);
-    const [hide, setHide] = React.useState(true);
     const scrollRef = useRef();
     const { colors } = useTheme();
     const [showEntries, setShowEntries] = useState(true);
@@ -94,10 +93,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     }
     useFocusEffect(
         React.useCallback(() => {
-            setHide(false);
             if (!route.params) { route.params = {}; }
             onRefresh();
-            return () => { setHide(true); }
         }, [refresh, route.params])
     );
 
@@ -402,46 +399,45 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     </TouchableOpacity>
                 </View>
             </View>
-            {hide ? <GhostCalendar /> :
-                <ScrollView
-                    scrollEnabled={root.desktopWeb ? false : true}
-                    showsHorizontalScrollIndicator={false}
-                    onMomentumScrollEnd={(e) => {
-                        if (e.nativeEvent.contentOffset.x === 0) {
-                            const innerMonth = new Date(month);
-                            innerMonth.setMonth(innerMonth.getMonth() - 1);
-                            month = innerMonth.toLocaleDateString('fr-CA');
-                            onRefresh();
-                        }
-                        else if (e.nativeEvent.contentOffset.x >= windowDimensions.width * 2) {
-                            const innerMonth = new Date(month);
-                            innerMonth.setMonth(innerMonth.getMonth() + 1);
-                            month = innerMonth.toLocaleDateString('fr-CA');
-                            onRefresh();
-                        }
-                    }}
-                    ref={scrollRef}
-                    pagingEnabled={true}
-                    horizontal={true}
-                    style={{ width: windowDimensions.width, height: root.desktopWeb ? windowDimensions.height : '100%', alignSelf: 'center' }}
-                    contentContainerStyle={{ display: 'flex', alignItems: 'flex-start', width: windowDimensions.width * 3 }}
-                    automaticallyAdjustContentInsets={false}
-                    directionalLockEnabled={true}
-                    decelerationRate={0.999999}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshControl}
-                            onRefresh={() => onRefresh(true)}
-                            colors={[colors.text]}
-                            tintColor={colors.text}
-                            titleColor={colors.text}
-                            title=""
-                        />}
-                >
-                    <GhostCalendar />
-                    <CustomCalendar givenMonth={month} />
-                    <GhostCalendar />
-                </ScrollView>}
+            <ScrollView
+                scrollEnabled={root.desktopWeb ? false : true}
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={(e) => {
+                    if (e.nativeEvent.contentOffset.x === 0) {
+                        const innerMonth = new Date(month);
+                        innerMonth.setMonth(innerMonth.getMonth() - 1);
+                        month = innerMonth.toLocaleDateString('fr-CA');
+                        onRefresh();
+                    }
+                    else if (e.nativeEvent.contentOffset.x >= windowDimensions.width * 2) {
+                        const innerMonth = new Date(month);
+                        innerMonth.setMonth(innerMonth.getMonth() + 1);
+                        month = innerMonth.toLocaleDateString('fr-CA');
+                        onRefresh();
+                    }
+                }}
+                ref={scrollRef}
+                pagingEnabled={true}
+                horizontal={true}
+                style={{ width: windowDimensions.width, height: root.desktopWeb ? windowDimensions.height : '100%', alignSelf: 'center' }}
+                contentContainerStyle={{ display: 'flex', alignItems: 'flex-start', width: windowDimensions.width * 3 }}
+                automaticallyAdjustContentInsets={false}
+                directionalLockEnabled={true}
+                decelerationRate={0.999999}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshControl}
+                        onRefresh={() => onRefresh(true)}
+                        colors={[colors.text]}
+                        tintColor={colors.text}
+                        titleColor={colors.text}
+                        title=""
+                    />}
+            >
+                <GhostCalendar />
+                <CustomCalendar givenMonth={month} />
+                <GhostCalendar />
+            </ScrollView>
         </View >
     );
 }

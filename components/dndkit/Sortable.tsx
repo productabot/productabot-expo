@@ -238,18 +238,31 @@ const Item = React.memo(
                                 onContextMenu={(e) => {
                                     e.preventDefault(); setContextPosition({
                                         x: e.pageX, y: e.pageY,
+                                        value: value,
+                                        focus: async () => {
+                                            setLoading(true);
+                                            await API.graphql(graphqlOperation(`mutation{update_projects_by_pk(pk_columns: {id: "${value.id}"}, _set: {focused: "${value.focused ? 'false' : 'true'}"}) {id}}`));
+                                            await onRefresh();
+                                            setLoading(false);
+                                        },
                                         archive: async () => {
-                                            const archiveFunction = async () => {
+                                            setLoading(true);
+                                            await API.graphql(graphqlOperation(`mutation{update_projects_by_pk(pk_columns: {id: "${value.id}"}, _set: {archived: "${value.archived ? 'false' : 'true'}"}) {id}}`));
+                                            await onRefresh();
+                                            setLoading(false);
+                                        },
+                                        delete: async () => {
+                                            const deleteFunction = async () => {
                                                 setLoading(true);
-                                                await API.graphql(graphqlOperation(`mutation{update_projects_by_pk(pk_columns: {id: "${value.id}"}, _set: {archived: "${value.archived ? 'false' : 'true'}"}) {id}}`));
+                                                await API.graphql(graphqlOperation(`mutation {delete_projects_by_pk(id: "${value.id}") {id}}`));
                                                 await onRefresh();
                                                 setLoading(false);
                                             }
                                             if (Platform.OS !== 'web') {
-                                                Alert.alert('Warning', `Are you sure you want to ${archived ? 'un' : ''}archive this project?`,
-                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await archiveFunction(); } }]);
+                                                Alert.alert('Warning', `Are you sure you want to delete this project?`,
+                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
                                             }
-                                            else if (confirm(`Are you sure you want to ${archived ? 'un' : ''}archive this project?`)) { await archiveFunction() }
+                                            else if (confirm(`Are you sure you want to delete this project?`)) { await deleteFunction() }
                                         },
                                         rename: async () => {
                                             const renameFunction = async (rename) => {
@@ -276,7 +289,7 @@ const Item = React.memo(
                                 href={`/project/${value.id}`}
                                 onClick={(e) => { e.preventDefault(); navigation.push('project', { id: value.id }) }}
                                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', cursor: dragging ? 'grabbing' : 'grab' }}>
-                                <div style={{ height: 140, width: 140, border: `1px solid ${colors.text}`, borderRadius: 20 }}>
+                                <div style={{ height: 140, width: 140, border: `1px solid ${value.focused ? '#0099ff' : colors.text}`, borderRadius: 20, transition: 'all 0.5s', filter: value.focused ? 'drop-shadow(0px 0px 15px #0099ff)' : '' }}>
                                     <img style={{ width: 140, height: 140, borderRadius: 19, objectFit: 'cover' }} src={`https://files.productabot.com/public/${value.image}`} />
                                 </div>
                                 <div style={{ marginBottom: 3 }}>
@@ -291,10 +304,22 @@ const Item = React.memo(
                             <div
                                 className='projectTile'
                                 onClick={async () => {
-                                    setLoading(true);
-                                    let data = await API.graphql(graphqlOperation(`mutation {insert_projects_one(object: {name: "new project", key: "NP", description: "Add a description to your new project", color: "#ff0000", order: 1000}) {id}}`));
-                                    setLoading(false);
-                                    navigation.push('project', { id: data.data.insert_projects_one.id });
+                                    const addFunction = async (name) => {
+                                        let abbreviation = name.split(' ');
+                                        abbreviation = abbreviation.map(obj => obj[0]).join('');
+                                        setLoading(true);
+                                        let data = await API.graphql(graphqlOperation(`mutation {
+                                        insert_projects_one(object: {name: "${name}", key: "${abbreviation.toLowerCase()}", description: "add a description here", color: "#${Math.floor(Math.random() * 16777215).toString(16)}"}) {
+                                          id
+                                        }
+                                      }`));
+                                        setLoading(false);
+                                        navigation.push('project', { id: data.data.insert_projects_one.id });
+                                    }
+                                    let name = prompt('new project name?');
+                                    if (name) {
+                                        await addFunction(name);
+                                    }
                                 }}
                                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 140, width: 140, cursor: 'pointer', fontSize: 40, margin: 'auto' }}><span style={{ color: colors.text, textAlign: 'center' }}>+</span></div>}
                     </div>
