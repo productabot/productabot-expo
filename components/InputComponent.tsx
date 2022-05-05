@@ -4,7 +4,7 @@ import { Text, View } from '../components/Themed';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '@react-navigation/native';
 
-export default function InputComponent({ type, options, optionImage = false, optionCharacterImage = false, value, setValue, canClear = false, initialValue = null, width = '100%', marginTop = 0 }: any) {
+export default function InputComponent({ type, options, optionImage = false, optionCharacterImage = false, value, setValue, canClear = false, initialValue = null, width = '100%', marginTop = 0, fontSize = 20 }: any) {
     const { colors } = useTheme();
     const webViewRef = React.useRef(null);
     React.useEffect(() => {
@@ -15,6 +15,7 @@ export default function InputComponent({ type, options, optionImage = false, opt
             })();
         `);
     }, [value]);
+    const webFontSizeCoefficient = fontSize / 20;
     return (
         Platform.OS === 'web' ?
             (type === 'date' || type === 'time' ?
@@ -24,18 +25,18 @@ export default function InputComponent({ type, options, optionImage = false, opt
                 </div>
                 : type === 'select' ?
                     <div style={{ width: width, display: 'inline-block', position: 'relative' }}>
-                        {optionImage && <img style={{ position: 'absolute', top: 10, left: 6, width: 25, height: 25, border: '1px solid white', borderRadius: 5 }} src={`https://files.productabot.com/public/${options.filter(obj => obj.id === value)[0]?.image ?? 'blank.png'}`} />}
+                        {optionImage && <img style={{ position: 'absolute', top: 10, left: 6, width: webFontSizeCoefficient * 25, height: webFontSizeCoefficient * 25, border: `1px solid ${colors.border}`, borderRadius: 5, objectFit: 'cover' }} src={`https://files.productabot.com/public/${options.filter(obj => obj.id === value)[0]?.image ?? 'blank.png'}`} />}
                         {optionCharacterImage && <div style={{ position: 'absolute', zIndex: 1, color: colors.text }}>
-                            {value === '' && <div style={{ fontSize: 60, marginLeft: 1, marginTop: -16 }}>○</div>}
-                            {value === 'low' && <div style={{ fontSize: 34, marginLeft: 4, marginTop: 1 }}>⨀</div>}
-                            {value === 'medium' && <div style={{ fontSize: 32, marginLeft: 4, marginTop: 2 }}>⦿</div>}
-                            {value === 'high' && <div style={{ fontSize: 60, marginTop: -16, marginLeft: 1 }}>●</div>}
-                            {value === 'backlog' && <div style={{ fontSize: 36, marginLeft: 4, marginTop: 2 }}>◔</div>}
-                            {value === 'selected' && <div style={{ fontSize: 36, marginLeft: 4, marginTop: 2 }}>◑</div>}
-                            {value === 'in_progress' && <div style={{ fontSize: 36, marginLeft: 4, marginTop: 2 }}>◕</div>}
-                            {value === 'done' && <div style={{ fontSize: 60, marginTop: -15, marginLeft: 1 }}>●</div>}
+                            {value === '' && <div style={{ fontSize: webFontSizeCoefficient * 60, marginLeft: 1, marginTop: -16 }}>○</div>}
+                            {value === 'low' && <div style={{ fontSize: webFontSizeCoefficient * 34, marginLeft: 4, marginTop: 1 }}>⨀</div>}
+                            {value === 'medium' && <div style={{ fontSize: webFontSizeCoefficient * 32, marginLeft: 4, marginTop: 2 }}>⦿</div>}
+                            {value === 'high' && <div style={{ fontSize: webFontSizeCoefficient * 60, marginTop: -16, marginLeft: 1 }}>●</div>}
+                            {value === 'backlog' && <div style={{ fontSize: webFontSizeCoefficient * 36, marginLeft: 4, marginTop: 2 }}>◔</div>}
+                            {value === 'selected' && <div style={{ fontSize: webFontSizeCoefficient * 36, marginLeft: 4, marginTop: 2 }}>◑</div>}
+                            {value === 'in_progress' && <div style={{ fontSize: webFontSizeCoefficient * 36, marginLeft: 4, marginTop: 2 }}>◕</div>}
+                            {value === 'done' && <div style={{ fontSize: webFontSizeCoefficient * 60, marginTop: -15, marginLeft: 1 }}>●</div>}
                         </div>}
-                        <select style={{ color: colors.text, fontSize: 20, padding: 5, backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', marginTop: 5, marginBottom: 5, width: '100%', borderRadius: 10, paddingLeft: (optionImage || optionCharacterImage) ? 35 : 0 }} value={value} onChange={(e) => { setValue(e.target.value) }}>
+                        <select style={{ color: colors.text, fontSize: fontSize, padding: 5, backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', marginTop: 5, marginBottom: 5, width: '100%', borderRadius: 10, paddingLeft: (optionImage || optionCharacterImage) ? webFontSizeCoefficient * 35 : 0 }} value={value} onChange={(e) => { setValue(e.target.value) }}>
                             {options.map(obj => <option value={obj.id}>{obj.name}</option>)}
                         </select>
                     </div>

@@ -97,21 +97,21 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
     return (
         <div style={{ width: '100%', paddingTop: projectScreen ? 0 : 50, marginLeft: 'auto', marginRight: 'auto', height: '100%' }}>
             {!projectScreen &&
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', color: '#fff', fontFamily: 'arial', marginBottom: 10, maxWidth: 1250, marginLeft: 'auto', marginRight: 'auto', transform: 'scale(0.85)' }}>
+                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', color: '#fff', fontFamily: 'arial', marginBottom: 10, maxWidth: 800, marginLeft: 'auto', marginRight: 'auto' }}>
                     <div style={{ width: '25%', marginLeft: 5, marginRight: 5 }}>
-                        <InputComponent type={'select'} value={project} setValue={(value) => { setProject(value) }} options={[{ id: '', name: 'show all projects', image: null }, ...projects]} optionImage={true} width={'100%'} />
+                        <InputComponent type={'select'} value={project} setValue={(value) => { setProject(value) }} options={[{ id: '', name: 'show all projects', image: null }, ...projects]} optionImage={true} width={'100%'} fontSize={14} />
                     </div>
                     <div style={{ width: '25%', marginLeft: 5, marginRight: 5 }}>
-                        <InputComponent type={'select'} value={hiddenProject} setValue={(value) => { setHiddenProject(value) }} options={[{ id: '', name: 'hide no projects', image: null }, ...projects]} optionImage={true} width={'100%'} />
+                        <InputComponent type={'select'} value={hiddenProject} setValue={(value) => { setHiddenProject(value) }} options={[{ id: '', name: 'hide no projects', image: null }, ...projects]} optionImage={true} width={'100%'} fontSize={14} />
                     </div>
                     <div style={{ width: '25%', marginLeft: 5, marginRight: 5 }}>
-                        <InputComponent type={'select'} value={priority} setValue={(value) => { setPriority(value) }} options={[{ id: '', name: 'show all priorities' }, { id: 'low', name: 'low priority' }, { id: 'medium', name: 'medium priority' }, { id: 'high', name: 'high priority' }]} optionCharacterImage={true} width={'100%'} />
+                        <InputComponent type={'select'} value={priority} setValue={(value) => { setPriority(value) }} options={[{ id: '', name: 'show all priorities' }, { id: 'low', name: 'low priority' }, { id: 'medium', name: 'medium priority' }, { id: 'high', name: 'high priority' }]} optionCharacterImage={false} width={'100%'} fontSize={14} />
                     </div>
                     <div style={{ width: '25%', marginLeft: 5, marginRight: 5 }}>
-                        <input placeholder="search" style={{ width: '100%', fontSize: 20, padding: 5, backgroundColor: colors.background, color: colors.text, borderRadius: 10, borderStyle: 'solid', borderWidth: 1 }} onChange={(e) => { setSearch(e.target.value) }} />
+                        <input placeholder="search" style={{ width: '100%', fontSize: 14, padding: 6, backgroundColor: colors.background, color: colors.text, borderRadius: 10, borderStyle: 'solid', borderWidth: 1 }} onChange={(e) => { setSearch(e.target.value) }} />
                     </div>
                 </div>}
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', color: '#ccc', fontFamily: 'arial', marginBottom: 5, fontSize: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', color: '#ccc', fontFamily: 'arial', marginBottom: 10, fontSize: 14 }}>
                 {[{ key: 'backlog', label: 'backlog', icon: '◔', leftDistance: 10 }, { key: 'selected', label: 'selected', icon: '◑', leftDistance: (showContainers.backlog && showContainers.in_progress && showContainers.done) ? '33%' : (showContainers.backlog && showContainers.in_progress || showContainers.backlog && showContainers.done) ? '50%' : 40 }, { key: 'in_progress', label: 'in progress', icon: '◕', rightDistance: (showContainers.backlog && showContainers.selected && showContainers.done) ? '33%' : (showContainers.selected && showContainers.done || showContainers.backlog && showContainers.done) ? '50%' : 40 }, { key: 'done', label: 'done', icon: '⬤', rightDistance: 10 }].map(({ key, label, icon, leftDistance, rightDistance }) =>
                     showContainers[key] ?
                         <div style={{ color: colors.subtitle }}><span onClick={() => { setShowContainers({ ...showContainers, [key]: !showContainers[key] }) }} style={{ cursor: 'pointer' }}>{icon}</span> {label} ({tasks[key].length}) <span onClick={() => { navigation.push('edit_task', { status: key, project_id: project }) }} style={{ cursor: 'pointer', backgroundColor: '#0075ff', borderRadius: 5, padding: '2px 5px', color: '#ffffff', marginLeft: 5 }}>add +</span></div>

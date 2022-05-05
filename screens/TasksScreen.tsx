@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Text } from '../components/Themed';
-import { View, RefreshControl, Platform, useWindowDimensions, Image, Alert, TouchableOpacity } from 'react-native';
+import { View, RefreshControl, Platform, useWindowDimensions, Image, Alert, TouchableOpacity, TextInput } from 'react-native';
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
 import { useFocusEffect } from '@react-navigation/native';
 import { API, graphqlOperation } from "@aws-amplify/api";
@@ -26,30 +26,33 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
     const [tasks, setTasks] = React.useState([]);
     const [projects, setProjects] = React.useState([]);
     const [projectId, setProjectId] = React.useState('');
+    const [search, setSearch] = React.useState('');
     const windowDimensions = useWindowDimensions();
-    const [contextPosition, setContextPosition] = React.useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
+    const [contextPosition, setContextPosition] = React.useState({ x: 0, y: 0, moveToTop: () => { }, moveToBottom: () => { }, rename: () => { }, delete: () => { } });
     const menuRef = React.useRef(null);
     const flatListRef = React.useRef(null);
     const [confetti, setConfetti] = React.useState(false);
     const { colors } = useTheme();
 
-    // useFocusEffect(
-    //     React.useCallback(() => {
-    //         console.log(index, projectId, checked);
-    //         if (checked.length === 0) {
-    //             onRefresh();
-    //         }
-    //     }, [index, projectId, checked])
-    // );
+    useFocusEffect(
+        React.useCallback(() => {
+            if (checked.length === 0) {
+                onRefresh();
+            }
+        }, [index, projectId, checked, search])
+    );
 
     React.useEffect(() => {
         onRefresh();
-    }, [refresh, index, projectId]);
+    }, [refresh, index, projectId, search]);
 
     let onRefresh = async (showRefreshControl = false) => {
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
         let tasksData = await API.graphql(graphqlOperation(`{
-            tasks(order_by: {root_order: desc}, where: {${projectId ? `project_id: {_eq:"${projectId}"},` : givenProjectId ? `project_id: {_eq:"${givenProjectId}"},` : ``}status: {_eq: "${index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done'}"}}) {
+            tasks(order_by: {root_order: desc}, where: {
+                ${projectId ? `project_id: {_eq:"${projectId}"},` : givenProjectId ? `project_id: {_eq:"${givenProjectId}"},` : ``}
+                ${search.length > 0 ? `, details: {_ilike: "%${search}%"}, ` : ``}
+                status: {_eq: "${index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done'}"}}) {
               id
               created_at
               date
@@ -124,14 +127,15 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                     }
                 }}>
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0 }}>
+                    <TouchableOpacity
+                        style={{ position: 'absolute', bottom: 10, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderStyle: 'solid', borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
+                        onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.push('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done', project_id: projectId ?? null }) }}><Text>{`add task +`}</Text></TouchableOpacity>
                     <View style={{ width: Math.min(950, windowDimensions.width), height: windowDimensions.height - (Platform.OS === 'web' ? 60 : projectScreen ? 230 : 120), paddingLeft: 10, paddingRight: 10 }}>
                         <View style={{ width: '100%', height: 40, flexDirection: 'row', justifyContent: 'space-between', paddingBottom: 10, marginBottom: -10, marginTop: projectScreen ? 10 : 5 }}>
                             {(!projectScreen && checked.length === 0) &&
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                                    <InputComponent type="select" value={projectId} options={projects} optionImage={true} setValue={(value) => { setProjectId(value) }} width={'75%'} />
-                                    <TouchableOpacity
-                                        style={{ backgroundColor: colors.background, padding: 5, paddingLeft: 10, paddingRight: 10, borderRadius: 10 }}
-                                        onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.push('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done', project_id: projectId ?? null }) }}><Text>{`add task +`}</Text></TouchableOpacity>
+                                    <InputComponent type="select" value={projectId} options={projects} optionImage={true} setValue={(value) => { setProjectId(value) }} width={'50%'} />
+                                    <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={search} keyboardType='default' onChangeText={value => { setSearch(value) }} placeholder='search' style={{ color: colors.text, borderColor: colors.text, width: '50%', padding: 5, margin: 5, fontSize: 20, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 10, height: '100%' }} />
                                 </View>
                             }
                             {(projectScreen && checked.length === 0) &&
@@ -174,7 +178,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                             data={tasks}
                             renderItem={({ item, index }) =>
                                 <>
-                                    <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
+                                    <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', margin: -5 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', width: '75%' }}>
                                             <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7 }}>
                                                 <Image style={{ height: 30, width: 30, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${item.project.image}` }} />
@@ -278,12 +282,23 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                                     title=""
                                 />}
                             style={{ height: windowDimensions.height - (projectScreen ? 300 : 200) }}
+                            ListFooterComponent={<View style={{ height: 100 }} />}
                         />
                     </View>
                     <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer}>
                         <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y - 40, left: contextPosition.x } }} />
                         <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: colors.background, borderColor: '#444444', borderWidth: 1, borderStyle: 'solid', width: 100 }, optionsContainer: { width: 100 } }}>
                             <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                {contextPosition.moveToTop && <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
+                                    menuRef.current.close();
+                                    await contextPosition.moveToTop();
+                                    await onRefresh();
+                                }} ><Text>Move to Top</Text></TouchableOpacity>}
+                                {contextPosition.moveToBottom && <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
+                                    menuRef.current.close();
+                                    await contextPosition.moveToBottom();
+                                    await onRefresh();
+                                }} ><Text>Move to Bottom</Text></TouchableOpacity>}
                                 {contextPosition.rename && <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, paddingLeft: 20, width: '100%' }} onPress={async () => {
                                     menuRef.current.close();
                                     await contextPosition.rename();

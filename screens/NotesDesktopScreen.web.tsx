@@ -230,8 +230,8 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
         }}>
             <View style={{ height: 50 }} />
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: windowDimensions.width, height: windowDimensions.height - 49, maxWidth: windowDimensions.width }}>
-                <SplitPane split="vertical" pane1Style={hidePane && { display: 'none' }} defaultSize={paneSize} resizerStyle={{ width: 4, backgroundColor: '#444444', cursor: 'col-resize' }} onResizerDoubleClick={(e) => { setHidePane(!hidePane) }} onChange={(size) => { setPaneSize(size) }} >
-                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: `100%`, borderWidth: 1, borderColor: '#444444', borderStyle: 'solid', borderRightWidth: 0, borderLeftWidth: 0 }}>
+                <SplitPane split="vertical" pane1Style={hidePane && { display: 'none' }} defaultSize={paneSize} resizerStyle={{ width: 4, backgroundColor: `${colors.subtitle}66`, cursor: 'col-resize' }} onResizerDoubleClick={(e) => { setHidePane(!hidePane) }} onChange={(size) => { setPaneSize(size) }} >
+                    <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: `100%`, borderWidth: 1, borderColor: `${colors.subtitle}66`, borderStyle: 'solid', borderRightWidth: 0, borderLeftWidth: 0 }}>
                         <View style={{ height: 49, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%' }}>
                             <TouchableOpacity
                                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
@@ -262,7 +262,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                     setNoteId(newNoteId.data.insert_notes_one.id);
                                 }}><Text style={{ textAlign: 'center' }}>add note +</Text></TouchableOpacity>
                         </View>
-                        <View style={{ flexDirection: 'row', width: '100%', height: '100%', marginBottom: -49, borderTopColor: '#444444', borderTopWidth: 1, borderStyle: 'solid', flexGrow: 1 }}>
+                        <View style={{ flexDirection: 'row', width: '100%', height: '100%', marginBottom: -49, borderTopColor: `${colors.subtitle}66`, borderTopWidth: 1, borderStyle: 'solid', flexGrow: 1 }}>
                             {paneSize >= 220 &&
                                 <View style={{ width: '50%', maxWidth: 150 }}>
                                     <CustomDraggableFlatList
@@ -362,7 +362,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                             />
                         </View>
                     </View>
-                    <View style={[{ width: `100%`, height: '100%', borderWidth: 1, borderColor: '#444444', borderLeftWidth: 0, borderRightWidth: 0 }]}>
+                    <View style={[{ width: `100%`, height: '100%', borderWidth: 1, borderColor: `${colors.subtitle}66`, borderLeftWidth: 0, borderRightWidth: 0 }]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                             <TextInput placeholderTextColor={colors.placeholder} spellCheck={false}
                                 style={[{ width: '100%', height: 49, color: colors.text, padding: 10 }, root.desktopWeb && { outlineWidth: 0 }]}
@@ -412,7 +412,7 @@ const MenuBar = ({ editor }) => {
     const { colors } = useTheme();
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#444444', borderTopStyle: 'solid' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', borderTopWidth: 1, borderTopColor: `${colors.subtitle}66`, borderTopStyle: 'solid' }}>
             <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={editor.isActive('bold') ? 'is-active' : ''}

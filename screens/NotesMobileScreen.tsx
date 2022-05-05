@@ -150,17 +150,19 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
             justifyContent: 'flex-start',
             paddingBottom: 50
         }}>
-            <View style={{ padding: 10, paddingTop: 0, marginTop:-3, paddingBottom: 0, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <InputComponent width='75%' type='select' value={tag.id} options={tags.map(obj => { return { name: '📁 ' + obj.title, id: obj.id } })} setValue={(value) => setTag({ title: tags.filter(obj => obj.id === value).length > 0 ? tags.filter(obj => obj.id === value)[0].title : 'null', id: value })} marginTop={-5} />
-                <TouchableOpacity onPress={async () => {
+            <TouchableOpacity
+                style={{ position: 'absolute', bottom: 10, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
+                onPress={async () => {
                     let dateString = new Date().toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
                     let data = await API.graphql(graphqlOperation(`mutation {
-                            insert_notes_one(object: {tag_id: "${tag.id}", title: "${dateString}", content: "", order: ${notesCount}}) {
-                                id
-                            }
-                        }`));
+                    insert_notes_one(object: {tag_id: "${tag.id}", title: "${dateString}", content: "", order: ${notesCount}}) {
+                        id
+                    }
+                }`));
                     navigation.push('note', { id: data.data.insert_notes_one.id });
                 }}><Text style={{ fontSize: 20 }}>add note +</Text></TouchableOpacity>
+            <View style={{ padding: 10, paddingTop: 0, marginTop: -3, paddingBottom: 0, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <InputComponent width='100%' type='select' value={tag.id} options={tags.map(obj => { return { name: '📁 ' + obj.title, id: obj.id } })} setValue={(value) => setTag({ title: tags.filter(obj => obj.id === value).length > 0 ? tags.filter(obj => obj.id === value)[0].title : 'null', id: value })} marginTop={-5} />
             </View>
             <CustomDraggableFlatList
                 data={notes}

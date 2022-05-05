@@ -474,19 +474,13 @@ export function MultipleContainers({
                     itemCount={items[containerId].length}
                     itemSize={(index) => {
                       let length = items[containerId][index].details?.length ?? 0;
-                      let windowPadding = 30 + ((Object.keys(showContainers)?.length ?? 4) * 100);
+                      let windowPadding = ((Object.keys(showContainers)?.length ?? 4) * 90);
                       let widthPercentage = 1 / (Object.keys(showContainers)?.length ?? 4);
-                      let fontSize = 16;
+                      let lineHeight = 14;
                       let baseHeight = 70;
-                      let multiplier = 0.12;
+                      let multiplier = 0.1;
                       let minimumNumbersOfLines = 1;
-                      return baseHeight + Math.max(Math.ceil(length / ((windowDimensions.width - windowPadding) * widthPercentage * multiplier)), minimumNumbersOfLines) * fontSize;
-                      // if (length) {
-                      //   return Math.ceil(length / (((windowDimensions.width - 100) / 4) / 10)) * 16 + 70
-                      // }
-                      // else {
-                      //   return 80;
-                      // }
+                      return baseHeight + Math.max(Math.ceil(length / ((windowDimensions.width - windowPadding) * widthPercentage * multiplier)), minimumNumbersOfLines) * lineHeight;
                     }}
                     renderItem={({ index, style }) => {
                       const item = items[containerId][index];

@@ -118,7 +118,7 @@ export const Item = React.memo(
             tabIndex={!handle ? 0 : undefined}
           >
             <div className='sortableItem' style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', cursor: dragOverlay ? 'grabbing' : 'grab', padding: 15, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: dragOverlay ? colors.hover : colors.card }}>{/*, height: 90*/}
-              <div style={{ width: 45, }}><img style={{ width: 30, height: 30, borderRadius: 5, borderWidth: 1, borderColor: colors.text, borderStyle: 'solid' }} src={`https://files.productabot.com/public/${value.image}`} /></div>
+              <div style={{ width: 45, }}><img style={{ width: 30, height: 30, borderRadius: 5, borderWidth: 1, borderColor: colors.text, borderStyle: 'solid', objectFit: 'cover' }} src={`https://files.productabot.com/public/${value.image}`} /></div>
               <div style={{ width: '90%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
                 {value.date ?
                   <div style={{ color: '#ffffff', fontSize: 10, textAlign: 'left', marginTop: 5, backgroundColor: '#3F0054', paddingLeft: 2, paddingRight: 2, borderRadius: 5 }}>
@@ -126,7 +126,7 @@ export const Item = React.memo(
                     {`${new Date(value.date).toLocaleDateString()}${value.time ? `, ${new Date(value.date + 'T' + value.time).toLocaleTimeString([], { timeStyle: 'short' })}` : ``}`}</div>
                   :
                   <div style={{ color: colors.subtitle, fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(value.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</div>}
-                <div style={{ fontSize: 14, color: colors.text, textDecorationLine: value.status === 'done' ? 'line-through' : '' }}>{value.details}</div>
+                <div style={{ fontSize: 13, color: colors.text, wordBreak: 'break-word', fontFamily: 'monospace', textDecorationLine: value.status === 'done' ? 'line-through' : '' }}>{value.details}</div>
                 <div style={{ fontSize: 10, color: colors.subtitle }}>{value.count} comment{value.count !== 1 ? 's' : ''}{value.category ? `, #${value.category}` : ``}</div>
               </div>
             </div>

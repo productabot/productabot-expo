@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import { useTheme } from '@react-navigation/native';
 
 export interface Props {
   children: React.ReactNode;
@@ -37,20 +38,20 @@ export const Container = forwardRef<HTMLDivElement, Props>(
     }: Props,
     ref
   ) => {
-    const Component = onClick ? 'button' : 'div';
+    const { colors } = useTheme();
 
     return (
-      <Component
+      <div
         {...props}
         /*
         // @ts-ignore */
         ref={ref}
-        style={{ width: '100%', height: `calc(100vh - ${heightOffset}px)`, minHeight: `calc(100vh - ${heightOffset}px)`, border: '1px solid #333333', borderRadius: 10, margin: 5 }}
+        style={{ width: '100%', height: `calc(100vh - ${heightOffset}px)`, minHeight: `calc(100vh - ${heightOffset}px)`, border: `1px solid ${colors.border}66`, borderLeftWidth: 0.25, borderRightWidth: 0.25 }}
         onClick={onClick}
         tabIndex={onClick ? 0 : undefined}
       >
         {children}
-      </Component>
+      </div>
     );
   }
 );
