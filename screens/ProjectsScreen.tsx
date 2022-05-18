@@ -54,6 +54,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
       projects(order_by: {order: asc}, where: {archived: {_eq: ${archived ? 'true' : 'false'}}}) {
         id
         name
+        description
         image
         goal
         color
@@ -70,6 +71,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
       }
       users {
         username
+        created_at
         image
         plan
       }
@@ -79,7 +81,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
     let currentHour = new Date().getHours();
     setGreeting(<View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
       {(Platform.OS === 'web' && window.width > 800) && <Text>{(currentHour < 12 && currentHour > 6) ? `good morning, ` : (currentHour < 18 && currentHour >= 12) ? `good afternoon, ` : (currentHour < 22 && currentHour >= 18) ? `good evening, ` : `good night, `}</Text>}
-      <TouchableOpacity href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab') }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }} >
+      <TouchableOpacity href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab', { screen: 'settings', params: { state: { ...data.data.users[0] } } }) }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }} >
         <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.border, borderRadius: 5, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${data.data.users[0].image}` }} />
         <Text>{data.data.users[0].username}</Text>
       </TouchableOpacity>
@@ -252,7 +254,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
           }}
           onClickItem={async (array, item) => {
             if (item.id) {
-              navigation.push('project', { id: item.id })
+              navigation.push('project', { id: item.id, state: { name: item.name, description: item.description, image: item.image } })
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }
             else {

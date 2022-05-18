@@ -64,7 +64,7 @@ let dropFunction = async (e) => { };
 
 export default function ProjectScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
-    const [project, setProject] = useState({ tasks: [], files: [], entries: [], files: [], folders: [] });
+    const [project, setProject] = useState({ ...route.params.state, tasks: [], files: [], entries: [], folders: [] });
     const [index, setIndex] = useState(0);
     const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
     const menuRef = useRef(null);
@@ -77,7 +77,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
     const [identityId, setIdentityId] = useState('');
     const [itemToMove, setItemToMove] = useState(null);
     const { colors } = useTheme();
-    const opacity = useRef(new Animated.Value(0)).current;
+    const opacity = useRef(new Animated.Value(Platform.OS === 'web' ? 1 : 0)).current;
 
     React.useEffect(() => {
         const async = async () => {
@@ -468,7 +468,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 <View style={{ width: Platform.OS === 'web' ? 80 : 60, height: Platform.OS === 'web' ? 80 : 60, marginRight: 10, borderColor: colors.text, borderWidth: 1, borderRadius: 10 }} />
                             }
                         </TouchableOpacity>
-                        <Animated.View style={{ opacity: opacity, width: window.width - 145 }}>
+                        <View style={{ width: window.width - 145 }}>
                             <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' spellCheck={false} value={project.name} numberOfLines={1} style={[{ fontSize: 40, color: colors.text }, root.desktopWeb && { outlineWidth: 0 }]}
                                 onChangeText={(value) => { setProject({ ...project, name: value }); }}
                                 onBlur={async () => {
@@ -490,7 +490,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 }`));
                                 }}
                             />
-                        </Animated.View>
+                        </View>
                     </View>
                     <TouchableOpacity onPress={() => { setSettings(!settings); }} ><Text style={{ fontSize: 30 }}>⚙️</Text></TouchableOpacity>
                 </View>

@@ -89,8 +89,8 @@ export default function Navigation({ navigation, authenticated, setLoading, load
       theme={theme === 'dark' ? darkTheme : lightTheme}
       linking={LinkingConfiguration}
       documentTitle={{
-        formatter: (options, route) =>
-          `productabot • ${options?.title ?? route?.name.replace('_', ' ')}`,
+        formatter: (options, route) => options?.title
+        // `${route?.params?.state?.name ?? options?.title}`,
       }}
     >
       <RootNavigator authenticated={authenticated} setLoading={setLoading} loading={loading} setTheme={setTheme} theme={theme} />
@@ -111,7 +111,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
   return (
     <RootStack.Navigator initialRouteName={authenticated ? 'app' : 'auth'} screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="auth" options={{ animationEnabled: false }}>
-        {props => <AuthStack.Navigator {...props} initialRouteName={Platform.OS === 'web' ? 'login' : 'welcome'} screenOptions={{ headerShown: false }} >
+        {props => <AuthStack.Navigator {...props} initialRouteName={Platform.OS === 'web' ? 'login' : 'welcome'} screenOptions={{ headerShown: false, title: 'productabot' }} >
           <AuthStack.Screen name="login" options={{ animationEnabled: true, ...TransitionPresets.ScaleFromCenterAndroid }}>
             {props => <LoginScreen {...props} setLoading={setLoading} loading={loading} setTheme={setTheme} theme={theme} />}
           </AuthStack.Screen>
@@ -159,7 +159,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               {props => {
                 const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
-                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="projects" >
+                  <AppStack.Navigator {...props} screenOptions={({ route }) => { return { headerShown: false, title: `projects` } }} initialRouteName="projects" >
                     <AppStack.Screen name="projects" options={{ ...defaultAnimation }}>
                       {props => <ProjectsScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
@@ -200,7 +200,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               {props => {
                 const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
-                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="calendar">
+                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false, title: 'calendar' }} initialRouteName="calendar">
                     <AppStack.Screen name="calendar" options={{ ...defaultAnimation }}>
                       {props => <CalendarScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
@@ -229,7 +229,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               {props => {
                 const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
-                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="tasks">
+                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false, title: 'tasks' }} initialRouteName="tasks">
                     {(windowDimensions.width < 800) ?
                       <AppStack.Screen name="tasks" options={{ ...defaultAnimation }}>
                         {props => <TasksScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
@@ -257,7 +257,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               {props => {
                 const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
-                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="notes">
+                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false, title: 'notes' }} initialRouteName="notes">
                     {(windowDimensions.width < 400) ?
                       <AppStack.Screen name="notes" options={{ ...defaultAnimation }}>
                         {props => <NotesMobileScreen {...props} refresh={refresh} setLoading={setLoading} />}
@@ -279,7 +279,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
               {props => {
                 const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
                 return (
-                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false }} initialRouteName="settings">
+                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false, title: 'settings' }} initialRouteName="settings">
                     <AppStack.Screen name="settings" options={{ ...defaultAnimation }}>
                       {props => <SettingsScreen {...props} refresh={refresh} setLoading={setLoading} setTheme={setTheme} theme={theme} />}
                     </AppStack.Screen>

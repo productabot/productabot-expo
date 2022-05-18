@@ -10,8 +10,7 @@ import { useTheme } from '@react-navigation/native';
 export default function TaskScreen({ route, navigation, refresh, setLoading, loading }: any) {
     const windowDimensions = useWindowDimensions();
     const [refreshControl, setRefreshControl] = useState(false);
-    const [count, setCount] = useState(0);
-    const [task, setTask] = useState({});
+    const [task, setTask] = useState({ ...route?.params?.state });
     const { colors } = useTheme();
     const styles = makeStyles(colors);
 
@@ -24,8 +23,6 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
 
     let onRefresh = async (showRefreshControl = false) => {
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
-        //load existing task if editing
-        let task = {};
         let data = await API.graphql(graphqlOperation(`{
             tasks_by_pk(id: "${route.params.id}") {
                 id
@@ -38,6 +35,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                 time
                 category
                 details
+                status
                 comments(order_by: {created_at: asc}) {
                     id
                     created_at
@@ -52,7 +50,6 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
             }
         }`));
         setTask(data.data.tasks_by_pk);
-        setCount(data.data.tasks_by_pk.comments_aggregate.aggregate.count);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
     }
 
@@ -80,8 +77,8 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                                 :
                                 <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{task.created_at ? new Date(task.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : ' '}</Text>
                             }
-                            <Text style={{ textDecorationLine: task.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{task.details ? task.details : ' '}</Text>
-                            <Text style={{ fontSize: 10, color: colors.subtitle }}>{task?.comments_aggregate?.aggregate?.count} comments{task.category ? `, #${task.category}` : ``}</Text>
+                            <Text style={{ fontSize: 14 }}>{task.details ? task.details : ' '}</Text>
+                            <Text style={{ fontSize: 10, color: colors.subtitle }}>{`${task?.comments_aggregate?.aggregate?.count} comment${task?.comments_aggregate?.aggregate?.count === 1 ? '' : 's'}`}{task.category ? `, #${task.category}` : ``}</Text>
                         </View>
                     </View>
                     <TouchableOpacity
@@ -115,7 +112,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                                     }} style={{ height: 30, width: 2, backgroundColor: colors.subtitle, marginLeft: 0, marginRight: 10 }} />
                                 <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
                                     <Text style={{ color: colors.subtitle, fontSize: 10, textAlign: 'left' }}>{item.created_at ? new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : ' '}</Text>
-                                    <Text style={{ textDecorationLine: task.status === 'done' ? 'line-through' : 'none', fontSize: Platform.OS === 'web' ? 14 : 14 }}>{item.details}</Text>
+                                    <Text style={{ fontSize: 14 }}>{item.details}</Text>
                                 </View>
                             </View>
                         </View>

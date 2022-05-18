@@ -1,5 +1,7 @@
 import * as Linking from 'expo-linking';
 
+const stringify = { id: (id) => id.replace(/-/g, ''), state: (state) => '' };
+
 export default {
   prefixes: [Linking.makeUrl('/')],
   config: {
@@ -18,31 +20,40 @@ export default {
           projectsTab: {
             screens: {
               projects: {
-                path: 'projects'
+                path: 'projects',
+                stringify
               },
               project: {
-                path: 'project/:id?'
+                path: 'projects/:id/:state?',
+                stringify
               },
               document: {
-                path: 'document/:id?'
+                path: 'documents/:id?',
+                stringify
               },
               sheet: {
-                path: 'sheet/:id?'
+                path: 'sheets/:id?',
+                stringify
               },
               entry: {
-                path: 'projects/entry/:id?'
+                path: 'projects/entries/:id?',
+                stringify
               },
               task: {
-                path: 'projects/task/:id?'
+                path: 'projects/tasks/:id?',
+                stringify
               },
               edit_task: {
-                path: 'projects/task/edit/:id?'
+                path: 'projects/tasks/edit/:id?',
+                stringify
               },
               event: {
-                path: 'projects/event/:id?'
+                path: 'projects/events/:id?',
+                stringify
               },
               budget: {
-                path: 'projects/budget/:id?'
+                path: 'projects/budgets/:id?',
+                stringify
               },
             }
           },
@@ -50,51 +61,63 @@ export default {
             screens: {
               calendar: {
                 path: 'calendar',
+                stringify
               },
               entry: {
-                path: 'calendar/entry/:id?'
+                path: 'calendar/entries/:id?',
+                stringify
               },
               task: {
-                path: 'calendar/task/:id?'
+                path: 'calendar/tasks/:id?',
+                stringify
               },
               event: {
-                path: 'calendar/event/:id?'
+                path: 'calendar/events/:id?',
+                stringify
               },
             }
           },
           notesTab: {
             screens: {
               notes: {
-                path: 'notes'
+                path: 'notes',
+                stringify
               },
               note: {
-                path: 'note'
+                path: 'note',
+                stringify
               },
             }
           },
           tasksTab: {
             screens: {
               tasks: {
-                path: 'tasks'
+                path: 'tasks',
+                stringify
               },
               task: {
-                path: 'task/:id?'
+                path: 'tasks/:id?/:state?',
+                stringify
               },
               edit_task: {
-                path: 'task/edit/:id?'
+                path: 'tasks/edit/:id?',
+                stringify
               }
             }
           },
           settingsTab: {
             screens: {
               settings: {
-                path: 'settings'
+                path: 'settings/:state?',
+                stringify
               },
               blank: {
-                path: 'blank'
+                path: 'blank',
+                stringify
               },
               test: {
-                path: 'test'
+                path: 'test',
+                stringify
               },
             }
           }

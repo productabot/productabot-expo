@@ -266,7 +266,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                             menuRef={menuRef}
                             onPress={async ({ item, index }) => {
                                 Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                navigation.push('task', { id: item.id });
+                                navigation.push('task', { id: item.id, state: { ...item } });
                             }}
                             onDragEnd={async ({ data }) => {
                                 setTasks(data);

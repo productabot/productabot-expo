@@ -96,13 +96,15 @@ export const Item = React.memo(
             } as React.CSSProperties
           }
           ref={ref}
-          onClick={() => { navigation.push('task', { id: value.id }); }}
+          onClick={() => {
+            navigation.push('task', { id: value.id, state: { ...value, project: { image: value.image }, comments_aggregate: { aggregate: { count: value.count } } } });
+          }}
           onContextMenu={async (e) => {
             e.preventDefault();
             setContextPosition({
               x: e.nativeEvent.pageX, y: e.nativeEvent.pageY,
               rename: async () => {
-                navigation.push('edit_task', { id: value.id });
+                navigation.push('edit_task', { id: value.id, state: { ...value } });
               },
               delete: async () => {
                 if (confirm('Are you sure you want to delete this task?')) { await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${value.id}") {id}}`)); onRefresh(); }

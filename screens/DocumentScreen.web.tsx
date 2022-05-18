@@ -19,7 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 
 export default function DocumentScreen({ route, navigation, setLoading }: any) {
-    const [document, setDocument] = useState({});
+    const [document, setDocument] = useState({ ...route?.params?.state });
     const { colors } = useTheme();
 
     const editor = useEditor({
@@ -58,6 +58,7 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
         editor?.commands.setContent(data.data.files_by_pk.content.replace(/<div><br><\/div>/g, '<p></p>').replace(/<div>/g, '<p>').replace(/<\/div>/g, '</p>'));
         editor?.commands.setTextSelection(selection);
         setLoading(false);
+        navigation.setOptions({ title: data.data.files_by_pk.title });
     }
 
     const handleKeyDown = async (event) => {

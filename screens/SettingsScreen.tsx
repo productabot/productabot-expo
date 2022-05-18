@@ -27,11 +27,11 @@ function formatBytes(bytes: number, decimals = 2) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-export default function SettingsScreen({ navigation, refresh, setLoading, setTheme, theme }: any) {
+export default function SettingsScreen({ route, navigation, refresh, setLoading, setTheme, theme }: any) {
     const windowDimensions = useWindowDimensions();
     const [refreshControl, setRefreshControl] = useState(false);
     const [oldUser, setOldUser] = useState({});
-    const [user, setUser] = useState({});
+    const [user, setUser] = useState({...route?.params?.state});
     const [size, setSize] = useState(0);
     const [index, setIndex] = useState(0);
     const [github, setGithub] = useState([]);
@@ -239,9 +239,9 @@ export default function SettingsScreen({ navigation, refresh, setLoading, setThe
                             />
                         </TouchableOpacity>
                         <View style={{ flexDirection: 'column' }}>
-                            <Text style={{ fontSize: 30 }}>{oldUser.username}</Text>
+                            <Text style={{ fontSize: 30 }}>{user.username}</Text>
                             <Text style={{ fontSize: 15 }}>{user.created_at ? `productive since ${new Date(user.created_at).toLocaleDateString()}` : ``}</Text>
-                            <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${oldUser.plan === 'free' ? `25 MB` : `250 GB`} used`}</Text>
+                            <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${user.plan === 'free' ? `25 MB` : `250 GB`} used`}</Text>
                         </View>
                         <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
                             <TouchableOpacity onPress={logout}><Text style={{ textAlign: 'center' }}>log out →</Text></TouchableOpacity>
