@@ -284,7 +284,7 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
               <View
                 style={{ alignItems: 'center', width: 140, cursor: 'grab' }}
                 key={item.id}>
-                <View style={{ width: 140, height: 140, borderColor: item.focused ? '#0099ff' : colors.text, borderWidth: 1, borderRadius: 20, shadowColor: item.focused ? '#0099ff' : '', shadowRadius: item.focused ? 15 : 0, shadowOpacity: item.focused ? 1 : 0 }}>
+                <View style={{ width: 140, height: 140, borderColor: item.focused ? '#0099ff' : colors.text, borderWidth: 1, borderRadius: 20 }}>
                   <Animated.Image
                     onLoad={() => { Animated.timing(opacity[index], { toValue: 1, duration: 100, useNativeDriver: false }).start(); }}
                     style={{ opacity: opacity[index], width: 138, height: 138, borderRadius: 19 }}

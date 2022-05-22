@@ -215,14 +215,6 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
               category
               details
             }
-            budget(order_by: {date: desc}, limit: 50) {
-              id
-              date
-              price
-              category
-              details
-              type
-            }
         }
         entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
             aggregate {
@@ -246,11 +238,6 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
               count
             }
         }
-        budget_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-            aggregate {
-              count
-            }
-        }
         goal_aggregate: entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}, date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
             aggregate {
               count
@@ -259,7 +246,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         }
         }`));
         setProject(data.data.projects_by_pk);
-        setCount({ budget: data.data.budget_aggregate.aggregate.count, events: data.data.events_aggregate.aggregate.count, entries: data.data.entries_aggregate.aggregate.count, tasks: data.data.tasks_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.entries_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
+        setCount({ events: data.data.events_aggregate.aggregate.count, entries: data.data.entries_aggregate.aggregate.count, tasks: data.data.tasks_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.entries_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
         setLoading(false);
         Animated.sequence([Animated.timing(opacity, { toValue: 1, duration: Platform.OS === 'web' ? 1 : 100, easing: Easing.linear, useNativeDriver: true })]).start();
     }
@@ -408,9 +395,6 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
         }
         else if (type === 'event') {
             navigation.push('event', { project_id: project.id })
-        }
-        else if (type === 'budget') {
-            navigation.push('budget', { project_id: project.id })
         }
         else if (type === 'image') {
             pickImage('file');
@@ -643,16 +627,22 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         <SegmentedControl
                             appearance={colors.background === '#000000' ? 'dark' : 'light'}
                             style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
-                            values={['files', 'entries', 'tasks', 'events', 'budget'].map(obj => `${obj} ${Platform.OS === 'web' ? `(${count[obj] ? count[obj].toLocaleString() : 0})` : ``}`)}
+                            values={['files', 'entries', 'tasks', 'events'].map(obj => `${obj} ${true ? `(${count[obj] ? count[obj].toLocaleString() : 0})` : ``}`)}
                             selectedIndex={index}
                             onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                         />
                         <Animated.View style={{ opacity: opacity, width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 260) }}>
                             {index === 0 &&
                                 <>
+                                    {Platform.OS !== 'web' &&
+                                        <TouchableOpacity
+                                            style={{ position: 'absolute', bottom: 0, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
+                                            onPress={async () => {
+                                                addAction('mobile')
+                                            }}><Text style={{ fontSize: 20 }}>add file +</Text></TouchableOpacity>}
                                     <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <View style={{ flexDirection: 'row', marginLeft: 5, marginBottom: 5 }}>
-                                            <Text onPress={() => { setFolder(null) }}>{folder?.title ? `← . . / ` : `📂 / `}</Text>
+                                            <Text onPress={() => { setFolder(null) }}>{folder?.title ? `. . 📂 / ` : `📂 / `}</Text>
                                             {folder?.folder?.folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder.folder.folder) }}>{`📂 ${folder.folder.folder.folder.folder.title} / `}</Text>}
                                             {folder?.folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder.folder) }}>{`📂 ${folder.folder.folder.folder.title} / `}</Text>}
                                             {folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder) }}>{`📂 ${folder.folder.folder.title} / `}</Text>}
@@ -676,9 +666,10 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                                 ><Text>{'upload file'} +</Text></TouchableOpacity>
                                             </View>
                                             :
-                                            <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                                onPress={async () => { addAction('mobile') }}
-                                            ><Text>{'add/upload'} +</Text></TouchableOpacity>
+                                            <View />
+                                            // <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                            //     onPress={async () => { addAction('mobile') }}
+                                            // ><Text>{'add/upload'} +</Text></TouchableOpacity>
                                         }
                                     </View>
                                     <CustomDraggableFlatList
@@ -805,12 +796,19 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     ${data.map((document, documentIndex) => `data${documentIndex}: update_files_by_pk(pk_columns: {id: "${document.id}"}, _set: {order: ${data.length - 1 - documentIndex}}) {id}`)}
                                 }`));
                                         }}
+                                        ListFooterComponent={<View style={{ height: 100 }} />}
                                     />
                                 </>
                             }
                             {
                                 index === 1 &&
                                 <>
+                                    {Platform.OS !== 'web' &&
+                                        <TouchableOpacity
+                                            style={{ position: 'absolute', bottom: 0, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
+                                            onPress={async () => {
+                                                addAction('entry')
+                                            }}><Text style={{ fontSize: 20 }}>add entry +</Text></TouchableOpacity>}
                                     {(count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}
                                     {(project.goal && root.desktopWeb) &&
                                         <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
@@ -854,9 +852,9 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                             </MenuOptions>
                                         </Menu>
                                     }
-                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                    {Platform.OS === 'web' ? <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
                                         onPress={async () => { addAction('entry'); }}
-                                    ><Text>{'add time entry'} +</Text></TouchableOpacity>
+                                    ><Text>{'add time entry'} +</Text></TouchableOpacity> : <View style={{ height: 20 }} />}
                                     <CustomDraggableFlatList
                                         data={project.entries}
                                         draggable={false}
@@ -914,6 +912,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
                                                 <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add an entry +`}</Text>
                                             </TouchableOpacity>}
+                                        ListFooterComponent={<View style={{ height: 100 }} />}
                                     />
                                 </>
                             }
@@ -930,9 +929,18 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                             {
                                 index === 3 &&
                                 <>
-                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                        onPress={async () => { addAction('event'); }}
-                                    ><Text>{'add event'} +</Text></TouchableOpacity>
+
+                                    {Platform.OS !== 'web' &&
+                                        <TouchableOpacity
+                                            style={{ position: 'absolute', bottom: 0, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
+                                            onPress={async () => {
+                                                addAction('mobile')
+                                            }}><Text style={{ fontSize: 20 }}>add file +</Text></TouchableOpacity>}
+                                    {Platform.OS === 'web' ?
+                                        <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                            onPress={async () => { addAction('event'); }}
+                                        ><Text>{'add event'} +</Text></TouchableOpacity>
+                                        : <View style={{ height: 20 }} />}
                                     <CustomDraggableFlatList
                                         data={project.events}
                                         draggable={false}
@@ -982,66 +990,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
                                                 <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add event +`}</Text>
                                             </TouchableOpacity>}
-                                    />
-                                </>
-                            }
-                            {
-                                index === 4 &&
-                                <>
-                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                        onPress={async () => { addAction('budget'); }}
-                                    ><Text>{'add budget entry'} +</Text></TouchableOpacity>
-                                    <CustomDraggableFlatList
-                                        data={project.budget}
-                                        draggable={false}
-                                        virtualSize={80}
-                                        virtualHeight={window.height - 240}
-                                        renderItem={({ item }) => {
-                                            let date = new Date(item.date);
-                                            date.setDate(date.getDate() + 1);
-                                            return (
-                                                <>
-                                                    <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
-                                                        <View style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', maxWidth: '100%', marginRight: 5, marginTop: 5 }}>
-                                                            <View style={{ backgroundColor: item.type === 'expense' ? '#3F0054' : '#3F91A1', borderRadius: 5, paddingLeft: 5, paddingRight: 5 }}>
-                                                                <Text style={{ color: '#ffffff', fontSize: 12 }}>{item.type}</Text>
-                                                            </View>
-                                                            <Text style={{ textAlign: 'center', fontSize: 30 }}>{item.type === 'expense' ? '💵' : '💰'}</Text>
-                                                        </View>
-                                                        <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '100%' }}>
-                                                            <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })}</Text>
-                                                            <Text style={{ fontSize: 14 }}>{item.details}</Text>
-                                                            <Text style={{ fontSize: 10, color: colors.subtitle }}>{item.category}</Text>
-                                                        </View>
-                                                        <Text style={{ fontSize: 30, marginLeft: 'auto', fontWeight: 'bold' }}>{`$${item.price ? item.price.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '0.00'}`}</Text>
-                                                    </View>
-                                                </>
-                                            );
-                                        }}
-                                        onPress={(item) => {
-                                            navigation.push('budget', { id: item.item.id })
-                                        }}
-                                        onDelete={async (item) => {
-                                            const deleteFunction = async () => {
-                                                setLoading(true);
-                                                await API.graphql(graphqlOperation(`mutation {delete_budget_by_pk(id: "${item.item.id}") {id}}`));
-                                                await onRefresh();
-                                                setLoading(false);
-                                            }
-                                            if (Platform.OS !== 'web') {
-                                                Alert.alert('Warning', 'Are you sure you want to delete this budget?',
-                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                            }
-                                            else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
-                                        }}
-                                        setContextPosition={setContextPosition}
-                                        menuRef={menuRef}
-                                        ListEmptyComponent={
-                                            <TouchableOpacity
-                                                onPress={async () => { addAction('budget'); }}
-                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
-                                                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add budget entry +`}</Text>
-                                            </TouchableOpacity>}
+                                        ListFooterComponent={<View style={{ height: 100 }} />}
                                     />
                                 </>
                             }

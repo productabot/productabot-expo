@@ -204,175 +204,182 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     root.desktopWeb ? { width: windowDimensions.width / 7, height: 130 } :
                         { width: windowDimensions.width / 7, height: 100 }
                 ]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? colors.placeholder : 'unset' }}>
-                    <Text style={{ margin: 5, textAlign: 'left', color: colors.text, fontSize: 12 }}>
-                        {date.day}
-                    </Text>
-                    <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={date.date} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
-                        <MenuTrigger>
-                            <Text style={{ color: '#aaaaaa', marginRight: 2, width: 25, textAlign: 'right' }}>+</Text>
-                        </MenuTrigger>
-                        <MenuOptions customStyles={{
-                            optionsWrapper: { backgroundColor: 'transparent', width: 255 },
-                            optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
-                        }}>
-                            <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 40 }}>
-                                <TouchableOpacity onPress={() => { navigation.push('entry', { date: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>⏱ add entry</Text></TouchableOpacity>
-                                <TouchableOpacity onPress={() => { navigation.push('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>☉ add task</Text></TouchableOpacity>
-                                <TouchableOpacity onPress={() => { navigation.push('event', { date_from: date.dateString, date_to: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>📅 add event</Text></TouchableOpacity>
+                <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={date.date} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
+                    <MenuTrigger>
+                        <View style={{ height: 100 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? colors.placeholder : 'unset' }}>
+                                <Text style={{ margin: 5, textAlign: 'left', color: colors.text, fontSize: 12 }}>
+                                    {date.day}
+                                </Text>
+                                <Text style={{ color: '#aaaaaa', marginRight: 2, width: 25, textAlign: 'right' }}>+</Text>
                             </View>
-                        </MenuOptions>
-                    </Menu>
-                </View>
-                {showEntries && entries.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
-                    <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
-                        <MenuTrigger>
-                            <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>⏱{root.desktopWeb ? obj.project.name : obj.project.key}</Text>
-                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff', minWidth: obj.hours.toString().length * 6 }}>{obj.hours}</Text>
-                            </View>
-                        </MenuTrigger>
-                        <MenuOptions customStyles={{
-                            optionsWrapper: { backgroundColor: 'transparent', width: 255 },
-                            optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
-                        }}>
-                            <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
-                                <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                        <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
-                                            <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
-                                            <View style={{ flexDirection: 'column', marginLeft: 5 }}>
-                                                <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
-                                                <View style={{ flexDirection: 'row' }}>
-                                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
-                                                        <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 12 }}>{obj.category}</Text>
-                                                    </View>
+                            {showEntries && entries.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
+                                <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
+                                    <MenuTrigger>
+                                        <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>⏱{root.desktopWeb ? obj.project.name : obj.project.key}</Text>
+                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff', minWidth: obj.hours.toString().length * 6 }}>{obj.hours}</Text>
+                                        </View>
+                                    </MenuTrigger>
+                                    <MenuOptions customStyles={{
+                                        optionsWrapper: { backgroundColor: 'transparent', width: 255 },
+                                        optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
+                                    }}>
+                                        <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
+                                            <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
+                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
+                                                    <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                                        <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
+                                                        <View style={{ flexDirection: 'column', marginLeft: 5 }}>
+                                                            <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
+                                                            <View style={{ flexDirection: 'row' }}>
+                                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
+                                                                    <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 12 }}>{obj.category}</Text>
+                                                                </View>
+                                                            </View>
+                                                        </View>
+                                                    </TouchableOpacity>
+                                                    <Text numberOfLines={1} style={{ color: colors.text, fontSize: 30, fontWeight: 'bold' }}>{obj.hours}<Text numberOfLines={1} style={{ color: colors.text, fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
                                                 </View>
+                                                <Text style={{ color: colors.text, margin: 5 }}>{obj.details}</Text>
+                                            </ScrollView>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                                <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
+                                                    const deleteFunction = async () => {
+                                                        setLoading(true);
+                                                        await API.graphql(graphqlOperation(`mutation {delete_entries_by_pk(id: "${obj.id}") {id}}`));
+                                                        await onRefresh();
+                                                        setLoading(false);
+                                                    }
+                                                    Alert.alert('Warning', 'Are you sure you want to delete this time entry?',
+                                                        [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                                }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
+                                                <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
+                                                    navigation.push('entry', { id: obj.id, date: undefined })
+                                                }} ><Text style={{ color: '#ffffff' }}>Edit</Text></TouchableOpacity>
                                             </View>
-                                        </TouchableOpacity>
-                                        <Text numberOfLines={1} style={{ color: colors.text, fontSize: 30, fontWeight: 'bold' }}>{obj.hours}<Text numberOfLines={1} style={{ color: colors.text, fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
-                                    </View>
-                                    <Text style={{ color: colors.text, margin: 5 }}>{obj.details}</Text>
-                                </ScrollView>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                                    <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
-                                        const deleteFunction = async () => {
-                                            setLoading(true);
-                                            await API.graphql(graphqlOperation(`mutation {delete_entries_by_pk(id: "${obj.id}") {id}}`));
-                                            await onRefresh();
-                                            setLoading(false);
-                                        }
-                                        Alert.alert('Warning', 'Are you sure you want to delete this time entry?',
-                                            [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                    }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
-                                    <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
-                                        navigation.push('entry', { id: obj.id, date: undefined })
-                                    }} ><Text style={{ color: '#ffffff' }}>Edit</Text></TouchableOpacity>
-                                </View>
-                            </View>
-                        </MenuOptions>
-                    </Menu>
-                )}
-                {showTasks && tasks.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
-                    <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
-                        <MenuTrigger>
-                            <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>☉ {obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }) : ''}</Text>
-                            </View>
-                        </MenuTrigger>
-                        <MenuOptions customStyles={{
-                            optionsWrapper: { backgroundColor: 'transparent', width: 255 },
-                            optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
-                        }}>
-                            <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
-                                <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                        <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
-                                            <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
-                                            <View style={{ flexDirection: 'column', marginLeft: 5 }}>
-                                                <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
-                                                <View style={{ flexDirection: 'row' }}>
-                                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
-                                                        <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 12 }}>{obj.category}</Text>
-                                                    </View>
+                                        </View>
+                                    </MenuOptions>
+                                </Menu>
+                            )}
+                            {showTasks && tasks.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
+                                <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
+                                    <MenuTrigger>
+                                        <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff', textDecorationLine: obj.status === 'done' ? 'line-through' : 'none' }}>☉ {obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }) : ''}</Text>
+                                        </View>
+                                    </MenuTrigger>
+                                    <MenuOptions customStyles={{
+                                        optionsWrapper: { backgroundColor: 'transparent', width: 255 },
+                                        optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
+                                    }}>
+                                        <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
+                                            <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
+                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
+                                                    <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                                        <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
+                                                        <View style={{ flexDirection: 'column', marginLeft: 5 }}>
+                                                            <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
+                                                            <View style={{ flexDirection: 'row' }}>
+                                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
+                                                                    <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 12 }}>{obj.category}</Text>
+                                                                </View>
+                                                            </View>
+                                                        </View>
+                                                    </TouchableOpacity>
                                                 </View>
+                                                <Text style={{ color: colors.text, margin: 5 }}>{obj.details}</Text>
+                                            </ScrollView>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                                <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
+                                                    const deleteFunction = async () => {
+                                                        setLoading(true);
+                                                        await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${obj.id}") {id}}`));
+                                                        await onRefresh();
+                                                        setLoading(false);
+                                                    }
+                                                    Alert.alert('Warning', 'Are you sure you want to delete this task?',
+                                                        [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                                }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
+                                                <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
+                                                    navigation.push('task', { id: obj.id })
+                                                }} ><Text style={{ color: '#ffffff' }}>View</Text></TouchableOpacity>
                                             </View>
-                                        </TouchableOpacity>
-                                    </View>
-                                    <Text style={{ color: colors.text, margin: 5, textDecorationLine: obj.status === 'done' ? 'line-through' : '' }}>{obj.details}</Text>
-                                </ScrollView>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                                    <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
-                                        const deleteFunction = async () => {
-                                            setLoading(true);
-                                            await API.graphql(graphqlOperation(`mutation {delete_tasks_by_pk(id: "${obj.id}") {id}}`));
-                                            await onRefresh();
-                                            setLoading(false);
-                                        }
-                                        Alert.alert('Warning', 'Are you sure you want to delete this task?',
-                                            [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                    }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
-                                    <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
-                                        navigation.push('task', { id: obj.id })
-                                    }} ><Text style={{ color: '#ffffff' }}>View</Text></TouchableOpacity>
-                                </View>
-                            </View>
-                        </MenuOptions>
-                    </Menu>
-                )}
-                {showEvents && events.filter(event => getDateRange(new Date(event.date_from), new Date(event.date_to)).includes(date.dateString)).map((obj, index) =>
-                    <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
-                        <MenuTrigger>
-                            <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '200%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>📅{obj.details}</Text>
-                            </View>
-                        </MenuTrigger>
-                        <MenuOptions customStyles={{
-                            optionsWrapper: { backgroundColor: 'transparent', width: 255 },
-                            optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
-                        }}>
-                            <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
-                                <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                        <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
-                                            <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
-                                            <View style={{ flexDirection: 'column', marginLeft: 5 }}>
-                                                <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
-                                                <View style={{ flexDirection: 'row' }}>
-                                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
-                                                        <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 12 }}>{obj.category}</Text>
-                                                    </View>
+                                        </View>
+                                    </MenuOptions>
+                                </Menu>
+                            )}
+                            {showEvents && events.filter(event => getDateRange(new Date(event.date_from), new Date(event.date_to)).includes(date.dateString)).map((obj, index) =>
+                                <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
+                                    <MenuTrigger>
+                                        <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '200%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>📅{obj.details}</Text>
+                                        </View>
+                                    </MenuTrigger>
+                                    <MenuOptions customStyles={{
+                                        optionsWrapper: { backgroundColor: 'transparent', width: 255 },
+                                        optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
+                                    }}>
+                                        <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
+                                            <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
+                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
+                                                    <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+                                                        <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
+                                                        <View style={{ flexDirection: 'column', marginLeft: 5 }}>
+                                                            <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
+                                                            <View style={{ flexDirection: 'row' }}>
+                                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
+                                                                    <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 12 }}>{obj.category}</Text>
+                                                                </View>
+                                                            </View>
+                                                        </View>
+                                                    </TouchableOpacity>
                                                 </View>
+                                                <Text style={{ color: colors.text, margin: 5 }}>{obj.details}</Text>
+                                            </ScrollView>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                                                <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
+                                                    const deleteFunction = async () => {
+                                                        setLoading(true);
+                                                        await API.graphql(graphqlOperation(`mutation {delete_events_by_pk(id: "${obj.id}") {id}}`));
+                                                        await onRefresh();
+                                                        setLoading(false);
+                                                    }
+                                                    Alert.alert('Warning', 'Are you sure you want to delete this event?',
+                                                        [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                                }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
+                                                <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
+                                                    navigation.push('event', { id: obj.id })
+                                                }} ><Text style={{ color: '#ffffff' }}>View</Text></TouchableOpacity>
                                             </View>
-                                        </TouchableOpacity>
-                                    </View>
-                                    <Text style={{ color: colors.text, margin: 5 }}>{obj.details}</Text>
-                                </ScrollView>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                                    <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
-                                        const deleteFunction = async () => {
-                                            setLoading(true);
-                                            await API.graphql(graphqlOperation(`mutation {delete_events_by_pk(id: "${obj.id}") {id}}`));
-                                            await onRefresh();
-                                            setLoading(false);
-                                        }
-                                        Alert.alert('Warning', 'Are you sure you want to delete this event?',
-                                            [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                    }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
-                                    <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
-                                        navigation.push('event', { id: obj.id })
-                                    }} ><Text style={{ color: '#ffffff' }}>View</Text></TouchableOpacity>
-                                </View>
-                            </View>
-                        </MenuOptions>
-                    </Menu>
-                )}
+                                        </View>
+                                    </MenuOptions>
+                                </Menu>
+                            )}
+                        </View>
+                    </MenuTrigger>
+                    <MenuOptions customStyles={{
+                        optionsWrapper: { backgroundColor: 'transparent', width: 255 },
+                        optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
+                    }}>
+                        <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 40 }}>
+                            <TouchableOpacity onPress={() => { navigation.push('entry', { date: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>⏱ add entry</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { navigation.push('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>☉ add task</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { navigation.push('event', { date_from: date.dateString, date_to: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>📅 add event</Text></TouchableOpacity>
+                        </View>
+                    </MenuOptions>
+                </Menu>
             </ScrollView>
         );
     }
 
     return (
         <View style={{ flexDirection: 'column', justifyContent: 'flex-start', marginTop: root.desktopWeb ? 50 : 0 }}>
+            <TouchableOpacity
+                style={{ position: 'absolute', bottom: 0, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
+                onPress={async () => {
+                    navigation.push('entry', { id: undefined });
+                }}><Text style={{ fontSize: 20 }}>add entry +</Text></TouchableOpacity>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: root.desktopWeb ? 'center' : 'space-between', marginBottom: -35, marginTop: 5, zIndex: 1, paddingLeft: 10, paddingRight: 10 }}>
                 <Text style={{ color: colors.text, fontSize: 20, marginRight: root.desktopWeb ? 10 : 0, fontWeight: '600' }}>{new Date(month).toLocaleDateString('en-US', { month: 'long' }).toLowerCase()} {new Date(month).getFullYear()}</Text>
                 <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
