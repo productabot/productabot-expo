@@ -286,7 +286,7 @@ const Item = React.memo(
                                     });
                                     menuRef.current.open();
                                 }}
-                                href={`/project/${value.id}`}
+                                href={`/projects/${value.id}`}
                                 onClick={(e) => { e.preventDefault(); navigation.push('project', { id: value.id, state: { name: value.name, description: value.description, image: value.image } }) }}
                                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', cursor: dragging ? 'grabbing' : 'grab' }}>
                                 <div style={{ height: 140, width: 140, outline: `${value.focused ? '4' : '1'}px solid ${value.focused ? '#0099ff' : colors.text}`, borderRadius: 20, transition: 'all 0.5s' }}>

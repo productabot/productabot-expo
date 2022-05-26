@@ -240,6 +240,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                       </AppStack.Screen>
                     }
                     <AppStack.Screen name="task" options={{ ...defaultAnimation }}>
+                      {/* presentation: 'transparentModal' */}
                       {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="edit_task" options={{ ...defaultAnimation }}>

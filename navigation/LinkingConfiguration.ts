@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 
-const stringify = { id: (id) => id.replace(/-/g, ''), state: (state) => '' };
+const stringify = { id: (id) => id?.replace(/-/g, ''), state: (state) => '' };
 
 export default {
   prefixes: [Linking.makeUrl('/')],
@@ -40,7 +40,7 @@ export default {
                 stringify
               },
               task: {
-                path: 'projects/tasks/:id?',
+                path: 'projects/tasks/:id',
                 stringify
               },
               edit_task: {
@@ -96,7 +96,7 @@ export default {
                 stringify
               },
               task: {
-                path: 'tasks/:id?/:state?',
+                path: 'tasks/:id/:state?',
                 stringify
               },
               edit_task: {

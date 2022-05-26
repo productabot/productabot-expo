@@ -472,16 +472,7 @@ export function MultipleContainers({
                     width={'100%'}
                     style={{ overflowY: 'scroll' }}
                     itemCount={items[containerId].length}
-                    itemSize={(index) => {
-                      let length = items[containerId][index].details?.length ?? 0;
-                      let windowPadding = ((Object.keys(showContainers)?.length ?? 4) * 90);
-                      let widthPercentage = 1 / (Object.keys(showContainers)?.length ?? 4);
-                      let lineHeight = 14;
-                      let baseHeight = 70;
-                      let multiplier = 0.1;
-                      let minimumNumbersOfLines = 1;
-                      return baseHeight + Math.max(Math.ceil(length / ((windowDimensions.width - windowPadding) * widthPercentage * multiplier)), minimumNumbersOfLines) * lineHeight;
-                    }}
+                    itemSize={80}
                     renderItem={({ index, style }) => {
                       const item = items[containerId][index];
                       return (
