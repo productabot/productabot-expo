@@ -27,9 +27,9 @@ export default function InputComponent({ type, options, optionImage = false, opt
                     <div style={{ backgroundColor: colors.background, color: colors.text, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', padding: 5, marginTop: 5, marginBottom: 5, fontSize: 20, width: 'calc(' + width + ' - 12px)', fontFamily: 'arial', borderRadius: 10, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                         <select id={type} style={{ color: colors.text, fontSize: fontSize, backgroundColor: colors.background, borderWidth: 1, borderColor: '#666666', borderStyle: 'solid', width: '100%', border: 'none' }} value={value} onChange={(e) => { setValue(e.target.value) }}>
                             <option value={''}>{`--:-- --`}</option>
-                            {[...Array(24).keys()].map(hour =>
+                            {[8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 0, 1, 2, 3, 4, 5, 6, 7].map(hour =>
                                 <>
-                                    {['00', '15', '30', '45'].map(minute => <option value={`${String(hour).padStart(2, '0')}:${minute}:00`}>{`${hour < 12 ? `${hour === 0 ? 12 : hour}:${minute} AM` : `${hour - 12}:${minute} PM`}`}</option>)}
+                                    {['00', '15', '30', '45'].map(minute => <option value={`${String(hour).padStart(2, '0')}:${minute}:00`}>{`${hour < 12 ? `${hour === 0 ? 12 : hour}:${minute}am` : `${(hour === 12 ? 12 : hour - 12)}:${minute}pm`}`}</option>)}
                                 </>
                             )}
                         </select>

@@ -18,7 +18,7 @@ LocaleConfig.defaultLocale = 'en';
 
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 let changingMonths = false;
-let month = new Date().toLocaleDateString();
+let month = new Date();
 let menuOpen = false;
 
 const getDateRange = (date_from, date_to) => {
@@ -100,14 +100,13 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
 
     let onRefresh = async (showRefreshControl = false) => {
         showRefreshControl ? setRefreshControl(true) : setLoading(true);
-        dateOpacity = false;
-        const startMonth = new Date(month);
-        const endMonth = new Date(month);
-        startMonth.setDate(0);
-        endMonth.setDate(0);
-        startMonth.setDate(startMonth.getDate() - 6);
+        const monthDate = new Date(month);
+        monthDate.setDate(1);
+        const startMonth = new Date(monthDate);
+        const endMonth = new Date(monthDate);
+        startMonth.setDate(startMonth.getDate() - 7);
         endMonth.setMonth(endMonth.getMonth() + 1);
-        endMonth.setDate(endMonth.getDate() + 6);
+        endMonth.setDate(endMonth.getDate() + 7);
         // console.log(startMonth.toLocaleDateString('fr-CA'), endMonth.toLocaleDateString('fr-CA'));
         //entries(order_by: {date: asc, project: {name: asc}, hours: desc}, where: {date: {_gte: "${startMonth.toLocaleDateString('fr-CA')}", _lt: "${endMonth.toLocaleDateString('fr-CA')}"}}) {
         let data = await API.graphql(graphqlOperation(`
@@ -266,7 +265,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                 <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                     <MenuTrigger>
                                         <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff', textDecorationLine: obj.status === 'done' ? 'line-through' : 'none' }}>☉ {obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }) : ''}</Text>
+                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff', textDecorationLine: obj.status === 'done' ? 'line-through' : 'none' }}>☉ {obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}</Text>
                                         </View>
                                     </MenuTrigger>
                                     <MenuOptions customStyles={{

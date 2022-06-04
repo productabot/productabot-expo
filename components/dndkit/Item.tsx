@@ -97,7 +97,13 @@ export const Item = React.memo(
           }
           ref={ref}
           onClick={() => {
-            navigation.push('task', { id: value.id, state: { ...value, project: { image: value.image }, comments_aggregate: { aggregate: { count: value.count } } } });
+            navigation.push('task', {
+              id: value.id, state: {
+                ...value, project: { image: value.image },
+                comments: [...new Array(value.count).keys()].map(obj => { return { id: 'cachedComment' + obj, created_at: null, updated_at: null, details: ' ' } }),
+                comments_aggregate: { aggregate: { count: value.count } }
+              }
+            });
           }}
           onContextMenu={async (e) => {
             e.preventDefault();
@@ -126,7 +132,7 @@ export const Item = React.memo(
                 {value.date ?
                   <div style={{ color: '#ffffff', fontSize: 10, textAlign: 'left', backgroundColor: '#3F0054', paddingLeft: 2, paddingRight: 2, borderRadius: 5 }}>
                     <span style={{ fontWeight: 'bold' }}>due </span>
-                    {`${new Date(value.date).toLocaleDateString()}${value.time ? `, ${new Date(value.date + 'T' + value.time).toLocaleTimeString([], { timeStyle: 'short' })}` : ``}`}</div>
+                    {`${new Date(value.date + 'T12:00:00.000Z').toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })}${value.time ? `, ${new Date(value.date + 'T' + value.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase()}` : ``}`}</div>
                   :
                   <div style={{ color: colors.subtitle, fontSize: 10, textAlign: 'left' }}>{new Date(value.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</div>}
                 <div style={{ fontSize: 13, color: colors.text, width: '90%', textDecorationLine: value.status === 'done' ? 'line-through' : '', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordWrap: 'break-word' }}>{value.details}</div>

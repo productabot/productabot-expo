@@ -53,7 +53,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     let onRefresh = async () => {
         setLoading(true);
         currentDate = new Date(startDate);
-        currentDate.setMonth(currentDate.getMonth() + 1);
+        if (currentDate.getDate() !== 1) { currentDate.setDate(1); currentDate.setMonth(currentDate.getMonth() + 1); }
         // console.log(startDate, endDate);
         let data = await API.graphql(graphqlOperation(`
         {
@@ -103,7 +103,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
         }          
         `));
         setEntries(data.data.entries.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `⏱${obj.project?.name} - ${obj.hours} hrs`, allDay: true, type: 'entry' } }));
-        setTasks(data.data.tasks.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `☉ ${obj.details}${obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }) : ''}`, allDay: true, type: 'task' } }));
+        setTasks(data.data.tasks.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `☉ ${obj.details}${obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}`, allDay: true, type: 'task' } }));
         setEvents(data.data.events.map(obj => { return { ...obj, start: new Date(obj.date_from + 'T12:00'), end: new Date(obj.date_to + 'T12:01'), title: `📅 ${obj.details}`, allDay: true, type: 'event' } }));
         setLoading(false);
     }

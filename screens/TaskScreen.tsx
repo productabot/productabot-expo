@@ -73,12 +73,12 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                             {task.date ?
                                 <Text style={{ color: '#ffffff', fontSize: 10, textAlign: 'left', marginTop: 5, backgroundColor: '#3F0054', paddingLeft: 2, paddingRight: 2, borderRadius: 5 }}>
                                     <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: 'bold' }}>due </Text>
-                                    {`${new Date(task.date).toLocaleDateString()}${task.time ? `, ${new Date(task.date + 'T' + task.time).toLocaleTimeString([], { timeStyle: 'short' })}` : ``}`}</Text>
+                                    {`${new Date(task.date + 'T12:00:00.000Z').toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })}${task.time ? `, ${new Date(task.date + 'T' + task.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase()}` : ``}`}</Text>
                                 :
                                 <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{task.created_at ? new Date(task.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }) : ' '}</Text>
                             }
                             <Text style={{ fontSize: 14 }}>{task.details ? task.details : ' '}</Text>
-                            <Text style={{ fontSize: 10, color: colors.subtitle }}>{`${task?.comments_aggregate?.aggregate?.count} comment${task?.comments_aggregate?.aggregate?.count === 1 ? '' : 's'}`}{task.category ? `, #${task.category}` : ``}</Text>
+                            <Text style={{ fontSize: 10, color: colors.subtitle }}>{`${task?.comments_aggregate?.aggregate?.count ?? 0} comment${task?.comments_aggregate?.aggregate?.count === 1 ? '' : 's'}`}{task.category ? `, #${task.category}` : ``}</Text>
                         </View>
                     </View>
                     <TouchableOpacity
@@ -117,7 +117,7 @@ export default function TaskScreen({ route, navigation, refresh, setLoading, loa
                             </View>
                         </View>
                     )}
-                    keyExtractor={item => item}
+                    keyExtractor={item => item.id}
                     ListFooterComponent={() =>
                         <>
                             {task?.id && <TextInput placeholderTextColor={colors.placeholder}

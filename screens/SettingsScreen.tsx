@@ -31,7 +31,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
     const windowDimensions = useWindowDimensions();
     const [refreshControl, setRefreshControl] = useState(false);
     const [oldUser, setOldUser] = useState({});
-    const [user, setUser] = useState({...route?.params?.state});
+    const [user, setUser] = useState({ ...route?.params?.state });
     const [size, setSize] = useState(0);
     const [index, setIndex] = useState(0);
     const [github, setGithub] = useState([]);
@@ -288,7 +288,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
                                             '250 GB storage', 'unlimited projects', 'custom website', 'API integrations'
                                         ]
                                     }].map(obj =>
-                                        <View style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start', width: '48%', height: Platform.OS === 'web' ? 300 : 400, borderRadius: 10, borderColor: colors.border, borderWidth: 1, margin: 5, backgroundColor: user.plan === obj.key ? '#3F0054' : colors.background }}>
+                                        <View key={obj.key} style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start', width: '48%', height: Platform.OS === 'web' ? 300 : 400, borderRadius: 10, borderColor: colors.border, borderWidth: 1, margin: 5, backgroundColor: user.plan === obj.key ? '#3F0054' : colors.background }}>
                                             <Image style={{ height: 150, width: 150, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === obj.key ? '#ffffff' : colors.text }} source={obj.image} />
                                             <View style={{ flexDirection: 'column', padding: 10 }}>
                                                 <View style={{ flexDirection: 'column', alignItems: 'flex-start', marginBottom: 10 }}>
@@ -297,7 +297,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
                                                 </View>
                                                 <View style={{ flexDirection: 'column', padding: 5 }}>
                                                     {obj.points.map(innerObj =>
-                                                        <Text style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 14, marginBottom: 5 }}>• {innerObj}</Text>
+                                                        <Text key={innerObj} style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 14, marginBottom: 5 }}>• {innerObj}</Text>
                                                     )}
                                                 </View>
                                                 <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
@@ -384,8 +384,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
                                                 </View>
                                             </View>
                                         </TouchableOpacity>
-                                        {/* <Text>{JSON.stringify(github)}</Text> */}
-                                        <FlatList style={{ width: '100%', height: 300, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 20 }} data={github} renderItem={(item) => <Text style={{ color: colors.text, padding: 10 }}>{item.item}</Text>} />
+                                        <FlatList style={{ width: '100%', height: 300, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 20 }} data={github} renderItem={(item) => <Text key={item.index} style={{ color: colors.text, padding: 10 }}>{item.item}</Text>} />
                                     </>
                                     :
                                     <TouchableOpacity onPress={async () => {

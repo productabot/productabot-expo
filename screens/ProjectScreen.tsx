@@ -654,10 +654,10 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                                 <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 20 }}
                                                     onPress={async () => { addAction('folder'); }}
                                                 ><Text>{'add folder'} +</Text></TouchableOpacity>
-                                                {Platform.OS === 'web' &&
+                                                {/* {Platform.OS === 'web' &&
                                                     <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 20 }}
                                                         onPress={async () => { addAction('sheet'); }}
-                                                    ><Text>{'add sheet'} +</Text></TouchableOpacity>}
+                                                    ><Text>{'add sheet'} +</Text></TouchableOpacity>} */}
                                                 <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 20 }}
                                                     onPress={async () => { addAction('document'); }}
                                                 ><Text>{'add document'} +</Text></TouchableOpacity>
@@ -1030,10 +1030,10 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 menuRef.current.close();
                                 addAction('document');
                             }}><Text style={{ color: colors.text }}>Add Document</Text></TouchableOpacity>
-                            <TouchableOpacity style={{ padding: 5, width: '100%' }} onPress={async () => {
+                            {/* <TouchableOpacity style={{ padding: 5, width: '100%' }} onPress={async () => {
                                 menuRef.current.close();
                                 addAction('sheet');
-                            }}><Text style={{ color: colors.text }}>Add Sheet</Text></TouchableOpacity>
+                            }}><Text style={{ color: colors.text }}>Add Sheet</Text></TouchableOpacity> */}
                             <TouchableOpacity style={{ padding: 5, width: '100%' }} onPress={async () => {
                                 menuRef.current.close();
                                 addAction('file');

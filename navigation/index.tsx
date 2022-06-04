@@ -129,7 +129,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
       <RootStack.Screen name="app" options={{ animationEnabled: false }}>
         {props =>
           <AppBottomTab.Navigator {...props} initialRouteName="projectsTab" backBehavior={'history'}
-            screenOptions={{ lazy: true, headerShown: false, tabBarActiveTintColor: colors.text, tabBarStyle: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: '100%', marginLeft: 'auto', marginRight: 'auto', backgroundColor: colors.background, borderTopWidth: 0 } : { backgroundColor: colors.background, borderTopWidth: 0 }, tabBarLabelStyle: Platform.OS !== 'web' ? { top: -13, fontSize: 18 } : {}, tabBarIconStyle: { display: 'none' } }}>
+            screenOptions={{ lazy: false, headerShown: false, tabBarActiveTintColor: colors.text, tabBarStyle: Platform.OS === 'web' ? { position: 'absolute', top: 0, width: '100%', marginLeft: 'auto', marginRight: 'auto', backgroundColor: colors.background, borderTopWidth: 0 } : { backgroundColor: colors.background, borderTopWidth: 0 }, tabBarLabelStyle: Platform.OS !== 'web' ? { top: -13, fontSize: 18 } : {}, tabBarIconStyle: { display: 'none' } }}>
             {Platform.OS === 'web' &&
               <AppBottomTab.Screen name="logo"
                 options={{

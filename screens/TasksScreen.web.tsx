@@ -17,7 +17,7 @@ oldDate.setDate(oldDate.getDate() - 2);
 export default function TasksScreen({ refresh, setLoading, loading, navigation, givenProjectId = '', projectScreen = false }: any) {
     const [refreshControl, setRefreshControl] = React.useState(false);
     const [touchX, setTouchX] = React.useState(0);
-    const [index, setIndex] = React.useState(1);
+    const [index, setIndex] = React.useState(2);
     const [checked, setChecked] = React.useState([]);
     const [count, setCount] = React.useState({ backlog: 0, selected: 0, in_progress: 0, done: 0 });
     const [tasks, setTasks] = React.useState([]);
@@ -164,7 +164,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                                         {item.date ?
                                             <Text style={{ color: '#ffffff', fontSize: 10, textAlign: 'left', marginTop: 5, backgroundColor: '#3F0054', paddingLeft: 2, paddingRight: 2, borderRadius: 5 }}>
                                                 <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: 'bold' }}>due </Text>
-                                                {`${new Date(item.date).toLocaleDateString()}${item.time ? `, ${new Date(item.date + 'T' + item.time).toLocaleTimeString([], { timeStyle: 'short' })}` : ``}`}</Text>
+                                                {`${new Date(item.date + 'T12:00:00.000Z').toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })}${item.time ? `, ${new Date(item.date + 'T' + item.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ','').toLowerCase()}` : ``}`}</Text>
                                             :
                                             <Text style={{ color: '#aaaaaa', fontSize: 10, textAlign: 'left', marginTop: 5 }}>{new Date(item.created_at).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true })}</Text>
                                         }
