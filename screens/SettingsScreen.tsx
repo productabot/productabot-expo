@@ -215,195 +215,186 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingTop: root.desktopWeb ? 50 : 0
+            padding: 10,
+            paddingTop: root.desktopWeb ? 50 : 0,
         }}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={{ height: '100%' }}
             >
-                <ScrollView
-                    refreshControl={<RefreshControl
-                        refreshing={refreshControl}
-                        onRefresh={() => onRefresh(true)}
-                        colors={[colors.text]}
-                        tintColor={colors.text}
-                        titleColor={colors.text}
-                        title=""
-                    />}
-                    style={{ width: root.desktopWeb ? Math.min(910, windowDimensions.width - 40) : windowDimensions.width, padding: root.desktopWeb ? 0 : 10, height: '100%' }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%' }}>
-                        <TouchableOpacity onPress={() => { pickImage(); }}>
-                            <Image
-                                style={{ width: 80, height: 80, marginRight: 10, borderColor: colors.text, borderWidth: 1, borderRadius: 10 }}
-                                source={{ uri: `https://files.productabot.com/public/${user.image}` }}
-                            />
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%' }}>
+                    <TouchableOpacity onPress={() => { pickImage(); }}>
+                        <Image
+                            style={{ width: 80, height: 80, marginRight: 10, borderColor: colors.text, borderWidth: 1, borderRadius: 10 }}
+                            source={{ uri: `https://files.productabot.com/public/${user.image}` }}
+                        />
+                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'column' }}>
+                        <Text style={{ fontSize: 30 }}>{user.username}</Text>
+                        <Text style={{ fontSize: 15 }}>{user.created_at ? `productive since ${new Date(user.created_at).toLocaleDateString()}` : ``}</Text>
+                        <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${user.plan === 'free' ? `25 MB` : `250 GB`} used`}</Text>
+                    </View>
+                    <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
+                        <TouchableOpacity onPress={logout}><Text style={{ textAlign: 'center' }}>log out →</Text></TouchableOpacity>
+                        <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: Platform.OS === 'web' ? '100%' : 60 }} onPress={async () => {
+                            let currentTheme = await AsyncStorage.getItem('theme');
+                            let nextTheme = 'dark';
+                            if (!currentTheme || currentTheme === 'dark') {
+                                nextTheme = 'light';
+                            }
+                            await AsyncStorage.setItem('theme', nextTheme);
+                            setTheme(nextTheme);
+                        }} >
+                            <Text style={{ color: colors.text, fontSize: 14 }}>{theme === 'dark' ? (Platform.OS === 'web' ? 'turn on the lights ☀' : '☀ light') : (Platform.OS === 'web' ? 'turn off the lights ◗*' : '◗* dark')}</Text>
                         </TouchableOpacity>
-                        <View style={{ flexDirection: 'column' }}>
-                            <Text style={{ fontSize: 30 }}>{user.username}</Text>
-                            <Text style={{ fontSize: 15 }}>{user.created_at ? `productive since ${new Date(user.created_at).toLocaleDateString()}` : ``}</Text>
-                            <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${user.plan === 'free' ? `25 MB` : `250 GB`} used`}</Text>
-                        </View>
-                        <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
-                            <TouchableOpacity onPress={logout}><Text style={{ textAlign: 'center' }}>log out →</Text></TouchableOpacity>
-                            <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: Platform.OS === 'web' ? '100%' : 60 }} onPress={async () => {
-                                let currentTheme = await AsyncStorage.getItem('theme');
-                                let nextTheme = 'dark';
-                                if (!currentTheme || currentTheme === 'dark') {
-                                    nextTheme = 'light';
-                                }
-                                await AsyncStorage.setItem('theme', nextTheme);
-                                setTheme(nextTheme);
-                            }} >
-                                <Text style={{ color: colors.text, fontSize: 14 }}>{theme === 'dark' ? (Platform.OS === 'web' ? 'turn on the lights ☀' : '☀ light') : (Platform.OS === 'web' ? 'turn off the lights ◗*' : '◗* dark')}</Text>
-                            </TouchableOpacity>
-                        </View>
-
                     </View>
 
-                    <SegmentedControl
-                        appearance={colors.background === '#000000' ? 'dark' : 'light'}
-                        style={{ marginTop: 10 }}
-                        values={[`plan`, `account`, `integrations`]}
-                        selectedIndex={index}
-                        onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                    />
-                    <View style={{ flexDirection: 'column', width: '100%' }}>
-                        {index == 0 &&
-                            <>
-                                <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 5, width: '100%', justifyContent: 'center' }}>
-                                    {user.plan ?
-                                        <Text style={{ fontSize: 16, textAlign: 'center' }}>You are currently subscribed to the <Text style={{ fontSize: 16, fontWeight: 'bold', backgroundColor: '#3F0054', color: '#ffffff' }}>{user.plan === 'free' ? ' free ' : ' premium '}</Text> plan.</Text>
-                                        :
-                                        <Text style={{ fontSize: 16 }}>{` `}</Text>
-                                    }
-                                </View>
-                                <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-                                    {[{
-                                        key: 'free', image: require('../assets/images/free.png'), label: 'free', price: '$0.00 per month', points: [
-                                            '25 MB storage', '2 projects', 'no website', 'no integrations'
-                                        ]
-                                    },
-                                    {
-                                        key: 'paid', image: require('../assets/images/premium.png'), label: '✦ premium', price: '$2.49 per month', points: [
-                                            '250 GB storage', 'unlimited projects', 'custom website', 'API integrations'
-                                        ]
-                                    }].map(obj =>
-                                        <View key={obj.key} style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start', width: '48%', height: Platform.OS === 'web' ? 300 : 400, borderRadius: 10, borderColor: colors.border, borderWidth: 1, margin: 5, backgroundColor: user.plan === obj.key ? '#3F0054' : colors.background }}>
-                                            <Image style={{ height: 150, width: 150, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === obj.key ? '#ffffff' : colors.text }} source={obj.image} />
-                                            <View style={{ flexDirection: 'column', padding: 10 }}>
-                                                <View style={{ flexDirection: 'column', alignItems: 'flex-start', marginBottom: 10 }}>
-                                                    <Text style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 20, fontWeight: 'bold' }}>{obj.label}</Text>
-                                                    <Text style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 20 }}>{obj.price}</Text>
-                                                </View>
-                                                <View style={{ flexDirection: 'column', padding: 5 }}>
-                                                    {obj.points.map(innerObj =>
-                                                        <Text key={innerObj} style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 14, marginBottom: 5 }}>• {innerObj}</Text>
-                                                    )}
-                                                </View>
-                                                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
-                                                    {user.plan ?
-                                                        (user.plan !== obj.key ?
-                                                            <TouchableOpacity onPress={obj.key === 'free' ? downgrade : upgrade} style={{ borderRadius: 10, padding: 10, width: '85%', backgroundColor: '#3F0054' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{obj.key === 'free' ? `downgrade` : `upgrade`}</Text></TouchableOpacity>
-                                                            :
-                                                            <TouchableOpacity style={{ borderRadius: 10, padding: 10, width: '100%', backgroundColor: '#000000' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{`subscribed ✓`}</Text></TouchableOpacity>)
-                                                        :
-                                                        <TouchableOpacity style={{ borderRadius: 10, padding: 10, width: '100%', backgroundColor: '#000000' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{` `}</Text></TouchableOpacity>}
-                                                </View>
-                                            </View>
-                                        </View>)}
-                                </View>
-                                <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 0, width: '100%', justifyContent: 'center' }}>
-                                    {user.plan ?
-                                        <Text style={{ fontSize: 16, textAlign: 'center' }}>Need help? Contact us anytime through <Text href='mailto:support@productabot.com' onPress={(e) => { e.preventDefault(); Linking.openURL('mailto:support@productabot.com') }} style={{ fontSize: 16, fontWeight: 'bold', textDecorationLine: 'underline' }}>support@productabot.com</Text>.</Text>
-                                        :
-                                        <Text style={{ fontSize: 16 }}>{` `}</Text>
-                                    }
-                                </View>
-                            </>}
-                        {index == 1 &&
-                            <View style={{ padding: 10 }}>
+                </View>
 
-                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>website </Text>
-                                    <Text onPress={async () => {
-                                        root.desktopWeb ? window.open(`https://${user.username}.pbot.it`) :
-                                            await WebBrowser.openBrowserAsync(`https://${user.username}.pbot.it`);
-                                    }} style={[styles.textInput, { borderWidth: 0, width: '78%', textDecorationLine: 'underline' }]}>
-                                        {user.username ? `${user.username}.productabot.com →\n${user.username}.pbot.it →` : ``}
-                                    </Text>
-                                </View>
-
-                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>username</Text>
-                                    <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' value={user.username} onChangeText={(value) => { setUser({ ...user, username: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                                </View>
-
-                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>email</Text>
-                                    <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' value={user.email} onChangeText={(value) => { setUser({ ...user, email: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                                </View>
-
-                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>phone</Text>
-                                    <TextInput placeholderTextColor={colors.placeholder} keyboardType='phone-pad' inputAccessoryViewID='main' value={`${user.phone ? user.phone : ''}`} onChangeText={(value) => { setUser({ ...user, phone: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                                </View>
-
-                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>full name</Text>
-                                    <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' value={user.first_name} onChangeText={(value) => { setUser({ ...user, first_name: value }) }} style={[styles.textInput, { width: '78%' }]} />
-                                </View>
-
-                                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
-                                    <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>password</Text>
-                                    <Text onPress={async () => { }} style={[styles.textInput, { borderWidth: 0, width: '78%', textDecorationLine: 'underline' }]}>
-                                        {`change password →`}
-                                    </Text>
-                                </View>
-                                {(user !== oldUser) &&
-                                    <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
-                                        <TouchableOpacity onPress={cancelChanges} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>
-                                        <TouchableOpacity onPress={saveChanges} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>save changes</Text></TouchableOpacity>
-                                    </View>}
-                            </View>}
-                        {index == 2 &&
-                            <View style={{ padding: 10 }}>
-                                {user.github ?
-                                    <>
-                                        <TouchableOpacity onPress={async () => {
-                                            Alert.alert('Warning', `Are you sure you want to disconnect GitHub?`,
-                                                [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: () => console.log("yes") }])
-                                        }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 140, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: colors.background, marginBottom: 10 }}>
-                                            <Image style={{ height: 80, width: 80, borderRadius: 80, marginRight: 10 }} source={require('../assets/images/github.png')} />
-                                            <View style={{ flexDirection: 'column', width: '70%', alignItems: 'flex-start' }}>
-                                                <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
-                                                    <Text style={{ fontSize: 20, fontWeight: 'bold' }}>disconnect from github</Text>
-                                                </View>
-                                                <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                                    <Text>• unlink repositories</Text>
-                                                    <Text>• stop automating time entries with new commits</Text>
-                                                </View>
-                                            </View>
-                                        </TouchableOpacity>
-                                        <FlatList style={{ width: '100%', height: 300, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 20 }} data={github} renderItem={(item) => <Text key={item.index} style={{ color: colors.text, padding: 10 }}>{item.item}</Text>} />
-                                    </>
+                <SegmentedControl
+                    appearance={colors.background === '#000000' ? 'dark' : 'light'}
+                    style={{ marginTop: 10 }}
+                    values={[`plan`, `account`, `integrations`]}
+                    selectedIndex={index}
+                    onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                />
+                <View style={{ flexDirection: 'column', width: '100%' }}>
+                    {index == 0 &&
+                        <>
+                            <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 5, width: '100%', justifyContent: 'center' }}>
+                                {user.plan ?
+                                    <Text style={{ fontSize: 16, textAlign: 'center' }}>You are currently subscribed to the <Text style={{ fontSize: 16, fontWeight: 'bold', backgroundColor: '#3F0054', color: '#ffffff' }}>{user.plan === 'free' ? ' free ' : ' premium '}</Text> plan.</Text>
                                     :
+                                    <Text style={{ fontSize: 16 }}>{` `}</Text>
+                                }
+                            </View>
+                            <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+                                {[{
+                                    key: 'free', image: require('../assets/images/free.png'), label: 'free', price: '$0.00 per month', points: [
+                                        '25 MB storage', '2 projects', 'no website', 'no integrations'
+                                    ]
+                                },
+                                {
+                                    key: 'paid', image: require('../assets/images/premium.png'), label: '✦ premium', price: '$2.49 per month', points: [
+                                        '250 GB storage', 'unlimited projects', 'custom website', 'API integrations'
+                                    ]
+                                }].map(obj =>
+                                    <View key={obj.key} style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start', width: '48%', height: Platform.OS === 'web' ? 300 : 400, borderRadius: 10, borderColor: colors.border, borderWidth: 1, margin: 5, backgroundColor: user.plan === obj.key ? '#3F0054' : colors.background }}>
+                                        <Image style={{ height: 150, width: 150, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === obj.key ? '#ffffff' : colors.text }} source={obj.image} />
+                                        <View style={{ flexDirection: 'column', padding: 10 }}>
+                                            <View style={{ flexDirection: 'column', alignItems: 'flex-start', marginBottom: 10 }}>
+                                                <Text style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 20, fontWeight: 'bold' }}>{obj.label}</Text>
+                                                <Text style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 20 }}>{obj.price}</Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'column', padding: 5 }}>
+                                                {obj.points.map(innerObj =>
+                                                    <Text key={innerObj} style={{ color: user.plan === obj.key ? '#ffffff' : colors.text, fontSize: 14, marginBottom: 5 }}>• {innerObj}</Text>
+                                                )}
+                                            </View>
+                                            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 }}>
+                                                {user.plan ?
+                                                    (user.plan !== obj.key ?
+                                                        <TouchableOpacity onPress={obj.key === 'free' ? downgrade : upgrade} style={{ borderRadius: 10, padding: 10, width: '85%', backgroundColor: '#3F0054' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{obj.key === 'free' ? `downgrade` : `upgrade`}</Text></TouchableOpacity>
+                                                        :
+                                                        <TouchableOpacity style={{ borderRadius: 10, padding: 10, width: '100%', backgroundColor: '#000000' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{`subscribed ✓`}</Text></TouchableOpacity>)
+                                                    :
+                                                    <TouchableOpacity style={{ borderRadius: 10, padding: 10, width: '100%', backgroundColor: '#000000' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>{` `}</Text></TouchableOpacity>}
+                                            </View>
+                                        </View>
+                                    </View>)}
+                            </View>
+                            <View style={{ flexDirection: 'row', padding: 10, paddingBottom: 0, width: '100%', justifyContent: 'center' }}>
+                                {user.plan ?
+                                    <Text style={{ fontSize: 16, textAlign: 'center' }}>Need help? Contact us anytime through <Text href='mailto:support@productabot.com' onPress={(e) => { e.preventDefault(); Linking.openURL('mailto:support@productabot.com') }} style={{ fontSize: 16, fontWeight: 'bold', textDecorationLine: 'underline' }}>support@productabot.com</Text>.</Text>
+                                    :
+                                    <Text style={{ fontSize: 16 }}>{` `}</Text>
+                                }
+                            </View>
+                        </>}
+                    {index == 1 &&
+                        <View style={{ padding: 10 }}>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>website </Text>
+                                <Text onPress={async () => {
+                                    root.desktopWeb ? window.open(`https://${user.username}.pbot.it`) :
+                                        await WebBrowser.openBrowserAsync(`https://${user.username}.pbot.it`);
+                                }} style={[styles.textInput, { borderWidth: 0, width: '78%', textDecorationLine: 'underline' }]}>
+                                    {user.username ? `${user.username}.productabot.com →\n${user.username}.pbot.it →` : ``}
+                                </Text>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>username</Text>
+                                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' value={user.username} onChangeText={(value) => { setUser({ ...user, username: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                            </View>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>email</Text>
+                                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' value={user.email} onChangeText={(value) => { setUser({ ...user, email: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                            </View>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>phone</Text>
+                                <TextInput placeholderTextColor={colors.placeholder} keyboardType='phone-pad' inputAccessoryViewID='main' value={`${user.phone ? user.phone : ''}`} onChangeText={(value) => { setUser({ ...user, phone: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                            </View>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>full name</Text>
+                                <TextInput placeholderTextColor={colors.placeholder} inputAccessoryViewID='main' value={user.first_name} onChangeText={(value) => { setUser({ ...user, first_name: value }) }} style={[styles.textInput, { width: '78%' }]} />
+                            </View>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', alignSelf: 'center', width: '100%' }}>
+                                <Text style={{ fontSize: 20, marginRight: 5, width: '22%', textAlign: 'center' }}>password</Text>
+                                <Text onPress={async () => { }} style={[styles.textInput, { borderWidth: 0, width: '78%', textDecorationLine: 'underline' }]}>
+                                    {`change password →`}
+                                </Text>
+                            </View>
+                            {(user !== oldUser) &&
+                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
+                                    <TouchableOpacity onPress={cancelChanges} style={{ marginRight: 20 }}><Text style={{ textAlign: 'center' }}>cancel</Text></TouchableOpacity>
+                                    <TouchableOpacity onPress={saveChanges} style={{ borderRadius: 10, padding: 10, width: 150, backgroundColor: '#3F0054', marginRight: -20 }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>save changes</Text></TouchableOpacity>
+                                </View>}
+                        </View>}
+                    {index == 2 &&
+                        <View style={{ padding: 10 }}>
+                            {user.github ?
+                                <>
                                     <TouchableOpacity onPress={async () => {
-                                        let user = await Auth.currentSession();
-                                        await WebBrowser.openBrowserAsync(`https://github.com/login/oauth/authorize?client_id=ddf157abfeef6dade7b6&scope=repo&redirect_uri=https://lambda.productabot.com/github_callback?sub=${user.getIdToken().payload.sub}`);
+                                        Alert.alert('Warning', `Are you sure you want to disconnect GitHub?`,
+                                            [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: () => console.log("yes") }])
                                     }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 140, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: colors.background, marginBottom: 10 }}>
                                         <Image style={{ height: 80, width: 80, borderRadius: 80, marginRight: 10 }} source={require('../assets/images/github.png')} />
                                         <View style={{ flexDirection: 'column', width: '70%', alignItems: 'flex-start' }}>
                                             <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
-                                                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>connect to github</Text>
+                                                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>disconnect from github</Text>
                                             </View>
                                             <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
-                                                <Text>• link repositories</Text>
-                                                <Text>• automate time entries with new commits</Text>
+                                                <Text>• unlink repositories</Text>
+                                                <Text>• stop automating time entries with new commits</Text>
                                             </View>
                                         </View>
                                     </TouchableOpacity>
-                                }
-                                {/* <TouchableOpacity onPress={async () => {
+                                    <FlatList style={{ width: '100%', height: 300, borderWidth: 1, borderColor: '#444444', borderRadius: 10, marginBottom: 20 }} data={github} renderItem={(item) => <Text key={item.index} style={{ color: colors.text, padding: 10 }}>{item.item}</Text>} />
+                                </>
+                                :
+                                <TouchableOpacity onPress={async () => {
+                                    let user = await Auth.currentSession();
+                                    await WebBrowser.openBrowserAsync(`https://github.com/login/oauth/authorize?client_id=ddf157abfeef6dade7b6&scope=repo&redirect_uri=https://lambda.productabot.com/github_callback?sub=${user.getIdToken().payload.sub}`);
+                                }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 140, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: colors.background, marginBottom: 10 }}>
+                                    <Image style={{ height: 80, width: 80, borderRadius: 80, marginRight: 10 }} source={require('../assets/images/github.png')} />
+                                    <View style={{ flexDirection: 'column', width: '70%', alignItems: 'flex-start' }}>
+                                        <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 5 }}>
+                                            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>connect to github</Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'column', padding: 5, height: '50%' }}>
+                                            <Text>• link repositories</Text>
+                                            <Text>• automate time entries with new commits</Text>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            }
+                            {/* <TouchableOpacity onPress={async () => {
                                     let user = await Auth.currentSession();
                                     await WebBrowser.openBrowserAsync(``);
                                 }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 140, borderRadius: 10, borderColor: '#444444', borderWidth: 1, backgroundColor: colors.background, marginBottom: 10 }}>
@@ -419,9 +410,8 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
                                         </View>
                                     </View>
                                 </TouchableOpacity> */}
-                            </View>}
-                    </View>
-                </ScrollView>
+                        </View>}
+                </View>
             </KeyboardAvoidingView>
             <InputAccessoryViewComponent />
         </View>

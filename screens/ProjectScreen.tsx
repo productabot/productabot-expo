@@ -132,119 +132,119 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
     let onRefresh = async () => {
         setLoading(true);
         let data = await API.graphql(graphqlOperation(`{
-        projects_by_pk(id: "${route.params.id}") {
-            id
-            name
-            image
-            description
-            key
-            color
-            public
-            goal
-            website
-            entries(order_by: {date: desc}, limit: 50) {
-              id
-              date
-              category
-              details
-              hours
-            }
-            tasks(order_by: {order: desc}, limit: 50) {
-              id
-              created_at
-              category
-              details
-              comments_aggregate {
-                  aggregate {
-                      count
-                  }
-              }
-            }
-            files(order_by: {order: desc}, where: {folder_id: {${folder ? `_eq: "${folder.id}"` : `_is_null: true`}}}) {
-              id
-              title
-              type
-              size
-              order
-              updated_at
-              folder {
-                  id
-                  title
-                  folder {
-                      id
-                      title
-                      folder {
-                          id
-                          title
-                          folder {
-                              id
-                              title
-                              folder {
-                                  id
-                                  title
-                              }
-                          }
-                      }
-                  }
-              }
-            }
-            folders: files(where: {type: {_eq: "folder"}}) {
-                id
-                title
-                folder {
-                    id
-                    title
-                    folder {
+                projects_by_pk(id: "${route.params.id}"){
+                        id
+                        name
+                        image
+                        description
+                        key
+                        color
+                        public
+                        goal
+                        website
+                        entries(order_by: {date: desc}, limit: 50) {
+                        id
+                        date
+                        category
+                        details
+                        hours
+                        }
+                        tasks(order_by: {order: desc}, limit: 50) {
+                        id
+                        created_at
+                        category
+                        details
+                        comments_aggregate {
+                            aggregate {
+                                count
+                            }
+                        }
+                        }
+                        files(order_by: {order: desc}, where: {folder_id: {${folder ? `_eq: "${folder.id}"` : `_is_null: true`}}}) {
                         id
                         title
+                        type
+                        size
+                        order
+                        updated_at
                         folder {
                             id
                             title
                             folder {
                                 id
                                 title
+                                folder {
+                                    id
+                                    title
+                                    folder {
+                                        id
+                                        title
+                                        folder {
+                                            id
+                                            title
+                                        }
+                                    }
+                                }
                             }
                         }
+                        }
+                        folders: files(where: {type: {_eq: "folder"}}) {
+                            id
+                            title
+                            folder {
+                                id
+                                title
+                                folder {
+                                    id
+                                    title
+                                    folder {
+                                        id
+                                        title
+                                        folder {
+                                            id
+                                            title
+                                        }
+                                    }
+                                }
+                            } 
+                        }
+                        events(order_by: {date_from: desc}, limit: 50) {
+                        id
+                        date_from
+                        date_to
+                        category
+                        details
+                        }
                     }
-                } 
-            }
-            events(order_by: {date_from: desc}, limit: 50) {
-              id
-              date_from
-              date_to
-              category
-              details
-            }
-        }
-        entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-            aggregate {
-              count
-              sum { hours }
-            }
-        }
-        tasks_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-            aggregate {
-              count
-            }
-        }
-        files_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-            aggregate {
-              count
-              sum { size }
-            }
-        }
-        events_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-            aggregate {
-              count
-            }
-        }
-        goal_aggregate: entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}, date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
-            aggregate {
-              count
-              sum { hours }
-            }
-        }
-        }`));
+                    entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+                        aggregate {
+                        count
+                        sum { hours }
+                        }
+                    }
+                    tasks_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+                        aggregate {
+                        count
+                        }
+                    }
+                    files_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+                        aggregate {
+                        count
+                        sum { size }
+                        }
+                    }
+                    events_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+                        aggregate {
+                        count
+                        }
+                    }
+                    goal_aggregate: entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}, date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
+                        aggregate {
+                        count
+                        sum { hours }
+                    }
+                }
+            }`));
         setProject(data.data.projects_by_pk);
         setCount({ events: data.data.events_aggregate.aggregate.count, entries: data.data.entries_aggregate.aggregate.count, tasks: data.data.tasks_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.entries_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
         setLoading(false);

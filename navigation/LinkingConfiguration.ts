@@ -1,6 +1,7 @@
 import * as Linking from 'expo-linking';
-
-const stringify = { id: (id) => id?.replace(/-/g, ''), state: (state) => '' };
+import { compressUuid, expandUuid } from '../scripts/uuid';
+const stringify = { id: (id) => id?.length === 36 ? compressUuid(id) : id?.replace(/-/g, ''), state: (state) => '' };
+const parse = { id: (id) => id?.length === 22 ? expandUuid(id) : id }
 
 export default {
   prefixes: [Linking.makeUrl('/')],
@@ -11,8 +12,7 @@ export default {
           login: 'login',
           signup: 'signup',
           reset: 'reset',
-          terms: 'terms',
-          privacy: 'privacy',
+          set: 'set'
         },
       },
       app: {
@@ -21,39 +21,48 @@ export default {
             screens: {
               projects: {
                 path: 'projects',
-                stringify
+                stringify,
+                parse
               },
               project: {
                 path: 'projects/:id/:state?',
-                stringify
+                stringify,
+                parse
               },
               document: {
                 path: 'documents/:id?',
-                stringify
+                stringify,
+                parse
               },
               sheet: {
                 path: 'sheets/:id?',
-                stringify
+                stringify,
+                parse
               },
               entry: {
                 path: 'projects/entries/:id?',
-                stringify
+                stringify,
+                parse
               },
               task: {
                 path: 'projects/tasks/:id',
-                stringify
+                stringify,
+                parse
               },
               edit_task: {
                 path: 'projects/tasks/edit/:id?',
-                stringify
+                stringify,
+                parse
               },
               event: {
                 path: 'projects/events/:id?',
-                stringify
+                stringify,
+                parse
               },
               budget: {
                 path: 'projects/budgets/:id?',
-                stringify
+                stringify,
+                parse
               },
             }
           },
@@ -65,15 +74,18 @@ export default {
               },
               entry: {
                 path: 'calendar/entries/:id?',
-                stringify
+                stringify,
+                parse
               },
               task: {
                 path: 'calendar/tasks/:id?',
-                stringify
+                stringify,
+                parse
               },
               event: {
                 path: 'calendar/events/:id?',
-                stringify
+                stringify,
+                parse
               },
             }
           },
@@ -81,11 +93,13 @@ export default {
             screens: {
               notes: {
                 path: 'notes',
-                stringify
+                stringify,
+                parse
               },
               note: {
                 path: 'note',
-                stringify
+                stringify,
+                parse
               },
             }
           },
@@ -93,15 +107,32 @@ export default {
             screens: {
               tasks: {
                 path: 'tasks',
-                stringify
+                stringify,
+                parse
               },
               task: {
                 path: 'tasks/:id/:state?',
-                stringify
+                stringify,
+                parse
               },
               edit_task: {
                 path: 'tasks/edit/:id?',
-                stringify
+                stringify,
+                parse
+              }
+            }
+          },
+          timelinesTab: {
+            screens: {
+              timelines: {
+                path: 'timelines',
+                stringify,
+                parse
+              },
+              timeline: {
+                path: 'timeline/:id?/:state?',
+                stringify,
+                parse
               }
             }
           },
@@ -109,15 +140,27 @@ export default {
             screens: {
               settings: {
                 path: 'settings/:state?',
-                stringify
+                stringify,
+                parse
               },
               blank: {
                 path: 'blank',
-                stringify
+                stringify,
+                parse
               },
               test: {
                 path: 'test',
-                stringify
+                stringify,
+                parse
+              },
+            }
+          },
+          searchTab: {
+            screens: {
+              search: {
+                path: 'search/:state?',
+                stringify,
+                parse
               },
             }
           }

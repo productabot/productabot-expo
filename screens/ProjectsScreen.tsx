@@ -10,10 +10,11 @@ import ContextMenuRenderer from '../components/ContextMenuRenderer';
 import * as Haptics from 'expo-haptics';
 import { Sortable } from '../components/dndkit/Sortable';
 import { useTheme } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let projectContextTimeout;
 
-export default function ProjectsScreen({ route, navigation, refresh, setLoading }: any) {
+export default function ProjectsScreen({ route, navigation, refresh, setLoading, setTheme, theme }: any) {
   const window = useWindowDimensions();
   const [refreshControl, setRefreshControl] = useState(false);
   const [projects, setProjects] = useState([]);
@@ -146,33 +147,40 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading 
           renderHeaderView={
             <View style={{ marginTop: Platform.OS === 'web' ? 30 : -10, flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: 10, zIndex: 1 }}>
               <Text style={{ color: colors.text, fontSize: 20 }}>{greeting}</Text>
-              {user.plan === 'paid' ?
-                <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
-                  <Text style={{ marginRight: 5 }}>archived</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 30 }}>
+                {/* <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
+                  <Text style={{ marginRight: 5 }}>🗑️</Text>
                   <View
-                    style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20, backgroundColor: archived ? '#0075ff' : '#ffffff' }}>
+                    style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: archived ? '#0075ff' : '#ffffff', marginRight: 10 }}>
                     {archived && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
                   </View>
+                </TouchableOpacity> */}
+                <TouchableOpacity onPress={() => { navigation.navigate('searchTab') }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 10 }}  >
+                  <Text style={{ color: colors.text, fontSize: 20 }}>🔍</Text>
                 </TouchableOpacity>
-                :
-                user.plan === 'free' ?
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                    <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: -3 }}>
-                      <Text style={{ marginRight: 5 }}>🗑️</Text>
-                      <View
-                        style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: archived ? '#0075ff' : '#ffffff' }}>
-                        {archived && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
-                      </View>
+                {/* <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, width: 25, paddingTop: 0, paddingBottom: 0 }} onPress={async (e) => {
+                  e.preventDefault();
+                  let currentTheme = await AsyncStorage.getItem('theme');
+                  let nextTheme = 'dark';
+                  if (!currentTheme || currentTheme === 'dark') {
+                    nextTheme = 'light';
+                  }
+                  await AsyncStorage.setItem('theme', nextTheme);
+                  setTheme(nextTheme);
+                }} >
+                  <Text style={{ color: colors.text, fontSize: 13 }}>{theme === 'dark' ? '☀' : '◗*'}</Text>
+                </TouchableOpacity> */}
+                <TouchableOpacity onPress={() => { navigation.navigate('settingsTab') }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25 }}  >
+                  <Text style={{ color: colors.text, fontSize: 20 }}>⚙️</Text>
+                </TouchableOpacity>
+                {user.plan === 'free' &&
+                  <Animated.View style={{ opacity: fadeValue }}>
+                    <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 10, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 30, marginLeft: 10, marginTop: -5, paddingTop: 0, paddingBottom: 0, paddingLeft: 10, paddingRight: 10 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
+                      <Text style={{ color: colors.text, fontSize: 15 }}>{`upgrade ✦`}</Text>
                     </TouchableOpacity>
-                    <Animated.View style={{ opacity: fadeValue }}>
-                      <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 10, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 30, marginRight: 30, marginTop: -5, paddingTop: 0, paddingBottom: 0, paddingLeft: 10, paddingRight: 10 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
-                        <Text style={{ color: colors.text, fontSize: 15 }}>{`upgrade ✦`}</Text>
-                      </TouchableOpacity>
-                    </Animated.View>
-                  </View>
-                  :
-                  <View />
-              }
+                  </Animated.View>
+                }
+              </View>
             </View>}
           minOpacity={100}
           delayLongPress={200}

@@ -1,0 +1,118 @@
+.react-calendar-timeline * {
+  box-sizing: border-box;
+  font-family: arial;
+}
+
+.rct-outer {
+  display: block;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  white-space: nowrap;
+  height: calc(100vh - 120px) !important;
+}
+
+.rct-scroll {
+  display: inline-block;
+  white-space: normal;
+  vertical-align: top;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  -ms-touch-action: none;
+  touch-action: none;
+}
+
+.rct-item {
+  border-radius: 10px;
+  margin: 0px;
+  padding: 0px;
+}
+
+.rct-item-content {
+  position: sticky;
+  position: -webkit-sticky;
+  left: 0px;
+  overflow: hidden;
+  display: inline-block;
+  border-radius: 2px;
+  padding: 0px 10px;
+  height: 100%;
+}
+
+.rct-sidebar {
+  overflow: hidden;
+  white-space: normal;
+  display: inline-block;
+  vertical-align: top;
+  position: relative;
+  box-sizing: border-box;
+  border-right: 1px solid #666666;
+  width: 151px !important;
+}
+
+.rct-sidebar-row {
+  padding: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+  margin: 0;
+  border-bottom: 1px solid #66666666;
+}
+
+
+.rct-vl {
+  position: absolute;
+  border-left: 1px solid #66666666;
+  z-index: 30;
+}
+
+.rct-horizontal-lines {
+  -webkit-user-select: none;
+  -moz-user-select: -moz-none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.rct-hl-even,
+.rct-hl-odd {
+  border-bottom: 1px solid #66666666;
+  box-sizing: border-box;
+  z-index: 40;
+}
+
+.rct-cursor-line {
+  position: absolute;
+  width: 2px;
+  background: #666666;
+  z-index: 51;
+}
+
+.rct-dateHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border-bottom: 1px solid #666666;
+  cursor: pointer;
+  font-size: 14px;
+  border-left: 1px solid #666666;
+}
+
+.rct-dateHeader-primary {
+  background-color: initial;
+  border-right: 1px solid #666666;
+}
+
+.rct-header-root {
+  background: transparent;
+}
+
+.rct-calendar-header {
+  border: 1px solid #666666;
+  border-radius: 10px;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+  border-top-right-radius: 0px;
+  border-bottom-width: 0px;
+  border-right: 0px;
+}
