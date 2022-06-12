@@ -37,6 +37,8 @@ const labelFormat = {
     }
 }
 
+let dragging = false;
+
 export default function TimelinesScreen({ route, navigation, setLoading }: any) {
     const { colors } = useTheme();
     const [hideScreen, setHideScreen] = useState(true);
@@ -96,14 +98,16 @@ export default function TimelinesScreen({ route, navigation, setLoading }: any) 
                     style={{ color: colors.text }}
                     groups={groups}
                     items={items}
-                    defaultTimeStart={moment().startOf('year')}
-                    defaultTimeEnd={moment().endOf('year')}
+                    defaultTimeStart={moment().startOf('month')}
+                    defaultTimeEnd={moment().startOf('month').add(6, 'months')}
                     minZoom={60 * 60 * 24 * 1000 * 7}
+                    dragSnap={60 * 60 * 24 * 1000}
                     timeSteps={{
                         day: 1,
                         month: 1,
                         year: 1
                     }}
+                    selected={items.map(obj => obj.id)}
                     canResize={'both'}
                     lineHeight={60}
                     stackItems={true}
@@ -124,6 +128,7 @@ export default function TimelinesScreen({ route, navigation, setLoading }: any) 
                             }
                           }`));
                         onRefresh();
+                        dragging = false;
                     }}
                     onItemResize={async (itemId, time, edge) => {
                         const originalItem = items.filter(obj => obj.id === itemId)[0];
@@ -137,6 +142,7 @@ export default function TimelinesScreen({ route, navigation, setLoading }: any) 
                             }
                           }`));
                         onRefresh();
+                        dragging = false;
 
                     }}
                     groupRenderer={({ group }) => {
@@ -150,6 +156,8 @@ export default function TimelinesScreen({ route, navigation, setLoading }: any) 
                             </div>
                         )
                     }}
+                    onItemDrag={() => { dragging = true; }}
+                    // itemTouchSendsClick={true}
                     itemRenderer={({
                         item,
                         itemContext,
@@ -157,8 +165,10 @@ export default function TimelinesScreen({ route, navigation, setLoading }: any) 
                         getResizeProps
                     }) => {
                         const { left: leftResizeProps, right: rightResizeProps } = getResizeProps()
+                        const itemProps = getItemProps(item.itemProps);
                         return (
-                            <div {...getItemProps(item.itemProps)} onDoubleClick={() => { navigation.navigate('timeline', { id: item.id, state: { ...itemContext } }) }}
+                            <div {...itemProps} style={{ ...itemProps.style, height: 50, marginTop: -6, lineHeight: 'unset', border: itemContext.selected ? '' : 'none', backgroundColor: '#0055aa' }}
+                                onClick={() => { if (!dragging) { navigation.navigate('timeline', { id: item.id, state: { ...item } }) } else { dragging = false } }}
                                 onContextMenu={(e) => {
                                     e.preventDefault();
                                     setContextPosition({
@@ -206,7 +216,9 @@ export default function TimelinesScreen({ route, navigation, setLoading }: any) 
                     }}>
                     <TimelineHeaders>
                         <DateHeader unit="primaryHeader" />
-                        <DateHeader labelFormat={([startTime, endTime], unit, labelWidth) => moment(startTime).format(labelFormat[unit][labelWidth < 50 ? 'short' : labelWidth < 100 ? 'medium' : labelWidth < 150 ? 'mediumLong' : 'long'])} />
+                        <DateHeader labelFormat={([startTime, endTime], unit, labelWidth) =>
+                            `${moment(startTime).format(labelFormat[unit][labelWidth < 50 ? 'short' : labelWidth < 100 ? 'medium' : labelWidth < 150 ? 'mediumLong' : 'long'])}${(unit === 'month' && labelWidth > 50) ? ` Q${moment(startTime).quarter()}` : ''}`
+                        } />
                     </TimelineHeaders>
                     <CustomMarker date={new Date()}>
                         {({ styles, date }) => {

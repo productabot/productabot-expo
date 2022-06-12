@@ -367,7 +367,7 @@ export function MultipleContainers({
       return;
     }
 
-    const overId = over.id;
+    const overId = over?.id;
 
     if (!overId) {
       setActiveId(null);

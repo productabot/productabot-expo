@@ -220,7 +220,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
         }}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{ height: '100%' }}
+                style={{ height: '100%', width: Math.min(windowDimensions.width, 800) }}
             >
                 <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', width: '100%' }}>
                     <TouchableOpacity onPress={() => { pickImage(); }}>

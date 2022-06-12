@@ -71,7 +71,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
               date
               id
             }
-            tasks(order_by: {date: asc, project: {name: asc}}, where: {date: {_gte: "${startDate.toLocaleDateString('fr-CA')}", _lt: "${endDate.toLocaleDateString('fr-CA')}"}}) {
+            tasks(order_by: {date: asc, time: asc, project: {name: asc}}, where: {date: {_gte: "${startDate.toLocaleDateString('fr-CA')}", _lt: "${endDate.toLocaleDateString('fr-CA')}"}}) {
               project {
                 id
                 name
@@ -282,7 +282,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                 {event.type === 'task' && <Text numberOfLines={1} style={{ color: colors.text, fontSize: 30, fontWeight: 'bold' }}>☉</Text>}
                                 {event.type === 'event' && <Text numberOfLines={1} style={{ color: colors.text, fontSize: 30, fontWeight: 'bold' }}>📅</Text>}
                             </View>
-                            <Text style={{ color: colors.text, margin: 5 }}>{event.details}</Text>
+                            <Text style={{ color: colors.text, margin: 5 }}>{event.details}{event.time ? ' @ ' + new Date(event.date + 'T' + event.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}</Text>
                         </ScrollView>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                             <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {

@@ -22,10 +22,13 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
     const [confetti, setConfetti] = React.useState(false);
     const windowDimensions = useWindowDimensions();
     const menuRef = React.useRef(null);
+    const [hideScreen, setHideScreen] = React.useState(true);
 
     useFocusEffect(
         React.useCallback(() => {
+            setHideScreen(false);
             onRefresh();
+            return () => { setHideScreen(true) }
         }, [refresh, project, hiddenProject, search, priority])
     );
 
@@ -119,7 +122,7 @@ export default function TasksDesktopScreen({ refresh, setLoading, loading, navig
                         <div onClick={() => { setShowContainers({ ...showContainers, [key]: !showContainers[key] }) }} style={{ color: colors.subtitle, cursor: 'pointer', position: 'absolute', ...(leftDistance && { left: leftDistance }), ...(rightDistance && { right: rightDistance }) }}>{icon}</div>
                 )}
             </div>
-            <MultipleContainers activationConstraint={{ distance: 1 }} scrollable items={tasks} setItems={setTasks} saveTasks={saveTasks} heightOffset={projectScreen ? 220 : 130} onRefresh={onRefresh} showContainers={showContainers} setContextPosition={setContextPosition} />
+            {!hideScreen && <MultipleContainers activationConstraint={{ distance: 1 }} scrollable items={tasks} setItems={setTasks} saveTasks={saveTasks} heightOffset={projectScreen ? 220 : 130} onRefresh={onRefresh} showContainers={showContainers} setContextPosition={setContextPosition} />}
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer} >
                 <MenuTrigger customStyles={{ triggerOuterWrapper: { top: contextPosition.y - (projectScreen ? 180 : 0), left: contextPosition.x - (projectScreen ? 10 : 0) } }} />
                 <MenuOptions style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', backgroundColor: colors.background, borderColor: colors.text, borderWidth: 1, borderStyle: 'solid', borderRadius: 10, width: 100, paddingLeft: 15, paddingTop: 5, paddingBottom: 5 }}>

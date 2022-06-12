@@ -125,7 +125,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
               date
               id
             }
-            tasks(order_by: {date: asc, project: {name: asc}}, where: {date: {_gte: "${startMonth.toLocaleDateString('fr-CA')}", _lt: "${endMonth.toLocaleDateString('fr-CA')}"}}) {
+            tasks(order_by: {date: asc, time: asc, project: {name: asc}}, where: {date: {_gte: "${startMonth.toLocaleDateString('fr-CA')}", _lt: "${endMonth.toLocaleDateString('fr-CA')}"}}) {
               project {
                 id
                 name
@@ -287,7 +287,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                                         </View>
                                                     </TouchableOpacity>
                                                 </View>
-                                                <Text style={{ color: colors.text, margin: 5 }}>{obj.details}</Text>
+                                                <Text style={{ color: colors.text, margin: 5 }}>{obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}</Text>
                                             </ScrollView>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                                                 <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {

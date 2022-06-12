@@ -158,7 +158,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             }
             <AppBottomTab.Screen name="projectsTab" options={{
               title: `⧉ projects`,
-              tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
+              tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
               tabBarLabelStyle: { fontSize: 13 },
               tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/projects`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />,
             }}>
@@ -199,7 +199,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="calendarTab" options={{
               title: `▦ calendar`,
-              tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
+              tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
               tabBarLabelStyle: { fontSize: 13 },
               tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/calendar`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
@@ -228,7 +228,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="timelinesTab" options={{
               title: `⧖ timelines`,
-              tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
+              tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
               tabBarLabelStyle: { fontSize: 13 },
               tabBarButton: (props) => Platform.OS === 'web' ? <Pressable {...props} style={tabStyle(props)} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} /> : <View />
             }}>
@@ -247,7 +247,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="tasksTab" options={{
               title: `☉ tasks`,
-              tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
+              tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
               tabBarLabelStyle: { fontSize: 13 },
               tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/tasks`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
@@ -276,7 +276,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             </AppBottomTab.Screen>
             <AppBottomTab.Screen name="notesTab" options={{
               title: `≡ notes`,
-              tabBarItemStyle: { maxWidth: 140, flexDirection: 'row', justifyContent: 'center' },
+              tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
               tabBarLabelStyle: { fontSize: 13 },
               tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
