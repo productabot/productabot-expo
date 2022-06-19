@@ -161,14 +161,33 @@ export default function DocumentScreen({ route, navigation, setLoading, refresh 
                         <body>
                           <div id="editor"></div>
                           <script type="module">
-                            import { Editor } from 'https://cdn.skypack.dev/@tiptap/core?min'
-                            import StarterKit from 'https://cdn.skypack.dev/@tiptap/starter-kit?min'
-                            import Image from 'https://cdn.skypack.dev/@tiptap/extension-image?min'
+                            import { Editor } from 'https://cdn.skypack.dev/@tiptap/core@2.0.0-beta.176?min'
+                            import StarterKit from 'https://cdn.skypack.dev/@tiptap/starter-kit@2.0.0-beta.185?min'
+                            import Image from 'https://cdn.skypack.dev/@tiptap/extension-image@2.0.0-beta.27?min'
+                            import Typography from 'https://cdn.skypack.dev/@tiptap/extension-typography@2.0.0-beta.20?min';
+                            import TextAlign from 'https://cdn.skypack.dev/@tiptap/extension-text-align@2.0.0-beta.29?min';
+                            import Link from 'https://cdn.skypack.dev/@tiptap/extension-link@2.0.0-beta.38?min';
                             window.editor = new Editor({
                               element: document.querySelector('#editor'),
                               extensions: [
-                                StarterKit,
-                                Image,
+                                StarterKit.configure({ dropcursor: true }),
+                                Image.configure({inline: true }),
+                                TextAlign,
+                                Typography.configure({
+                                    openDoubleQuote: false,
+                                    closeDoubleQuote: false,
+                                    openSingleQuote: false,
+                                    closeSingleQuote: false,
+                                    oneHalf: false,
+                                    oneQuarter: false,
+                                    threeQuarters: false,
+                                    plusMinus: false,
+                                    laquo: false,
+                                    raquo: false,
+                                    multiplication: false,
+                                    ellipsis: false
+                                }),
+                                Link
                               ],
                               content: '',
                               onUpdate: async ({ editor }) => {

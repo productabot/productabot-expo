@@ -31,8 +31,8 @@ const labelFormat = {
     },
     day: {
         long: 'dddd D',
-        mediumLong: 'dd D',
-        medium: 'D',
+        mediumLong: 'ddd D',
+        medium: 'ddd D',
         short: 'D'
     }
 }
@@ -167,7 +167,7 @@ export default function TimelinesScreen({ route, navigation, setLoading }: any) 
                         const { left: leftResizeProps, right: rightResizeProps } = getResizeProps()
                         const itemProps = getItemProps(item.itemProps);
                         return (
-                            <div {...itemProps} style={{ ...itemProps.style, height: 50, marginTop: -6, lineHeight: 'unset', border: itemContext.selected ? '' : 'none', backgroundColor: '#0055aa' }}
+                            <div {...itemProps} style={{ ...itemProps.style, height: 50, marginTop: -6, lineHeight: 'unset', border: itemContext.selected ? '' : 'none', backgroundColor: colors.text === '#ffffff' ? '#0055aa' : '#b6daff', color: colors.text, cursor: itemContext.dragging ? 'grabbing' : 'grab' }}
                                 onClick={() => { if (!dragging) { navigation.navigate('timeline', { id: item.id, state: { ...item } }) } else { dragging = false } }}
                                 onContextMenu={(e) => {
                                     e.preventDefault();

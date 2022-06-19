@@ -44,20 +44,15 @@
 } */
 
 .rct-item-content {
-  position: sticky;
-  position: -webkit-sticky;
-  left: 0px;
-  overflow: hidden;
+  display: inline-flex;
+  height: 100%;
+  overflow-y: clip;
+  overflow-x: visible;
   border-radius: 2px;
   padding: 5px 10px;
-  height: 100%;
-  align-items: center;
-  display: -webkit-box;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  word-wrap: break-word;
   line-height: 20px;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .rct-sidebar {

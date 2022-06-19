@@ -4116,6 +4116,15 @@
   resolved "https://registry.yarnpkg.com/@tiptap/extension-italic/-/extension-italic-2.0.0-beta.26.tgz#b00c9e32b81b1bd94eaed24bb2a22e44d5dc54a3"
   integrity sha512-vejGe2ra4K5ipFOn1U9viqF9X9nPTX8WSJpSOux+9UbKjHpANy7bz69tp66OIi/Wh5L/MMDc+luH/04qfVnpZw==
 
+"@tiptap/extension-link@^2.0.0-beta.41":
+  version "2.0.0-beta.41"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-link/-/extension-link-2.0.0-beta.41.tgz#9061c983fa4d7c4f8a9b677f3f2d9e5e1de59c65"
+  integrity sha512-nT4x5+eFg9d6ERDNF4RNb4ZKjWqDQj6BYfJvSLWEa+EEtTsTi9eiyj1GdXmYftUqazY2LknxdgzLcoiz24Kbwg==
+  dependencies:
+    linkifyjs "^3.0.5"
+    prosemirror-model "^1.16.1"
+    prosemirror-state "^1.3.4"
+
 "@tiptap/extension-list-item@^2.0.0-beta.20":
   version "2.0.0-beta.20"
   resolved "https://registry.yarnpkg.com/@tiptap/extension-list-item/-/extension-list-item-2.0.0-beta.20.tgz#7169528b226dee4590e013bdf6e5fc6d83729b0f"
@@ -4136,10 +4145,20 @@
   resolved "https://registry.yarnpkg.com/@tiptap/extension-strike/-/extension-strike-2.0.0-beta.27.tgz#c5187bf3c28837f95a5c0c0617d0dd31c318353d"
   integrity sha512-2dmCgtesuDdivM/54Q+Y6Tc3JbGz1SkHP6c62piuqBiYLWg3xa16zChZOhfN8szbbQlBgLT6XRTDt3c2Ux+Dug==
 
+"@tiptap/extension-text-align@^2.0.0-beta.31":
+  version "2.0.0-beta.31"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-text-align/-/extension-text-align-2.0.0-beta.31.tgz#31229ef1a16555a9b3a1dc94bf7d3a8c64639f51"
+  integrity sha512-gSJqi57piiMPc2r6WEkXv7ZgQIogigsRUhmlnZC/7s3zzOvjXrexWnV0Ctt/9A7BKcM7OHMykpZyoewvk6QRTw==
+
 "@tiptap/extension-text@^2.0.0-beta.15":
   version "2.0.0-beta.15"
   resolved "https://registry.yarnpkg.com/@tiptap/extension-text/-/extension-text-2.0.0-beta.15.tgz#f08cff1b78f1c6996464dfba1fef8ec1e107617f"
   integrity sha512-S3j2+HyV2gsXZP8Wg/HA+YVXQsZ3nrXgBM9HmGAxB0ESOO50l7LWfip0f3qcw1oRlh5H3iLPkA6/f7clD2/TFA==
+
+"@tiptap/extension-typography@^2.0.0-beta.22":
+  version "2.0.0-beta.22"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-typography/-/extension-typography-2.0.0-beta.22.tgz#bed4b8970aadb9e729b0d2d266cffc2fb1250af6"
+  integrity sha512-sTh1bxRTy2Q0tIGH4pjaadyo7dwoF+5545HiWbG5QsUp27I+FmPfgDYvc7aoPQG/6f5owULL9DD0I7ROYumYTw==
 
 "@tiptap/react@^2.0.0-beta.107":
   version "2.0.0-beta.109"
@@ -7801,10 +7820,10 @@ expo-modules-core@0.9.2:
     compare-versions "^3.4.0"
     invariant "^2.2.4"
 
-expo-notifications@~0.15.2:
-  version "0.15.2"
-  resolved "https://registry.yarnpkg.com/expo-notifications/-/expo-notifications-0.15.2.tgz#8c9d3b43624e7a08bfc12ccec714717bfeb30c10"
-  integrity sha512-ZlOzQ8Lp1MgkwmiBsgg95nQHHbTOg8LHwmB816qxNKWeFvlyr/wQSgTZJNklL1uuv/+jC/YyKWoANfodahcAbQ==
+expo-notifications@~0.15.3:
+  version "0.15.3"
+  resolved "https://registry.yarnpkg.com/expo-notifications/-/expo-notifications-0.15.3.tgz#d87dfc2601620ea89ed1a154a3e71ff7e99256d2"
+  integrity sha512-ln2aFWxKj3jEr5fRTgudxq5v0my+GyYUcfKiKJ7Z/7flRczjZ2Kp8WChZllRYAvncybpghMzpksKg8f5YtAZ2g==
   dependencies:
     "@expo/config-plugins" "^4.0.14"
     "@expo/image-utils" "^0.3.18"
@@ -9972,6 +9991,11 @@ lines-and-columns@^1.1.6:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.2.4.tgz#eca284f75d2965079309dc0ad9255abb2ebc1632"
   integrity sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==
+
+linkifyjs@^3.0.5:
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/linkifyjs/-/linkifyjs-3.0.5.tgz#99e51a3a0c0e232fcb63ebb89eea3ff923378f34"
+  integrity sha512-1Y9XQH65eQKA9p2xtk+zxvnTeQBG7rdAXSkUG97DmuI/Xhji9uaUzaWxRj6rf9YC0v8KKHkxav7tnLX82Sz5Fg==
 
 loader-runner@^2.4.0:
   version "2.4.0"

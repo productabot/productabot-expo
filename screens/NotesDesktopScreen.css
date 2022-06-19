@@ -2,7 +2,6 @@
     padding: 10px;
     font-family: monospace;
     outline: none;
-    height: calc(100vh - 165px);
     overflow-y: scroll;
 }
 

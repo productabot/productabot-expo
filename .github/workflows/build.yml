@@ -1,0 +1,42 @@
+on:
+  push:
+    branches:
+      - master
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: yarn
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v7
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+  
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION_NAME }}
+
+      - name: Publish app
+        run: |
+          expo publish --non-interactive 
+          expo build:web
+          aws s3 sync --delete ./web-build $S3_BUCKET
+          aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+        env:
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}

@@ -12,6 +12,9 @@ import 'react-native-get-random-values';
 import { useEditor, EditorContent } from '@tiptap/react';
 import Image from '@tiptap/extension-image'
 import StarterKit from '@tiptap/starter-kit';
+import Typography from '@tiptap/extension-typography'
+import TextAlign from '@tiptap/extension-text-align'
+import Link from '@tiptap/extension-link'
 import './NotesDesktopScreen.css';
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import ContextMenuRenderer from '../components/ContextMenuRenderer';
@@ -45,9 +48,32 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
 
     const editor = useEditor({
         extensions: [
-            StarterKit,
-            Image,
+            StarterKit.configure({ dropcursor: true }),
+            Image.configure({ inline: true }),
+            TextAlign.configure({
+                types: ['heading', 'paragraph'],
+            }),
+            Typography.configure({
+                openDoubleQuote: false,
+                closeDoubleQuote: false,
+                openSingleQuote: false,
+                closeSingleQuote: false,
+                oneHalf: false,
+                oneQuarter: false,
+                threeQuarters: false,
+                plusMinus: false,
+                laquo: false,
+                raquo: false,
+                multiplication: false,
+                ellipsis: false
+            }),
+            Link
         ],
+        editorProps: {
+            attributes: {
+                style: `height: calc(100vh - ${windowDimensions.width < 1055 ? '180' : '165'}px);`
+            },
+        },
         content: '',
         onUpdate: async ({ editor }) => {
             const html = editor.getHTML();
@@ -412,7 +438,7 @@ const MenuBar = ({ editor }) => {
     const { colors } = useTheme();
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'row', borderTopWidth: 1, borderTopColor: `${colors.subtitle}66`, borderTopStyle: 'solid' }}>
+        <div style={{ borderTopWidth: 1, borderTopColor: `${colors.subtitle}66`, borderTopStyle: 'solid', display: 'inline-flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'center' }}>
             <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={editor.isActive('bold') ? 'is-active' : ''}
@@ -433,6 +459,27 @@ const MenuBar = ({ editor }) => {
                 style={{ color: colors.text, backgroundColor: colors.card, textDecorationLine: 'line-through' }}
             >
                 S
+            </button>
+            <button
+                onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                className={editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
+            >
+                {`⬱`}
+            </button>
+            <button
+                onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                className={editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
+            >
+                {`☰`}
+            </button>
+            <button
+                onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                className={editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
+            >
+                {`⇶`}
             </button>
             <button
                 onClick={() => document.execCommand('outdent', false)}

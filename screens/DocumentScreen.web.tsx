@@ -12,6 +12,9 @@ import { useTheme } from '@react-navigation/native';
 import { useEditor, EditorContent } from '@tiptap/react';
 import Image from '@tiptap/extension-image'
 import StarterKit from '@tiptap/starter-kit';
+import Typography from '@tiptap/extension-typography'
+import TextAlign from '@tiptap/extension-text-align'
+import Link from '@tiptap/extension-link'
 import { Storage } from "@aws-amplify/storage";
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,8 +27,26 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
 
     const editor = useEditor({
         extensions: [
-            StarterKit,
-            Image,
+            StarterKit.configure({ dropcursor: true }),
+            Image.configure({ inline: true }),
+            TextAlign.configure({
+                types: ['heading', 'paragraph'],
+            }),
+            Typography.configure({
+                openDoubleQuote: false,
+                closeDoubleQuote: false,
+                openSingleQuote: false,
+                closeSingleQuote: false,
+                oneHalf: false,
+                oneQuarter: false,
+                threeQuarters: false,
+                plusMinus: false,
+                laquo: false,
+                raquo: false,
+                multiplication: false,
+                ellipsis: false
+            }),
+            Link
         ],
         content: ''
     })
@@ -140,7 +161,7 @@ const MenuBar = ({ editor, colors, setLoading }) => {
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#444444', borderTopStyle: 'solid' }}>
+        <div style={{ borderTopWidth: 1, borderTopColor: '#444444', borderTopStyle: 'solid' }}>
             <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={editor.isActive('bold') ? 'is-active' : ''}
@@ -161,6 +182,27 @@ const MenuBar = ({ editor, colors, setLoading }) => {
                 style={{ color: colors.text, backgroundColor: colors.card, textDecorationLine: 'line-through' }}
             >
                 S
+            </button>
+            <button
+                onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                className={editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
+            >
+                {`⬱`}
+            </button>
+            <button
+                onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                className={editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
+            >
+                {`☰`}
+            </button>
+            <button
+                onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                className={editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}
+                style={{ color: colors.text, backgroundColor: colors.card }}
+            >
+                {`⇶`}
             </button>
             <button
                 onClick={() => document.execCommand('outdent', false)}
