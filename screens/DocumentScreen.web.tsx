@@ -24,6 +24,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 export default function DocumentScreen({ route, navigation, setLoading }: any) {
     const [document, setDocument] = useState({ ...route?.params?.state });
     const { colors } = useTheme();
+    const windowDimensions = useWindowDimensions();
 
     const editor = useEditor({
         extensions: [
@@ -48,6 +49,11 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
             }),
             Link
         ],
+        editorProps: {
+            attributes: {
+                style: `height: calc(100vh - ${windowDimensions.width < 800 ? '180' : '165'}px);`
+            },
+        },
         content: ''
     })
 
