@@ -53,7 +53,17 @@ export default function Navigation({ navigation, authenticated, setLoading, load
     async();
   }, []);
 
-  React.useEffect(() => { StatusBar.setBarStyle(theme === 'light' ? 'dark-content' : 'light-content'); setBackgroundColor(theme === 'light' ? 'dark' : 'light') }, [theme]);
+  React.useEffect(() => {
+    StatusBar.setBarStyle(theme === 'light' ? 'dark-content' : 'light-content');
+    setBackgroundColor(theme === 'light' ? 'dark' : 'light');
+    if (Platform.OS === 'web') {
+      const icons = document.querySelectorAll("link[rel~=icon]");
+      for (let icon of icons) {
+        icon.href = `/favicon_${theme}.png`;
+      }
+    }
+
+  }, [theme]);
 
   const darkTheme = {
     dark: true,
