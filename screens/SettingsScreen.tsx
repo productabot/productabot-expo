@@ -17,6 +17,7 @@ import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@react-navigation/native';
 import Purchases from 'react-native-purchases';
+import Constants from 'expo-constants';
 
 function formatBytes(bytes: number, decimals = 2) {
     if (bytes === 0 || !bytes) return '0 Bytes';
@@ -412,6 +413,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
                                 </TouchableOpacity> */}
                         </View>}
                 </View>
+                <Text style={{ fontSize: 8, margin: 10, textAlign: 'center', color: colors.text + '66' }}>{`v${Constants?.manifest?.version}${Platform.OS === 'ios' ? '.' + Constants?.manifest?.ios?.buildNumber : ''}`}</Text>
             </KeyboardAvoidingView>
             <InputAccessoryViewComponent />
         </View>

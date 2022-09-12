@@ -13,7 +13,8 @@
       "backgroundColor": "#000000"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/5e53ddb0-9572-4535-a9be-853c452efdca"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -22,7 +23,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.productabot",
       "usesIcloudStorage": true,
-      "buildNumber": "2022.08.13",
+      "buildNumber": "2022.09.08",
       "associatedDomains": [
         "applinks:app.productabot.com"
       ]
@@ -38,6 +39,14 @@
       "favicon": "./assets/images/favicon.png",
       "backgroundColor": "#000000"
     },
-    "description": ""
+    "description": "",
+    "extra": {
+      "eas": {
+        "projectId": "5e53ddb0-9572-4535-a9be-853c452efdca"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    }
   }
 }
