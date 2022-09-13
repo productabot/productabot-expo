@@ -105,9 +105,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
             }
         }          
         `));
-        setEntries(data.data.entries.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: `⏱${obj.project?.name} - ${obj.hours} hrs`, allDay: true, type: 'entry' } }));
-        setTasks(data.data.tasks.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: ` ☉ ${obj.details}${obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}`, allDay: true, type: 'task' } }));
-        setEvents(data.data.events.map(obj => { return { ...obj, start: new Date(obj.date_from + 'T12:00'), end: new Date(obj.date_to + 'T12:01'), title: `📅 ${obj.details}`, allDay: true, type: 'event' } }));
+        setEntries(data.data.entries.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: obj.project?.name, hours: obj.hours, image: obj.project?.image, allDay: true, type: 'entry' } }));
+        setTasks(data.data.tasks.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: ` ${obj.details}${obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}`, image: obj.project?.image, allDay: true, type: 'task' } }));
+        setEvents(data.data.events.map(obj => { return { ...obj, start: new Date(obj.date_from + 'T12:00'), end: new Date(obj.date_to + 'T12:01'), title: `${obj.details}`, image: obj.project?.image, allDay: true, type: 'event' } }));
         setLoading(false);
     }
 
@@ -267,7 +267,13 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                     }
                                 });
                                 contextMenuRef.current.open();
-                            }} style={{ position: 'relative', zIndex: 100 }}>{title}</div>)
+                            }} style={{ position: 'relative', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', zIndex: 100, paddingLeft: 3, paddingRight: 3, height: 14 }}>
+                                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                                    {event.hours ? <img src={`https://files.productabot.com/public/${event.image}`} style={{ width: 12, height: 12, borderRadius: 3, border: `0px solid #fff`, margin: 0, marginRight: 3, objectFit: 'cover' }} /> : null}
+                                    {event.type==='task' ? '•' : ''}
+                                    {title}</div>
+                                {event.hours ? <div style={{ backgroundColor: '#00000066', borderRadius: 3, paddingLeft: 3, paddingRight: 3, float: 'right' }}>{event.hours} hrs</div> : null}
+                            </div>)
                         },
                         dateHeader: ({ date, label }) => {
                             let givenDate = date.toDateString();

@@ -206,18 +206,18 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={date.date} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                     <MenuTrigger>
                         <View style={{ height: 100 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? colors.placeholder : 'unset' }}>
-                                <Text style={{ margin: 5, textAlign: 'left', color: colors.text, fontSize: 12 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: date.dateString === new Date().toLocaleDateString('fr-CA') ? colors.placeholder : 'unset', height: 14 }}>
+                                <Text style={{ marginLeft: 5, textAlign: 'left', color: colors.text, fontSize: 12 }}>
                                     {date.day}
                                 </Text>
-                                <Text style={{ color: '#aaaaaa', marginRight: 2, width: 25, textAlign: 'right' }}>+</Text>
+                                <Text style={{ color: '#aaaaaa', marginRight: 2, fontSize: 12, textAlign: 'right' }}>+</Text>
                             </View>
                             {showEntries && entries.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
                                 <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                     <MenuTrigger>
-                                        <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>⏱{root.desktopWeb ? obj.project.name : obj.project.key}</Text>
-                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff', minWidth: obj.hours.toString().length * 6 }}>{obj.hours}</Text>
+                                        <View style={{ backgroundColor: obj.project.color, width: '100%', height: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Image style={{ height: 12, width: 12, borderRadius: 3, marginRight: 2 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
+                                            <View style={{ backgroundColor: '#00000066', borderRadius: 3, paddingLeft: 3, paddingRight: 3, minWidth: obj.hours.toString().length * 6, marginRight: 2 }}><Text style={{ fontSize: 8, color: '#fff' }}>{obj.hours} hrs</Text></View>
                                         </View>
                                     </MenuTrigger>
                                     <MenuOptions customStyles={{
@@ -264,8 +264,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                             {showTasks && tasks.filter(timesheet => timesheet.date === date.dateString).map((obj, index) =>
                                 <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                     <MenuTrigger>
-                                        <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff', textDecorationLine: obj.status === 'done' ? 'line-through' : 'none' }}>☉ {obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}</Text>
+                                        <View style={{ backgroundColor: obj.project.color, width: '100%', height: 12, flexDirection: 'row', alignItems: 'center' }}>
+                                            {/* <Image style={{ height: 12, width: 12, borderRadius: 3, marginRight: 2 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} /> */}
+                                            <Text style={{ fontSize: 8, color: '#ffffff', textDecorationLine: obj.status === 'done' ? 'line-through' : 'none' }}> •{obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}</Text>
                                         </View>
                                     </MenuTrigger>
                                     <MenuOptions customStyles={{
@@ -311,8 +312,9 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                             {showEvents && events.filter(event => getDateRange(new Date(event.date_from), new Date(event.date_to)).includes(date.dateString)).map((obj, index) =>
                                 <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                     <MenuTrigger>
-                                        <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '200%', height: root.desktopWeb ? 17 : 19, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <Text numberOfLines={1} style={{ fontSize: 12, color: '#ffffff' }}>📅{obj.details}</Text>
+                                        <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: 12, flexDirection: 'row', alignItems: 'center' }}>
+                                            <Image style={{ height: 12, width: 12, borderRadius: 3, marginRight: 2 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
+                                            <Text style={{ fontSize: 8, color: '#ffffff' }}>{obj.details}</Text>
                                         </View>
                                     </MenuTrigger>
                                     <MenuOptions customStyles={{
