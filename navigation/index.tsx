@@ -326,8 +326,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     const [user, setUser] = React.useState({});
                     React.useEffect(() => {
                       const async = async () => {
-                        let data = await API.graphql(graphqlOperation(`{users {plan} }`));
-                        setUser(data.data.users[0]);
+                        setUser((await API.graphql(graphqlOperation(`{users {username image plan} }`))).data.users[0]);
                       }
                       async();
                     }, []);
@@ -346,12 +345,12 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
                               <Text style={{ color: colors.text, fontSize: 13 }}>{windowDimensions.width > 400 ? 'go premium ' : ''}✦</Text>
                             </TouchableOpacity></Animated.View>}
-                        <div title={'settings'}>
+                        {user.username && <div title={'settings'}>
                           <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 0, paddingTop: 0, paddingBottom: 0 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab') }} >
-                            <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.border, borderRadius: 25, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/24bcecf5-b7a7-4cdd-9663-66dbdd7ad265.jpg` }} />
-                            <Text style={{ color: colors.text, fontSize: 12 }}>heythisischris</Text>
+                            <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.border, borderRadius: 25, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${user.image}` }} />
+                            <Text style={{ color: colors.text, fontSize: 12 }}>{user.username}</Text>
                           </TouchableOpacity>
-                        </div>
+                        </div>}
                       </View>
                     )
                   }
