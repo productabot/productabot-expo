@@ -232,7 +232,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
                         <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${user.plan === 'free' ? `50 MB` : `500 GB`} used`}</Text>
                     </View>
                     <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
-                        <Text style={{ fontSize: 8, margin: 10, textAlign: 'center', color: colors.text + '66' }}>{`v1.0.0.2`}</Text>
+                        <Text style={{ fontSize: 8, margin: 10, textAlign: 'center', color: colors.text + '66' }}>{`v1.0.0.12`}</Text>
                         <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: Platform.OS === 'web' ? '100%' : 60, marginBottom: 5 }} onPress={logout}>
                             <Text style={{ color: colors.text, fontSize: 14 }}>log out →</Text>
                         </TouchableOpacity>
@@ -264,7 +264,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
                         }].map(obj =>
                             <View key={obj.key} style={{ flexDirection: Platform.OS === 'web' ? 'row' : 'column', alignItems: 'center', justifyContent: Platform.OS === 'web' ? 'center' : 'flex-start', width: '48%', height: Platform.OS === 'web' ? 300 : 400, borderRadius: 10, borderColor: colors.border, borderWidth: 1, margin: 5, backgroundColor: user.plan === obj.key ? '#3F0054' : colors.background }}>
                                 <View>
-                                    {user.plan === obj.key && <Text style={{ position: 'absolute', fontWeight: 'bold', color: user.plan === obj.key ? '#ffffff' : colors.text, textAlign: 'center', fontSize: 18, top: Platform.OS === 'web' ? -20 : 20, left: 10 }}>30 day free trial!</Text>}
+                                    {user.plan === obj.key && <Text style={{ position: 'absolute', fontWeight: 'bold', color: user.plan === obj.key ? '#ffffff' : colors.text, textAlign: 'center', fontSize: 16, top: Platform.OS === 'web' ? -20 : 20, left: 10 }}>try 30 days for free</Text>}
                                     <Image style={{ height: 150, width: 150, marginRight: Platform.OS === 'web' ? 30 : 0, marginTop: Platform.OS === 'web' ? 0 : 30, tintColor: user.plan === obj.key ? '#ffffff' : colors.text }} source={obj.image} />
                                 </View>
                                 <View style={{ flexDirection: 'column', padding: 10 }}>

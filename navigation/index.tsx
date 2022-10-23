@@ -160,7 +160,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             <AppBottomTab.Screen name="projectsTab" options={{
               title: `⧉ projects`,
               tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
-              tabBarLabelStyle: { fontSize: 13 },
+              tabBarLabelStyle: { fontSize: 12 },
               tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/projects`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />,
             }}>
               {props => {
@@ -195,7 +195,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             <AppBottomTab.Screen name="calendarTab" options={{
               title: `▦ calendar`,
               tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
-              tabBarLabelStyle: { fontSize: 13 },
+              tabBarLabelStyle: { fontSize: 12 },
               tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/calendar`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
@@ -221,8 +221,8 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             <AppBottomTab.Screen name="timelinesTab" options={{
               title: `⧖ timelines`,
               tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
-              tabBarLabelStyle: { fontSize: 13 },
-              tabBarButton: (props) => Platform.OS === 'web' ? <Pressable {...props} style={tabStyle(props)} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} /> : <View />
+              tabBarLabelStyle: { fontSize: 12 },
+              tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
                 const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
@@ -240,7 +240,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             <AppBottomTab.Screen name="tasksTab" options={{
               title: `☉ tasks`,
               tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
-              tabBarLabelStyle: { fontSize: 13 },
+              tabBarLabelStyle: { fontSize: 12 },
               tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/tasks`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
@@ -269,7 +269,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
             <AppBottomTab.Screen name="notesTab" options={{
               title: `≡ notes`,
               tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
-              tabBarLabelStyle: { fontSize: 13 },
+              tabBarLabelStyle: { fontSize: 12 },
               tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
             }}>
               {props => {
@@ -343,7 +343,7 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                         {user.plan === 'free' &&
                           <Animated.View style={{ opacity: fadeValue }}>
                             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
-                              <Text style={{ color: colors.text, fontSize: 13 }}>{windowDimensions.width > 400 ? 'go premium ' : ''}✦</Text>
+                              <Text style={{ color: colors.text, fontSize: 12 }}>{windowDimensions.width > 400 ? 'go premium ' : ''}✦</Text>
                             </TouchableOpacity></Animated.View>}
                         {user.username && <div title={'settings'}>
                           <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 0, paddingTop: 0, paddingBottom: 0 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab') }} >

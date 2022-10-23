@@ -199,8 +199,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                 <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                     <MenuTrigger>
                                         <View style={{ backgroundColor: obj.project.color, width: '100%', height: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <Image style={{ height: 12, width: 12, borderRadius: 3, marginRight: 2 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
-                                            <View style={{ backgroundColor: '#00000066', borderRadius: 3, paddingLeft: 3, paddingRight: 3, minWidth: obj.hours.toString().length * 6, marginRight: 2 }}><Text style={{ fontSize: 8, color: '#fff' }}>{obj.hours} hrs</Text></View>
+                                            <Text style={{ fontSize: 10, color: '#ffffff' }}> {obj.project.key}</Text>
+                                            <View style={{ backgroundColor: '#00000066', borderRadius: 3, paddingLeft: 3, paddingRight: 3, minWidth: obj.hours.toString().length * 6, marginRight: 2 }}><Text style={{ fontSize: 10, color: '#fff' }}>{obj.hours} hrs</Text></View>
                                         </View>
                                     </MenuTrigger>
                                     <MenuOptions customStyles={{
@@ -248,8 +248,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                 <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
                                     <MenuTrigger>
                                         <View style={{ backgroundColor: obj.project.color, width: '100%', height: 12, flexDirection: 'row', alignItems: 'center' }}>
-                                            {/* <Image style={{ height: 12, width: 12, borderRadius: 3, marginRight: 2 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} /> */}
-                                            <Text style={{ fontSize: 8, color: '#ffffff', textDecorationLine: obj.status === 'done' ? 'line-through' : 'none' }}> •{obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}</Text>
+                                            <Text style={{ fontSize: 10, color: '#ffffff', textDecorationLine: obj.status === 'done' ? 'line-through' : 'none' }}> •{obj.details}{obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}</Text>
                                         </View>
                                     </MenuTrigger>
                                     <MenuOptions customStyles={{
