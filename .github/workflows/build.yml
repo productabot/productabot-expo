@@ -19,6 +19,7 @@ jobs:
         uses: expo/expo-github-action@v7
         with:
           expo-version: latest
+          eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
   
       - name: Install dependencies
@@ -33,7 +34,7 @@ jobs:
 
       - name: Publish app
         run: |
-          expo publish --non-interactive 
+          expo update --auto
           expo build:web
           aws s3 sync --delete ./web-build $S3_BUCKET
           aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"

@@ -8,7 +8,7 @@
       "distribution": "internal"
     },
     "production": {
-      "releaseChannel": "default"
+      "channel": "master"
     }
   },
   "submit": {

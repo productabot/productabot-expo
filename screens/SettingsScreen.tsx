@@ -17,7 +17,6 @@ import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@react-navigation/native';
 import Purchases from 'react-native-purchases';
-import Constants from 'expo-constants';
 
 function formatBytes(bytes: number, decimals = 2) {
     if (bytes === 0 || !bytes) return '0 Bytes';
@@ -233,7 +232,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
                         <Text style={{ fontSize: 15 }}>{`${formatBytes(size)} out of ${user.plan === 'free' ? `50 MB` : `500 GB`} used`}</Text>
                     </View>
                     <View style={{ alignSelf: 'flex-start', marginLeft: 'auto', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', height: 80 }}>
-                        <Text style={{ fontSize: 8, margin: 10, textAlign: 'center', color: colors.text + '66' }}>{`v${Constants?.manifest?.version}${Platform.OS === 'ios' ? '.' + Constants?.manifest?.ios?.buildNumber : ''}`}</Text>
+                        <Text style={{ fontSize: 8, margin: 10, textAlign: 'center', color: colors.text + '66' }}>{`v1.0.0.2`}</Text>
                         <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, width: Platform.OS === 'web' ? '100%' : 60, marginBottom: 5 }} onPress={logout}>
                             <Text style={{ color: colors.text, fontSize: 14 }}>log out →</Text>
                         </TouchableOpacity>
