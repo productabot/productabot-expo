@@ -34,7 +34,7 @@ jobs:
 
       - name: Publish app
         run: |
-          expo update --auto
+          eas update --auto
           expo build:web
           aws s3 sync --delete ./web-build $S3_BUCKET
           aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
