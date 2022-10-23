@@ -10,7 +10,6 @@ import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import * as DocumentPicker from 'expo-document-picker';
 import * as WebBrowser from 'expo-web-browser';
 import { Menu, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
@@ -18,13 +17,7 @@ import ContextMenuRenderer from '../components/ContextMenuRenderer';
 import { InputAccessoryViewComponent } from '../components/InputAccessoryViewComponent';
 import { WebView } from 'react-native-webview';
 import { CustomDraggableFlatList } from '../components/CustomDraggableFlatList';
-import Popover from '../components/PopoverMenuRenderer';
-import { PieChart } from "react-native-chart-kit";
-import * as Haptics from 'expo-haptics';
 import { useTheme } from '@react-navigation/native';
-import { MultipleContainers } from '../components/dndkit/MultipleContainers';
-import TasksScreen from './TasksScreen';
-import TasksDesktopScreen from './TasksDesktopScreen';
 const chartColors = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6',
     '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
     '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A',
@@ -65,11 +58,9 @@ let dropFunction = async (e) => { };
 export default function ProjectScreen({ route, navigation, refresh, setLoading }: any) {
     const window = useWindowDimensions();
     const [project, setProject] = useState({ ...route.params.state, tasks: [], files: [], entries: [], folders: [] });
-    const [index, setIndex] = useState(0);
     const [contextPosition, setContextPosition] = useState({ x: 0, y: 0, rename: () => { }, delete: () => { } });
     const menuRef = useRef(null);
     const folderRef = useRef(null);
-    const goalRef = useRef(null);
     const inputRef = useRef(null);
     const [settings, setSettings] = useState(false);
     const [count, setCount] = useState({});
@@ -132,41 +123,44 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
     let onRefresh = async () => {
         setLoading(true);
         let data = await API.graphql(graphqlOperation(`{
-                projects_by_pk(id: "${route.params.id}"){
-                        id
-                        name
-                        image
-                        description
-                        key
-                        color
-                        public
-                        goal
-                        website
-                        entries(order_by: {date: desc}, limit: 50) {
-                        id
-                        date
-                        category
-                        details
-                        hours
+            projects_by_pk(id: "${route.params.id}"){
+                id
+                name
+                image
+                description
+                key
+                color
+                public
+                goal
+                website
+                entries(order_by: {date: desc}, limit: 50) {
+                    id
+                    date
+                    category
+                    details
+                    hours
+                }
+                tasks(order_by: {order: desc}, limit: 50) {
+                    id
+                    created_at
+                    category
+                    details
+                    comments_aggregate {
+                        aggregate {
+                            count
                         }
-                        tasks(order_by: {order: desc}, limit: 50) {
-                        id
-                        created_at
-                        category
-                        details
-                        comments_aggregate {
-                            aggregate {
-                                count
-                            }
-                        }
-                        }
-                        files(order_by: {order: desc}, where: {folder_id: {${folder ? `_eq: "${folder.id}"` : `_is_null: true`}}}) {
+                    }
+                }
+                files(order_by: {order: desc}, where: {folder_id: {${folder ? `_eq: "${folder.id}"` : `_is_null: true`}}}) {
+                    id
+                    title
+                    type
+                    size
+                    order
+                    updated_at
+                    folder {
                         id
                         title
-                        type
-                        size
-                        order
-                        updated_at
                         folder {
                             id
                             title
@@ -179,16 +173,19 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                     folder {
                                         id
                                         title
-                                        folder {
-                                            id
-                                            title
-                                        }
                                     }
                                 }
                             }
                         }
-                        }
-                        folders: files(where: {type: {_eq: "folder"}}) {
+                    }
+                }
+                folders: files(where: {type: {_eq: "folder"}}) {
+                    id
+                    title
+                    folder {
+                        id
+                        title
+                        folder {
                             id
                             title
                             folder {
@@ -197,56 +194,38 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 folder {
                                     id
                                     title
-                                    folder {
-                                        id
-                                        title
-                                        folder {
-                                            id
-                                            title
-                                        }
-                                    }
                                 }
-                            } 
+                            }
                         }
-                        events(order_by: {date_from: desc}, limit: 50) {
-                        id
-                        date_from
-                        date_to
-                        category
-                        details
-                        }
-                    }
-                    entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-                        aggregate {
-                        count
-                        sum { hours }
-                        }
-                    }
-                    tasks_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-                        aggregate {
-                        count
-                        }
-                    }
-                    files_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-                        aggregate {
-                        count
-                        sum { size }
-                        }
-                    }
-                    events_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
-                        aggregate {
-                        count
-                        }
-                    }
-                    goal_aggregate: entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}, date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
-                        aggregate {
-                        count
-                        sum { hours }
-                    }
+                    } 
                 }
-            }`));
+            }
+            entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+                aggregate {
+                    count
+                    sum { hours }
+                }
+            }
+            tasks_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+                aggregate {
+                    count
+                }
+            }
+            files_aggregate(where: {project_id: {_eq: "${route.params.id}"}}) {
+                aggregate {
+                    count
+                    sum { size }
+                }
+            }
+            goal_aggregate: entries_aggregate(where: {project_id: {_eq: "${route.params.id}"}, date: {_gte: "${dateFromString}", _lte: "${dateToString}"}}) {
+                aggregate {
+                    count
+                    sum { hours }
+                }
+            }
+        }`));
         setProject(data.data.projects_by_pk);
-        setCount({ events: data.data.events_aggregate.aggregate.count, entries: data.data.entries_aggregate.aggregate.count, tasks: data.data.tasks_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.entries_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
+        setCount({ entries: data.data.entries_aggregate.aggregate.count, tasks: data.data.tasks_aggregate.aggregate.count, files: data.data.files_aggregate.aggregate.count, fileSize: data.data.files_aggregate.aggregate.sum.size, timesheetHours: data.data.entries_aggregate.aggregate.sum.hours, weeklyGoal: ((data.data.goal_aggregate.aggregate.sum.hours / data.data.projects_by_pk.goal) * 100).toFixed(0), weeklyGoalHours: data.data.goal_aggregate.aggregate.sum.hours });
         setLoading(false);
         Animated.sequence([Animated.timing(opacity, { toValue: 1, duration: Platform.OS === 'web' ? 1 : 100, easing: Easing.linear, useNativeDriver: true })]).start();
     }
@@ -339,22 +318,6 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                 if (text) {
                     await nameFunction(text);
                 }
-            }
-        }
-        else if (type === 'sheet') {
-            if (Platform.OS === 'web') {
-                let text = prompt('New Sheet Title');
-                if (text) {
-                    setLoading(true);
-                    let data = await API.graphql(graphqlOperation(`mutation {
-                        insert_files_one(object: {title: "New Sheet", content: "", order: ${project.files.length}, project_id: "${project.id}", type: "sheet"${folder ? `, folder_id: "${folder.id}"` : ''}}) {id}
-                    }`));
-                    setLoading(false);
-                    navigation.push('sheet', { id: data.data.insert_files_one.id })
-                }
-            }
-            else {
-                alert('Sorry! Sheets are not supported on the mobile app at this time');
             }
         }
         else if (type === 'file') {
@@ -623,379 +586,167 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                         </View>
                     </View>
                     :
-                    <>
-                        <SegmentedControl
-                            appearance={colors.background === '#000000' ? 'dark' : 'light'}
-                            style={{ width: '100%', marginTop: 10, marginBottom: 10 }}
-                            values={['files', 'entries', 'tasks', 'events'].map(obj => `${obj} ${true ? `(${count[obj] ? count[obj].toLocaleString() : 0})` : ``}`)}
-                            selectedIndex={index}
-                            onChange={(e) => { setIndex(e.nativeEvent.selectedSegmentIndex); Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-                        />
-                        <Animated.View style={{ opacity: opacity, width: '100%', height: window.height - (Platform.OS === 'web' ? 200 : 260) }}>
-                            {index === 0 &&
-                                <>
-                                    {Platform.OS !== 'web' &&
-                                        <TouchableOpacity
-                                            style={{ position: 'absolute', bottom: 0, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
-                                            onPress={async () => {
-                                                addAction('mobile')
-                                            }}><Text style={{ fontSize: 20 }}>add file +</Text></TouchableOpacity>}
-                                    <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View style={{ flexDirection: 'row', marginLeft: 5, marginBottom: 5 }}>
-                                            <Text onPress={() => { setFolder(null) }}>{folder?.title ? `. . 📂 / ` : `📂 / `}</Text>
-                                            {folder?.folder?.folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder.folder.folder) }}>{`📂 ${folder.folder.folder.folder.folder.title} / `}</Text>}
-                                            {folder?.folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder.folder) }}>{`📂 ${folder.folder.folder.folder.title} / `}</Text>}
-                                            {folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder) }}>{`📂 ${folder.folder.folder.title} / `}</Text>}
-                                            {folder?.folder && <Text onPress={() => { setFolder(folder.folder) }}>{`📂 ${folder.folder.title} / `}</Text>}
-                                            {folder?.title && <Text onPress={() => { }}>📂 {folder?.title}</Text>}
-                                        </View>
-                                        {Platform.OS === 'web' ?
-                                            <View style={{ flexDirection: 'row' }}>
-                                                <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 20 }}
-                                                    onPress={async () => { addAction('folder'); }}
-                                                ><Text>{'add folder'} +</Text></TouchableOpacity>
-                                                {/* {Platform.OS === 'web' &&
-                                                    <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 20 }}
-                                                        onPress={async () => { addAction('sheet'); }}
-                                                    ><Text>{'add sheet'} +</Text></TouchableOpacity>} */}
-                                                <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 20 }}
-                                                    onPress={async () => { addAction('document'); }}
-                                                ><Text>{'add document'} +</Text></TouchableOpacity>
-                                                <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                                    onPress={async () => { addAction('file'); }}
-                                                ><Text>{'upload file'} +</Text></TouchableOpacity>
-                                            </View>
-                                            :
-                                            <View />
-                                            // <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                            //     onPress={async () => { addAction('mobile') }}
-                                            // ><Text>{'add/upload'} +</Text></TouchableOpacity>
-                                        }
+                    <Animated.View style={{ opacity: opacity, width: '100%', height: window.height, marginTop: 10 }}>
+                        <>
+                            {Platform.OS !== 'web' &&
+                                <TouchableOpacity
+                                    style={{ position: 'absolute', bottom: 0, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
+                                    onPress={async () => {
+                                        addAction('mobile')
+                                    }}><Text style={{ fontSize: 20 }}>add file +</Text></TouchableOpacity>}
+                            <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <View style={{ flexDirection: 'row', marginLeft: 5, marginBottom: 5 }}>
+                                    <Text onPress={() => { setFolder(null) }}>{folder?.title ? `. . 📂 / ` : `📂 / `}</Text>
+                                    {folder?.folder?.folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder.folder.folder) }}>{`📂 ${folder.folder.folder.folder.folder.title} / `}</Text>}
+                                    {folder?.folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder.folder) }}>{`📂 ${folder.folder.folder.folder.title} / `}</Text>}
+                                    {folder?.folder?.folder && <Text onPress={() => { setFolder(folder.folder.folder) }}>{`📂 ${folder.folder.folder.title} / `}</Text>}
+                                    {folder?.folder && <Text onPress={() => { setFolder(folder.folder) }}>{`📂 ${folder.folder.title} / `}</Text>}
+                                    {folder?.title && <Text onPress={() => { }}>📂 {folder?.title}</Text>}
+                                </View>
+                                {Platform.OS === 'web' ?
+                                    <View style={{ flexDirection: 'row' }}>
+                                        <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 20 }}
+                                            onPress={async () => { addAction('folder'); }}
+                                        ><Text>{'add folder'} +</Text></TouchableOpacity>
+                                        <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 20 }}
+                                            onPress={async () => { addAction('document'); }}
+                                        ><Text>{'add document'} +</Text></TouchableOpacity>
+                                        <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
+                                            onPress={async () => { addAction('file'); }}
+                                        ><Text>{'upload file'} +</Text></TouchableOpacity>
                                     </View>
-                                    <CustomDraggableFlatList
-                                        data={project.files}
-                                        virtualHeight={window.height - 240}
-                                        renderItem={({ item, index }) =>
-                                            <>
-                                                <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
-                                                    <Text style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7, fontSize: 30 }}>
-                                                        {item.type === 'folder' ? '📁' : item.type === 'document' ? '📄' : item.type === 'sheet' ? '📈' : item.type.startsWith('image') ? <Image source={{ uri: `https://files.productabot.com/private/${identityId}/${project.id}/${item.title}` }} style={{ borderRadius: 5, marginBottom: -5, width: Platform.OS === 'web' ? 40 : 30, height: Platform.OS === 'web' ? 40 : 30 }} /> : item.type.endsWith('pdf') ? '📃' : item.type.startsWith('video') ? '📹' : item.type.startsWith('audio') ? '🎧' : '💻'}
-                                                    </Text>
-                                                    <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '80%' }}>
-                                                        <Text style={{ fontSize: 10, color: colors.subtitle, marginBottom: Platform.OS === 'web' ? -3 : 0 }}>{`${['document', 'sheet', 'folder'].includes(item.type) ? item.type : item.type + ' | ' + formatBytes(item.size)}`}</Text>
-                                                        <Text style={{ fontSize: 22 }}>{item.title}</Text>
-                                                    </View>
-                                                    <Text style={{ fontSize: 14, marginLeft: 'auto' }}>☰</Text>
-                                                </View>
-                                            </>
+                                    :
+                                    <View />
+                                }
+                            </View>
+                            <CustomDraggableFlatList
+                                data={project.files}
+                                virtualHeight={window.height - 240}
+                                renderItem={({ item, index }) =>
+                                    <>
+                                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginTop: -5, marginBottom: -5 }}>
+                                            <Text style={{ flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginRight: 7, fontSize: 30 }}>
+                                                {item.type === 'folder' ? '📁' : item.type === 'document' ? '📄' : item.type === 'sheet' ? '📈' : item.type.startsWith('image') ? <Image source={{ uri: `https://files.productabot.com/private/${identityId}/${project.id}/${item.title}` }} style={{ borderRadius: 5, marginBottom: -5, width: Platform.OS === 'web' ? 40 : 30, height: Platform.OS === 'web' ? 40 : 30 }} /> : item.type.endsWith('pdf') ? '📃' : item.type.startsWith('video') ? '📹' : item.type.startsWith('audio') ? '🎧' : '💻'}
+                                            </Text>
+                                            <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', maxWidth: '80%' }}>
+                                                <Text style={{ fontSize: 10, color: colors.subtitle, marginBottom: Platform.OS === 'web' ? -3 : 0 }}>{`${['document', 'sheet', 'folder'].includes(item.type) ? item.type : item.type + ' | ' + formatBytes(item.size)}`}</Text>
+                                                <Text style={{ fontSize: 22 }}>{item.title}</Text>
+                                            </View>
+                                            <Text style={{ fontSize: 14, marginLeft: 'auto' }}>☰</Text>
+                                        </View>
+                                    </>
+                                }
+                                onPress={async (item) => {
+                                    if (item.item.type === 'sheet') {
+                                        if (Platform.OS === 'web') {
+                                            navigation.push('sheet', { id: item.item.id });
                                         }
-                                        onPress={async (item) => {
-                                            if (item.item.type === 'sheet') {
-                                                if (Platform.OS === 'web') {
-                                                    navigation.push('sheet', { id: item.item.id });
-                                                }
-                                                else {
-                                                    alert('Sorry! Sheets are not supported on the mobile app at this time');
-                                                }
-                                            }
-                                            else if (item.item.type === 'document') {
-                                                navigation.push('document', { id: item.item.id });
-                                            }
-                                            else if (item.item.type === 'folder') {
-                                                setFolder(item.item);
-                                            }
-                                            else {
-                                                let link = await Storage.get(`${project.id}/${folder ? `${folder.id}/` : ''}${item.item.title}`, { level: 'private', expires: 10 });
-                                                link = link.replace('https://pbot-prod-files.s3.us-east-2.amazonaws.com', 'https://files.productabot.com')
-                                                await WebBrowser.openBrowserAsync(link);
-                                            }
-                                        }}
-                                        onMove={async (item) => {
-                                            setItemToMove(item.item);
-                                            folderRef.current.open()
-                                        }}
-                                        onRename={async (item) => {
-                                            const renameFunction = async (rename, extension) => {
-                                                setLoading(true);
-                                                if (rename) {
-                                                    if (['document', 'sheet', 'folder'].includes(item.item.type)) {
-                                                        await API.graphql(graphqlOperation(`mutation{update_files_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${rename}"}) {id}}`));
-                                                    }
-                                                    else {
-                                                        try {
-                                                            await Storage.copy({ key: `${project.id}/${item.item.folder ? item.item.folder.id + '/' : ''}${item.item.title}`, level: 'private' }, { key: `${project.id}/${folder ? folder.id + '/' : ''}${rename}${extension}`, level: 'private' });
-                                                            await Storage.remove(`${project.id}/${item.item.folder ? item.item.folder.id + '/' : ''}${item.item.title}`, { level: 'private' });
-                                                            await API.graphql(graphqlOperation(`mutation{update_files_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${rename}${extension}"}) {id}}`));
-                                                        }
-                                                        catch (err) {
-                                                            console.log(err);
-                                                        }
-                                                    }
-                                                }
-                                                await onRefresh();
-                                                setLoading(false);
-                                            }
-
-
-                                            let originalName = item.item.title;
-                                            let extension = '';
+                                        else {
+                                            alert('Sorry! Sheets are not supported on the mobile app at this time');
+                                        }
+                                    }
+                                    else if (item.item.type === 'document') {
+                                        navigation.push('document', { id: item.item.id });
+                                    }
+                                    else if (item.item.type === 'folder') {
+                                        setFolder(item.item);
+                                    }
+                                    else {
+                                        let link = await Storage.get(`${project.id}/${folder ? `${folder.id}/` : ''}${item.item.title}`, { level: 'private', expires: 10 });
+                                        link = link.replace('https://pbot-prod-files.s3.us-east-2.amazonaws.com', 'https://files.productabot.com')
+                                        await WebBrowser.openBrowserAsync(link);
+                                    }
+                                }}
+                                onMove={async (item) => {
+                                    setItemToMove(item.item);
+                                    folderRef.current.open()
+                                }}
+                                onRename={async (item) => {
+                                    const renameFunction = async (rename, extension) => {
+                                        setLoading(true);
+                                        if (rename) {
                                             if (['document', 'sheet', 'folder'].includes(item.item.type)) {
-                                                let nameSplit = item.item.title.split('.');
-                                                if (nameSplit.length > 0) {
-                                                    originalName = nameSplit[0];
-                                                    extension = '.' + nameSplit[1];
-                                                }
-                                            }
-                                            if (Platform.OS !== 'web') {
-                                                Alert.prompt('Rename', '', async (text) => {
-                                                    await renameFunction(text, extension);
-                                                }, 'plain-text', originalName);
+                                                await API.graphql(graphqlOperation(`mutation{update_files_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${rename}"}) {id}}`));
                                             }
                                             else {
-                                                let rename = prompt('Rename', originalName);
-                                                await renameFunction(rename, extension);
-                                            }
-                                        }}
-                                        onDelete={async (item) => {
-                                            const deleteFunction = async () => {
-                                                if (['sheet', 'document', 'folder'].includes(item.item.type)) {
-                                                    setLoading(true);
-                                                    await API.graphql(graphqlOperation(`mutation {delete_files_by_pk(id: "${item.item.id}") {id}}`));
-                                                    await onRefresh();
-                                                    setLoading(false);
+                                                try {
+                                                    await Storage.copy({ key: `${project.id}/${item.item.folder ? item.item.folder.id + '/' : ''}${item.item.title}`, level: 'private' }, { key: `${project.id}/${folder ? folder.id + '/' : ''}${rename}${extension}`, level: 'private' });
+                                                    await Storage.remove(`${project.id}/${item.item.folder ? item.item.folder.id + '/' : ''}${item.item.title}`, { level: 'private' });
+                                                    await API.graphql(graphqlOperation(`mutation{update_files_by_pk(pk_columns: {id: "${item.item.id}"}, _set: {title: "${rename}${extension}"}) {id}}`));
                                                 }
-                                                else {
+                                                catch (err) {
+                                                    console.log(err);
+                                                }
+                                            }
+                                        }
+                                        await onRefresh();
+                                        setLoading(false);
+                                    }
 
-                                                    try {
-                                                        await Storage.remove(`${project.id}/${item.item.name}`, { level: 'private' });
-                                                        await API.graphql(graphqlOperation(`mutation {delete_files_by_pk(id: "${item.item.id}") {id}}`));
-                                                        await onRefresh();
-                                                    }
-                                                    catch (err) {
-                                                        console.log(err);
-                                                    }
-                                                }
+
+                                    let originalName = item.item.title;
+                                    let extension = '';
+                                    if (['document', 'sheet', 'folder'].includes(item.item.type)) {
+                                        let nameSplit = item.item.title.split('.');
+                                        if (nameSplit.length > 0) {
+                                            originalName = nameSplit[0];
+                                            extension = '.' + nameSplit[1];
+                                        }
+                                    }
+                                    if (Platform.OS !== 'web') {
+                                        Alert.prompt('Rename', '', async (text) => {
+                                            await renameFunction(text, extension);
+                                        }, 'plain-text', originalName);
+                                    }
+                                    else {
+                                        let rename = prompt('Rename', originalName);
+                                        await renameFunction(rename, extension);
+                                    }
+                                }}
+                                onDelete={async (item) => {
+                                    const deleteFunction = async () => {
+                                        if (['sheet', 'document', 'folder'].includes(item.item.type)) {
+                                            setLoading(true);
+                                            await API.graphql(graphqlOperation(`mutation {delete_files_by_pk(id: "${item.item.id}") {id}}`));
+                                            await onRefresh();
+                                            setLoading(false);
+                                        }
+                                        else {
+
+                                            try {
+                                                await Storage.remove(`${project.id}/${item.item.name}`, { level: 'private' });
+                                                await API.graphql(graphqlOperation(`mutation {delete_files_by_pk(id: "${item.item.id}") {id}}`));
+                                                await onRefresh();
                                             }
-                                            if (Platform.OS !== 'web') {
-                                                Alert.alert('Warning', `Are you sure you want to delete this ${item.item.type}?`,
-                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                            catch (err) {
+                                                console.log(err);
                                             }
-                                            else if (confirm(`Are you sure you want to delete this ${item.item.type}?`)) { await deleteFunction() }
-                                        }}
-                                        setContextPosition={setContextPosition}
-                                        menuRef={menuRef}
-                                        ListEmptyComponent={
-                                            <TouchableOpacity
-                                                onPress={async () => { addAction('mobile'); }}
-                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
-                                                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add/upload +`}</Text>
-                                            </TouchableOpacity>}
-                                        onDragEnd={async ({ data }) => {
-                                            setProject({ ...project, files: data });
-                                            await API.graphql(graphqlOperation(`mutation {
+                                        }
+                                    }
+                                    if (Platform.OS !== 'web') {
+                                        Alert.alert('Warning', `Are you sure you want to delete this ${item.item.type}?`,
+                                            [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
+                                    }
+                                    else if (confirm(`Are you sure you want to delete this ${item.item.type}?`)) { await deleteFunction() }
+                                }}
+                                setContextPosition={setContextPosition}
+                                menuRef={menuRef}
+                                ListEmptyComponent={
+                                    <TouchableOpacity
+                                        onPress={async () => { addAction('mobile'); }}
+                                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
+                                        <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add/upload +`}</Text>
+                                    </TouchableOpacity>}
+                                onDragEnd={async ({ data }) => {
+                                    setProject({ ...project, files: data });
+                                    await API.graphql(graphqlOperation(`mutation {
                                     ${data.map((document, documentIndex) => `data${documentIndex}: update_files_by_pk(pk_columns: {id: "${document.id}"}, _set: {order: ${data.length - 1 - documentIndex}}) {id}`)}
                                 }`));
-                                        }}
-                                        ListFooterComponent={<View style={{ height: 100 }} />}
-                                    />
-                                </>
-                            }
-                            {
-                                index === 1 &&
-                                <>
-                                    {Platform.OS !== 'web' &&
-                                        <TouchableOpacity
-                                            style={{ position: 'absolute', bottom: 0, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
-                                            onPress={async () => {
-                                                addAction('entry')
-                                            }}><Text style={{ fontSize: 20 }}>add entry +</Text></TouchableOpacity>}
-                                    {(count.timesheetHours) && <Text style={{ alignSelf: 'flex-start', marginBottom: -20, marginLeft: 5 }}>{`${count.timesheetHours} hours ${root.desktopWeb ? `(${(count.timesheetHours / 8).toFixed(2)} days)` : ``}`}</Text>}
-                                    {(project.goal && root.desktopWeb) &&
-                                        <Menu ref={goalRef} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', marginTop: 13 }, placement: 'bottom' }}>
-                                            <MenuTrigger onPress={() => { goalRef.current.open(); }} onMouseEnter={(e) => { clearTimeout(goalTimeout); goalTimeout = setTimeout(() => { goalRef.current.open(); }, 750); }} onMouseLeave={(e) => { clearTimeout(goalTimeout) }} style={{ flexDirection: 'row', width: 320, alignSelf: 'center', alignItems: 'center', marginBottom: -15, marginRight: -40 }}>
-                                                <View style={{ flexDirection: 'row', width: 200, height: 15, backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderRadius: 5, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'center' }}>
-                                                    <View style={{ height: '100%', backgroundColor: project.color === '#000000' ? colors.text : project.color, width: `${Math.min(count.weeklyGoal, 100)}%`, borderRadius: 3 }} />
-                                                </View>
-                                                <Text style={{ alignSelf: 'center', marginLeft: 5 }}>{`${count.weeklyGoal}% of goal`}</Text>
-                                            </MenuTrigger>
-                                            <MenuOptions customStyles={{ optionsWrapper: { backgroundColor: 'transparent', width: 600, height: 300 }, optionsContainer: { backgroundColor: 'transparent' } }}>
-                                                <View style={{ backgroundColor: colors.background, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderColor: '#444444', borderWidth: 1, borderRadius: 10, borderStyle: 'solid', }}>
-                                                    <Text style={{ color: colors.text }}>{`You worked ${count.weeklyGoalHours ? count.weeklyGoalHours : 0} out of ${project.goal} hours this month`}</Text>
-                                                    <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-evenly', width: '100%', height: 200 }}>
-                                                        {/* {project.entries.map(obj => <View style={{ backgroundColor: project.color, height: `${(obj.hours/8) * 100}%`, width: 5 }} />)} */}
-                                                        <PieChart
-                                                            chartConfig={{
-                                                                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`
-                                                            }}
-                                                            data={Object.entries(project.entries.filter(obj => obj.date >= dateFromString && obj.date <= dateToString).reduce((acc, obj) => {
-                                                                !acc ? acc = {} : null;
-                                                                !acc[obj.category] ? acc[obj.category] = 0 : null;
-                                                                acc[obj.category] += obj.hours;
-                                                                return acc;
-                                                            }
-                                                                , {})).map((obj, index) => {
-                                                                    return ({
-                                                                        name: obj[0],
-                                                                        hours: obj[1],
-                                                                        color: chartColors[index],
-                                                                        legendFontColor: colors.text,
-                                                                        legendFontFamily: 'arial'
-                                                                    })
-                                                                })}
-                                                            width={400}
-                                                            height={200}
-                                                            accessor={"hours"}
-                                                            backgroundColor={"transparent"}
-                                                        />
-                                                    </View>
-                                                </View>
-                                            </MenuOptions>
-                                        </Menu>
-                                    }
-                                    {Platform.OS === 'web' ? <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                        onPress={async () => { addAction('entry'); }}
-                                    ><Text>{'add time entry'} +</Text></TouchableOpacity> : <View style={{ height: 20 }} />}
-                                    <CustomDraggableFlatList
-                                        data={project.entries}
-                                        draggable={false}
-                                        virtualSize={(index) => {
-                                            let length = project.entries[index]?.details?.length ?? 0;
-                                            let windowPadding = 10;
-                                            let widthPercentage = 0.5;
-                                            let fontSize = 16;
-                                            let baseHeight = 40;
-                                            let multiplier = 0.11;
-                                            let minimumNumbersOfLines = 3;
-                                            return baseHeight + Math.max(Math.ceil(length / ((window.width - windowPadding) * widthPercentage * multiplier)), minimumNumbersOfLines) * fontSize;
-                                        }}
-                                        virtualHeight={window.height - 240}
-                                        renderItem={(item) => {
-                                            let date = new Date(item.item.date);
-                                            date.setDate(date.getDate() + 1);
-                                            return (
-                                                <>
-                                                    <View style={{ width: '30%', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                                                        <Text style={{ fontSize: 14 }}>{`⏱️ ${date.toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
-                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                            <View style={{ backgroundColor: colors.hover, borderRadius: 10, paddingLeft: 7.5, paddingRight: 7.5, paddingTop: 2.5, paddingBottom: 2.5, marginTop: 5, marginLeft: root.desktopWeb ? 15 : 0 }}>
-                                                                <Text style={{ fontSize: 14 }}>{item.item.category ? item.item.category : ''}</Text>
-                                                            </View>
-                                                            <View />
-                                                        </View>
-                                                    </View>
-                                                    <Text style={{ fontSize: 14, width: '50%' }}>{`${item.item.details}`}</Text>
-                                                    <Text numberOfLines={1} style={{ fontSize: 30, fontWeight: 'bold', width: '20%', textAlign: 'center' }}>{item.item.hours}<Text numberOfLines={1} style={{ fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>
-                                                </>
-                                            );
-                                        }}
-                                        onPress={(item) => {
-                                            navigation.push('entry', { id: item.item.id })
-                                        }}
-                                        onDelete={async (item) => {
-                                            const deleteFunction = async () => {
-                                                setLoading(true);
-                                                await API.graphql(graphqlOperation(`mutation {delete_entries_by_pk(id: "${item.item.id}") {id}}`));
-                                                await onRefresh();
-                                                setLoading(false);
-                                            }
-                                            if (Platform.OS !== 'web') {
-                                                Alert.alert('Warning', 'Are you sure you want to delete this time entry?',
-                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                            }
-                                            else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
-                                        }}
-                                        setContextPosition={setContextPosition}
-                                        menuRef={menuRef}
-                                        ListEmptyComponent={
-                                            <TouchableOpacity
-                                                onPress={async () => { addAction('entry'); }}
-                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
-                                                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add an entry +`}</Text>
-                                            </TouchableOpacity>}
-                                        ListFooterComponent={<View style={{ height: 100 }} />}
-                                    />
-                                </>
-                            }
-                            {
-                                index === 2 &&
-                                <>
-                                    {Platform.OS === 'web' ?
-                                        <TasksDesktopScreen setLoading={setLoading} navigation={navigation} projectScreen={true} givenProjectId={project?.id} />
-                                        :
-                                        <TasksScreen setLoading={setLoading} navigation={navigation} projectScreen={true} givenProjectId={project?.id} />
-                                    }
-                                </>
-                            }
-                            {
-                                index === 3 &&
-                                <>
-
-                                    {Platform.OS !== 'web' &&
-                                        <TouchableOpacity
-                                            style={{ position: 'absolute', bottom: 0, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderStyle: 'solid', borderColor: colors.border, borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
-                                            onPress={async () => {
-                                                addAction('mobile')
-                                            }}><Text style={{ fontSize: 20 }}>add file +</Text></TouchableOpacity>}
-                                    {Platform.OS === 'web' ?
-                                        <TouchableOpacity style={{ width: 'auto', alignSelf: 'flex-end', justifyContent: 'flex-end', alignItems: 'flex-end', marginBottom: 5, marginRight: 10 }}
-                                            onPress={async () => { addAction('event'); }}
-                                        ><Text>{'add event'} +</Text></TouchableOpacity>
-                                        : <View style={{ height: 20 }} />}
-                                    <CustomDraggableFlatList
-                                        data={project.events}
-                                        draggable={false}
-                                        virtualSize={120}
-                                        virtualHeight={window.height - 240}
-                                        renderItem={(item) => {
-                                            let dateFrom = new Date(item.item.date_from);
-                                            dateFrom.setDate(dateFrom.getDate() + 1);
-                                            let dateTo = new Date(item.item.date_to);
-                                            dateTo.setDate(dateTo.getDate() + 1);
-                                            return (
-                                                <>
-                                                    <View style={{ width: '30%', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                                                        <Text style={{ fontSize: 14 }}>{`⏱️ ${dateFrom.toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })} - ${dateTo.toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit' })}`}</Text>
-                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                            <View style={{ backgroundColor: colors.hover, borderRadius: 10, paddingLeft: 7.5, paddingRight: 7.5, paddingTop: 2.5, paddingBottom: 2.5, marginTop: 5, marginLeft: root.desktopWeb ? 15 : 0 }}>
-                                                                <Text style={{ fontSize: 14 }}>{item.item.category ? item.item.category : ''}</Text>
-                                                            </View>
-                                                            <View />
-                                                        </View>
-                                                    </View>
-                                                    <Text style={{ fontSize: 14, width: '50%' }}>{`${item.item.details}`}</Text>
-                                                </>
-                                            );
-                                        }}
-                                        onPress={(item) => {
-                                            navigation.push('event', { id: item.item.id })
-                                        }}
-                                        onDelete={async (item) => {
-                                            const deleteFunction = async () => {
-                                                setLoading(true);
-                                                await API.graphql(graphqlOperation(`mutation {delete_events_by_pk(id: "${item.item.id}") {id}}`));
-                                                await onRefresh();
-                                                setLoading(false);
-                                            }
-                                            if (Platform.OS !== 'web') {
-                                                Alert.alert('Warning', 'Are you sure you want to delete this event?',
-                                                    [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                            }
-                                            else if (confirm('Are you sure you want to delete this time entry?')) { await deleteFunction() }
-                                        }}
-                                        setContextPosition={setContextPosition}
-                                        menuRef={menuRef}
-                                        ListEmptyComponent={
-                                            <TouchableOpacity
-                                                onPress={async () => { addAction('event'); }}
-                                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, margin: 10, borderRadius: 10, backgroundColor: colors.card }}>
-                                                <Text style={{ fontSize: 14, width: '100%', textAlign: 'center' }}>{`add event +`}</Text>
-                                            </TouchableOpacity>}
-                                        ListFooterComponent={<View style={{ height: 100 }} />}
-                                    />
-                                </>
-                            }
-                        </Animated.View >
-                    </>}
+                                }}
+                                ListFooterComponent={<View style={{ height: 100 }} />}
+                            />
+                        </>
+                    </Animated.View>}
             </View >
             <InputAccessoryViewComponent />
             <Menu style={{ position: 'absolute', left: 0, top: 0 }} ref={menuRef} renderer={ContextMenuRenderer} >
@@ -1030,10 +781,6 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                                 menuRef.current.close();
                                 addAction('document');
                             }}><Text style={{ color: colors.text }}>Add Document</Text></TouchableOpacity>
-                            {/* <TouchableOpacity style={{ padding: 5, width: '100%' }} onPress={async () => {
-                                menuRef.current.close();
-                                addAction('sheet');
-                            }}><Text style={{ color: colors.text }}>Add Sheet</Text></TouchableOpacity> */}
                             <TouchableOpacity style={{ padding: 5, width: '100%' }} onPress={async () => {
                                 menuRef.current.close();
                                 addAction('file');
@@ -1098,7 +845,7 @@ export default function ProjectScreen({ route, navigation, refresh, setLoading }
                     />
                 </MenuOptions>
             </Menu>
-        </View >
+        </View>
     );
 }
 

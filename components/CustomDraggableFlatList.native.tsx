@@ -159,7 +159,6 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                     items={data}
                     strategy={verticalListSortingStrategy}
                 >
-                    {/* {data.map(item => <SortableItem key={item.id} id={item.id} item={item} renderItemStyle={renderItemStyle} draggable={draggable} menuRef={menuRef} onRename={onRename} onDelete={onDelete} setContextPosition={setContextPosition} RenderItem={renderItem} onPress={onPress} />)} */}
                     <VirtualList
                         onContextMenu={(e) => {
                             if (e.nativeEvent.target.classList.length === 0) {

@@ -288,7 +288,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                     setNoteId(newNoteId.data.insert_notes_one.id);
                                 }}><Text style={{ textAlign: 'center' }}>add note +</Text></TouchableOpacity>
                         </View>
-                        <View style={{ flexDirection: 'row', width: '100%', height: '100%', marginBottom: -49, borderTopColor: `${colors.subtitle}66`, borderTopWidth: 1, borderStyle: 'solid', flexGrow: 1 }}>
+                        <View style={{ flexDirection: 'row', width: '100%', height: '100%', marginBottom: -49, borderTopColor: `${colors.subtitle}66`, borderTopWidth: 1, borderStyle: 'solid', flexGrow: 1, userSelect: 'none' }}>
                             {paneSize >= 220 &&
                                 <View style={{ width: '50%', maxWidth: 150 }}>
                                     <CustomDraggableFlatList

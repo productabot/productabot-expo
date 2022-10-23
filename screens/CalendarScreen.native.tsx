@@ -36,12 +36,10 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
     const [refreshControl, setRefreshControl] = useState(false);
     const [entries, setEntries] = useState([]);
     const [tasks, setTasks] = useState([]);
-    const [events, setEvents] = useState([]);
     const scrollRef = useRef();
     const { colors } = useTheme();
     const [showEntries, setShowEntries] = useState(true);
     const [showTasks, setShowTasks] = useState(true);
-    const [showEvents, setShowEvents] = useState(true);
 
     const calendarTheme = {
         backgroundColor: '#ffffff00',
@@ -140,25 +138,10 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
               status
               id
             }
-            events(order_by: {date_from: asc, project: {name: asc}}, where: {date_from: {_gte: "${startMonth.toLocaleDateString('fr-CA')}", _lt: "${endMonth.toLocaleDateString('fr-CA')}"}}) {
-              project {
-                id
-                name
-                key
-                color
-                image
-              }
-              category
-              details
-              date_from
-              date_to
-              id
-            }
         }          
         `));
         setEntries(data.data.entries);
         setTasks(data.data.tasks);
-        setEvents(data.data.events);
         showRefreshControl ? setRefreshControl(false) : setLoading(false);
         scrollRef.current && scrollRef.current.scrollTo({ x: windowDimensions.width, animated: false });
     }
@@ -309,54 +292,6 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                                     </MenuOptions>
                                 </Menu>
                             )}
-                            {showEvents && events.filter(event => getDateRange(new Date(event.date_from), new Date(event.date_to)).includes(date.dateString)).map((obj, index) =>
-                                <Menu onOpen={() => { menuOpen = true; }} onClose={() => { menuOpen = false; }} key={index} renderer={Popover} rendererProps={{ anchorStyle: { backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid' } }} >
-                                    <MenuTrigger>
-                                        <View style={{ paddingLeft: 2, paddingRight: 2, backgroundColor: obj.project.color, width: '100%', height: 12, flexDirection: 'row', alignItems: 'center' }}>
-                                            <Image style={{ height: 12, width: 12, borderRadius: 3, marginRight: 2 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
-                                            <Text style={{ fontSize: 8, color: '#ffffff' }}>{obj.details}</Text>
-                                        </View>
-                                    </MenuTrigger>
-                                    <MenuOptions customStyles={{
-                                        optionsWrapper: { backgroundColor: 'transparent', width: 255 },
-                                        optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
-                                    }}>
-                                        <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10 }}>
-                                            <ScrollView style={{ maxHeight: 200, paddingBottom: 5 }}>
-                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 5, width: '100%' }}>
-                                                    <TouchableOpacity onPress={() => { navigation.push('project', { id: obj.project.id }); }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
-                                                        <Image style={{ height: 35, width: 35, borderRadius: 5, borderColor: colors.text, borderWidth: 1 }} source={{ uri: `https://files.productabot.com/public/${obj.project.image}` }} />
-                                                        <View style={{ flexDirection: 'column', marginLeft: 5 }}>
-                                                            <Text numberOfLines={1} style={{ color: colors.text, marginLeft: 3 }}>{obj.project.name}</Text>
-                                                            <View style={{ flexDirection: 'row' }}>
-                                                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#444444', borderRadius: 5, paddingLeft: 5, paddingRight: 5, paddingTop: 0, paddingBottom: 0 }}>
-                                                                    <Text numberOfLines={1} style={{ color: '#ffffff', fontSize: 12 }}>{obj.category}</Text>
-                                                                </View>
-                                                            </View>
-                                                        </View>
-                                                    </TouchableOpacity>
-                                                </View>
-                                                <Text style={{ color: colors.text, margin: 5 }}>{obj.details}</Text>
-                                            </ScrollView>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                                                <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
-                                                    const deleteFunction = async () => {
-                                                        setLoading(true);
-                                                        await API.graphql(graphqlOperation(`mutation {delete_events_by_pk(id: "${obj.id}") {id}}`));
-                                                        await onRefresh();
-                                                        setLoading(false);
-                                                    }
-                                                    Alert.alert('Warning', 'Are you sure you want to delete this event?',
-                                                        [{ text: "No", style: "cancel" }, { text: "Yes", style: "destructive", onPress: async () => { await deleteFunction(); } }]);
-                                                }}><Text style={{ color: '#ffffff' }}>Delete</Text></TouchableOpacity>
-                                                <TouchableOpacity style={{ backgroundColor: '#3F91A1', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 9 }} onPress={() => {
-                                                    navigation.push('event', { id: obj.id })
-                                                }} ><Text style={{ color: '#ffffff' }}>View</Text></TouchableOpacity>
-                                            </View>
-                                        </View>
-                                    </MenuOptions>
-                                </Menu>
-                            )}
                         </View>
                     </MenuTrigger>
                     <MenuOptions customStyles={{
@@ -364,13 +299,12 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                         optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
                     }}>
                         <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 255, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 40 }}>
-                            <TouchableOpacity onPress={() => { navigation.push('entry', { date: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>⏱ add entry</Text></TouchableOpacity>
-                            <TouchableOpacity onPress={() => { navigation.push('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>☉ add task</Text></TouchableOpacity>
-                            <TouchableOpacity onPress={() => { navigation.push('event', { date_from: date.dateString, date_to: date.dateString, id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>📅 add event</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { navigation.push('entry', { date: date.dateString, id: undefined }); }} style={{ width: '50%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>⏱ add entry</Text></TouchableOpacity>
+                            <TouchableOpacity onPress={() => { navigation.push('edit_task', { date: date.dateString, id: undefined, status: 'backlog' }); }} style={{ width: '50%', height: '100%', backgroundColor: '#3F91A1', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center', fontSize: 14 }}>☉ add task</Text></TouchableOpacity>
                         </View>
                     </MenuOptions>
                 </Menu>
-            </ScrollView>
+            </ScrollView >
         );
     }
 
@@ -397,13 +331,6 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                             {showTasks && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
                         </View>
                         <Text style={{ marginLeft: 5 }}>tasks</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { setShowEvents(!showEvents) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
-                        <View
-                            style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showEvents ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: showEvents ? '#0075ff' : '#ffffff' }}>
-                            {showEvents && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
-                        </View>
-                        <Text style={{ marginLeft: 5 }}>events</Text>
                     </TouchableOpacity>
                 </View>
             </View>

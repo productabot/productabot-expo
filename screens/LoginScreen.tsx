@@ -93,7 +93,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading, se
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F0054' }]}
                     onPress={login}
                 >
-                    <Text style={[styles.baseText, styles.buttonText]}>login</Text>
+                    <Text style={[styles.baseText, styles.buttonText]}>{loading ? 'logging in...' : 'login'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]}

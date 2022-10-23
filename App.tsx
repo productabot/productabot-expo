@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { MenuProvider } from 'react-native-popup-menu';
 import { SafeAreaView, View } from 'react-native';
@@ -134,7 +133,6 @@ export default function App() {
             <Navigation authenticated={authenticated} setLoading={setLoading} loading={loading} setBackgroundColor={setBackgroundColor} />
           </SafeAreaView>
           <LoadingComponent loading={loading} />
-          <StatusBar style={'dark'} />
         </MenuProvider>
       </ApolloProvider>
     );

@@ -36,11 +36,9 @@ const DragAndDropCalendar = withDragAndDrop(Calendar); //, { backend: false }
 export default function CalendarScreen({ route, navigation, refresh, setLoading }: any) {
     const [entries, setEntries] = useState([]);
     const [tasks, setTasks] = useState([]);
-    const [events, setEvents] = useState([]);
     const { colors } = useTheme();
     const [showEntries, setShowEntries] = useState(true);
     const [showTasks, setShowTasks] = useState(true);
-    const [showEvents, setShowEvents] = useState(true);
     const menuRef = useRef(null);
     const addMenuRef = useRef(null);
     const contextMenuRef = useRef(null);
@@ -89,25 +87,10 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
               status
               id
             }
-            events(order_by: {date_from: asc, project: {name: asc}}, where: {date_from: {_gte: "${startDate.toLocaleDateString('fr-CA')}", _lt: "${endDate.toLocaleDateString('fr-CA')}"}}) {
-              project {
-                id
-                name
-                key
-                color
-                image
-              }
-              category
-              details
-              date_from
-              date_to
-              id
-            }
         }          
         `));
         setEntries(data.data.entries.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: obj.project?.name, hours: obj.hours, image: obj.project?.image, allDay: true, type: 'entry' } }));
         setTasks(data.data.tasks.map(obj => { return { ...obj, start: new Date(obj.date + 'T12:00'), end: new Date(obj.date + 'T12:01'), title: ` ${obj.details}${obj.time ? ' @ ' + new Date(obj.date + 'T' + obj.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}`, image: obj.project?.image, allDay: true, type: 'task' } }));
-        setEvents(data.data.events.map(obj => { return { ...obj, start: new Date(obj.date_from + 'T12:00'), end: new Date(obj.date_to + 'T12:01'), title: `${obj.details}`, image: obj.project?.image, allDay: true, type: 'event' } }));
         setLoading(false);
     }
 
@@ -133,53 +116,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                 update_tasks_by_pk(pk_columns: {id: "${event.id}"}, _set: {date: "${start.toISOString().split('T')[0]}"}) {id}
             }`));
         }
-        else if (event.type === 'event') {
-            const idx = events.indexOf(event);
-            const updatedEvent = { ...event, start, end };
-            const nextEvents = [...events];
-            nextEvents.splice(idx, 1, updatedEvent);
-            setEvents(nextEvents);
-            await API.graphql(graphqlOperation(`mutation {
-                update_events_by_pk(pk_columns: {id: "${event.id}"}, _set: {date_from: "${start.toISOString().split('T')[0]}", date_to: "${end.toISOString().split('T')[0]}"}) {id}
-            }`));
-        }
     }
-
-    const resizeEntry = async ({ event, start, end }) => {
-        if (event.type === 'entry') {
-            const nextEntries = entries.map(existingEvent => {
-                return existingEvent.id == event.id
-                    ? { ...existingEvent, start, end: start }
-                    : existingEvent;
-            });
-            setEntries(nextEntries);
-            await API.graphql(graphqlOperation(`mutation {
-                update_entries_by_pk(pk_columns: {id: "${event.id}"}, _set: {date: "${start.toISOString().split('T')[0]}"}) {id}
-            }`));
-        }
-        else if (event.type === 'task') {
-            const nextTasks = tasks.map(existingEvent => {
-                return existingEvent.id == event.id
-                    ? { ...existingEvent, start, end: start }
-                    : existingEvent;
-            });
-            setTasks(nextTasks);
-            await API.graphql(graphqlOperation(`mutation {
-                update_tasks_by_pk(pk_columns: {id: "${event.id}"}, _set: {date: "${start.toISOString().split('T')[0]}"}) {id}
-            }`));
-        }
-        else if (event.type === 'event') {
-            const nextEvents = events.map(existingEvent => {
-                return existingEvent.id == event.id
-                    ? { ...existingEvent, start, end }
-                    : existingEvent;
-            });
-            setEvents(nextEvents);
-            await API.graphql(graphqlOperation(`mutation {
-                update_events_by_pk(pk_columns: {id: "${event.id}"}, _set: {date_from: "${start.toISOString().split('T')[0]}", date_to: "${end.toISOString().split('T')[0]}"}) {id}
-            }`));
-        }
-    };
 
     const selectEvent = async (event, e) => {
         // setEvent({ ...event, x: e.clientX, y: e.clientY });
@@ -205,25 +142,16 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     </View>}
                     <Text style={{ marginLeft: 5 }}>tasks</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => { setShowEvents(!showEvents) }} style={{ flexDirection: 'row', marginLeft: 10 }}>
-                    {Platform.OS === 'web' ? <input checked={showEvents} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> : <View
-                        style={{ width: 20, height: 20, borderRadius: 5, borderWidth: showEvents ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: showEvents ? '#0075ff' : '#ffffff' }}>
-                        {showEvents && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
-                    </View>}
-                    <Text style={{ marginLeft: 5 }}>events</Text>
-                </TouchableOpacity>
             </div>
             <DragAndDropCalendar
                 localizer={localizer}
                 views={['month']}
                 toolbar={true}
                 popup={true}
-                // onDragStart={(event) => { console.log(event); }}
                 onSelectEvent={selectEvent}
                 onEventDrop={moveEntry}
-                resizable={true}
-                onEventResize={resizeEntry}
-                events={[...(showEntries ? entries : []), ...(showTasks ? tasks : []), ...(showEvents ? events : [])]}
+                resizable={false}
+                events={[...(showEntries ? entries : []), ...(showTasks ? tasks : [])]}
                 style={{ height: 'calc(100vh - 60px)', color: colors.text, fontFamily: 'arial' }}
                 eventPropGetter={(event) => {
                     const date = new Date();
@@ -270,7 +198,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                             }} style={{ position: 'relative', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', zIndex: 100, paddingLeft: 3, paddingRight: 3, height: 14 }}>
                                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                                     {event.hours ? <img src={`https://files.productabot.com/public/${event.image}`} style={{ width: 12, height: 12, borderRadius: 3, border: `0px solid #fff`, margin: 0, marginRight: 3, objectFit: 'cover' }} /> : null}
-                                    {event.type==='task' ? '•' : ''}
+                                    {event.type === 'task' ? '•' : ''}
                                     {title}</div>
                                 {event.hours ? <div style={{ backgroundColor: '#00000066', borderRadius: 3, paddingLeft: 3, paddingRight: 3, float: 'right' }}>{event.hours} hrs</div> : null}
                             </div>)
@@ -281,7 +209,7 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                             return (
                                 <div onClick={(e) => {
                                     setEvent({ ...event, x: e.clientX, y: e.clientY, date: date }); addMenuRef.current.open();
-                                }} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', cursor: 'pointer', padding: 2 }}>
+                                }} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', cursor: 'pointer', padding: 2, backgroundColor: givenDate === currentDate ? '#66666666' : '' }}>
                                     <div style={{ fontSize: 12, marginLeft: 4 }}>{label}</div>
                                     <div style={{ fontSize: 12, color: givenDate === currentDate ? colors.text : '#aaaaaa' }}>+</div>
                                 </div>)
@@ -312,14 +240,13 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                             </TouchableOpacity>
                             {event.type === 'entry' && <Text numberOfLines={1} style={{ color: colors.text, fontSize: 30, fontWeight: 'bold' }}>⏱{event.hours}<Text numberOfLines={1} style={{ color: colors.text, fontSize: 16, fontWeight: 'normal' }}> hrs</Text></Text>}
                             {event.type === 'task' && <Text numberOfLines={1} style={{ color: colors.text, fontSize: 30, fontWeight: 'bold' }}>☉</Text>}
-                            {event.type === 'event' && <Text numberOfLines={1} style={{ color: colors.text, fontSize: 30, fontWeight: 'bold' }}>📅</Text>}
                         </View>
                         <Text style={{ color: colors.text, margin: 5 }}>{event.details}{event.time ? ' @ ' + new Date(event.date + 'T' + event.time).toLocaleTimeString([], { timeStyle: 'short' }).replace(' ', '').toLowerCase() : ''}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                             <TouchableOpacity style={{ backgroundColor: '#3F0054', padding: 5, width: '50%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: 9 }} onPress={async () => {
                                 const deleteFunction = async () => {
                                     setLoading(true);
-                                    await API.graphql(graphqlOperation(`mutation {delete_${event.type === 'entry' ? 'entries' : event.type === 'task' ? 'tasks' : 'events'}_by_pk(id: "${event.id}") {id}}`));
+                                    await API.graphql(graphqlOperation(`mutation {delete_${event.type === 'entry' ? 'entries' : event.type === 'task' ? 'tasks' : ''}_by_pk(id: "${event.id}") {id}}`));
                                     await onRefresh();
                                     setLoading(false);
                                     menuRef.current.close();
@@ -345,9 +272,8 @@ export default function CalendarScreen({ route, navigation, refresh, setLoading 
                     optionsContainer: { backgroundColor: 'transparent', shadowOpacity: 0 },
                 }}>
                     <View style={{ backgroundColor: colors.background, borderColor: '#666666', borderWidth: 1, borderStyle: 'solid', width: 300, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: 40 }}>
-                        <TouchableOpacity onPress={() => { addMenuRef.current.close(); navigation.push('entry', { date: event.date.toISOString().split('T')[0], id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>⏱ add entry</Text></TouchableOpacity>
-                        <TouchableOpacity onPress={() => { addMenuRef.current.close(); navigation.push('edit_task', { date: event.date.toISOString().split('T')[0], id: undefined, status: 'backlog' }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#3F91A1', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>☉ add task</Text></TouchableOpacity>
-                        <TouchableOpacity onPress={() => { addMenuRef.current.close(); navigation.push('event', { date_from: event.date.toISOString().split('T')[0], date_to: event.date.toISOString().split('T')[0], id: undefined }); }} style={{ width: '33.3333%', height: '100%', backgroundColor: '#000000', borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>📅 add event</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={() => { addMenuRef.current.close(); navigation.push('entry', { date: event.date.toISOString().split('T')[0], id: undefined }); }} style={{ width: '50%', height: '100%', backgroundColor: '#3F0054', borderTopLeftRadius: 9, borderBottomLeftRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>⏱ add entry</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={() => { addMenuRef.current.close(); navigation.push('edit_task', { date: event.date.toISOString().split('T')[0], id: undefined, status: 'backlog' }); }} style={{ width: '50%', height: '100%', backgroundColor: '#3F91A1',borderTopRightRadius: 9, borderBottomRightRadius: 9, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: '#ffffff', textAlign: 'center' }}>☉ add task</Text></TouchableOpacity>
                     </View>
                 </MenuOptions>
             </Menu>

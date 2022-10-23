@@ -83,10 +83,10 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading,
     setGreeting(<View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
       {(Platform.OS === 'web' && window.width > 800) && <Text>{(currentHour < 12 && currentHour > 6) ? `good morning, ` : (currentHour < 18 && currentHour >= 12) ? `good afternoon, ` : (currentHour < 22 && currentHour >= 18) ? `good evening, ` : `good night, `}</Text>}
       <TouchableOpacity href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab', { screen: 'settings', params: { state: { ...data.data.users[0] } } }) }} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }} >
-        <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.border, borderRadius: 5, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${data.data.users[0].image}` }} />
+        <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.border, borderRadius: 25, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${data.data.users[0].image}` }} />
         <Text>{data.data.users[0].username}</Text>
       </TouchableOpacity>
-    </View >);
+    </View>);
     setUser(data.data.users[0]);
     showRefreshControl ? setRefreshControl(false) : setLoading(false);
   }
@@ -133,7 +133,6 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading,
         </div>
         :
         <AutoDragSortableView
-          isDragFreely={true}
           style={{ padding: root.desktopWeb ? 0 : (window.width - (2 * 140)) / 6 }}
           refreshControl={
             <RefreshControl
@@ -145,42 +144,23 @@ export default function ProjectsScreen({ route, navigation, refresh, setLoading,
               title=""
             />}
           renderHeaderView={
-            <View style={{ marginTop: Platform.OS === 'web' ? 30 : -10, flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: 10, zIndex: 1 }}>
-              <Text style={{ color: colors.text, fontSize: 20 }}>{greeting}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 30 }}>
-                {/* <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
-                  <Text style={{ marginRight: 5 }}>🗑️</Text>
+            <View style={{ marginTop: Platform.OS === 'web' ? 30 : -10, flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 0, paddingBottom: 0, marginBottom: 10, zIndex: 1, marginRight: 25 }}>
+              {greeting}
+              {user.plan === 'free' ?
+                <Animated.View style={{ opacity: fadeValue }}>
+                  <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 10, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 30, marginLeft: 10, marginTop: -5, paddingTop: 0, paddingBottom: 0, paddingLeft: 10, paddingRight: 10 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
+                    <Text style={{ color: colors.text, fontSize: 15 }}>{`upgrade ✦`}</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+                :
+                <TouchableOpacity onPress={() => { setArchived(!archived) }} style={{ flexDirection: 'row' }}>
+                  <Text style={{ marginRight: 5 }}>archived</Text>
                   <View
                     style={{ width: 20, height: 20, borderRadius: 5, borderWidth: archived ? 0 : 1, borderColor: '#767676', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: archived ? '#0075ff' : '#ffffff', marginRight: 10 }}>
                     {archived && <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 20 }}>✓</Text>}
                   </View>
-                </TouchableOpacity> */}
-                <TouchableOpacity onPress={() => { navigation.navigate('searchTab') }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25, marginRight: 10 }}  >
-                  <Text style={{ color: colors.text, fontSize: 20 }}>🔍</Text>
                 </TouchableOpacity>
-                {/* <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, width: 25, paddingTop: 0, paddingBottom: 0 }} onPress={async (e) => {
-                  e.preventDefault();
-                  let currentTheme = await AsyncStorage.getItem('theme');
-                  let nextTheme = 'dark';
-                  if (!currentTheme || currentTheme === 'dark') {
-                    nextTheme = 'light';
-                  }
-                  await AsyncStorage.setItem('theme', nextTheme);
-                  setTheme(nextTheme);
-                }} >
-                  <Text style={{ color: colors.text, fontSize: 13 }}>{theme === 'dark' ? '☀' : '◗*'}</Text>
-                </TouchableOpacity> */}
-                <TouchableOpacity onPress={() => { navigation.navigate('settingsTab') }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, width: 25 }}  >
-                  <Text style={{ color: colors.text, fontSize: 20 }}>⚙️</Text>
-                </TouchableOpacity>
-                {user.plan === 'free' &&
-                  <Animated.View style={{ opacity: fadeValue }}>
-                    <TouchableOpacity style={{ borderColor: colors.text, borderRadius: 10, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 30, marginLeft: 10, marginTop: -5, paddingTop: 0, paddingBottom: 0, paddingLeft: 10, paddingRight: 10 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
-                      <Text style={{ color: colors.text, fontSize: 15 }}>{`upgrade ✦`}</Text>
-                    </TouchableOpacity>
-                  </Animated.View>
-                }
-              </View>
+              }
             </View>}
           minOpacity={100}
           delayLongPress={200}

@@ -1,8 +1,7 @@
-import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import * as React from 'react';
-import { View, Platform, Text, TouchableOpacity, useWindowDimensions, Pressable, StatusBar, Animated, Easing } from 'react-native';
+import { View, Platform, Text, TouchableOpacity, useWindowDimensions, Pressable, StatusBar, Animated, Easing, Image } from 'react-native';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
@@ -12,26 +11,18 @@ import ProjectsScreen from '../screens/ProjectsScreen';
 import ProjectScreen from '../screens/ProjectScreen';
 import BlankScreen from '../screens/BlankScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import LogoSvg from "../svgs/logo"
 import CalendarScreen from '../screens/CalendarScreen';
 import EntryScreen from '../screens/EntryScreen';
-import BudgetScreen from '../screens/BudgetScreen';
-import EventScreen from '../screens/EventScreen';
-import NotificationsComponent from '../components/NotificationsComponent';
 import NotesDesktopScreen from '../screens/NotesDesktopScreen';
 import NotesMobileScreen from '../screens/NotesMobileScreen';
 import NoteScreen from '../screens/NoteScreen';
-import * as root from '../Root';
 import DocumentScreen from '../screens/DocumentScreen';
 import ResetScreen from '../screens/ResetScreen';
-import * as Linking from 'expo-linking';
-import TestScreen from '../screens/TestScreen';
 import { AnimatedLogo } from '../components/AnimatedLogo';
 import TasksScreen from '../screens/TasksScreen';
 import TaskScreen from '../screens/TaskScreen';
 import EditTaskScreen from '../screens/EditTaskScreen';
 import TasksDesktopScreen from '../screens/TasksDesktopScreen';
-import SheetScreen from '../screens/SheetScreen';
 import TimelinesScreen from '../screens/TimelinesScreen';
 import TimelineScreen from '../screens/TimelineScreen';
 import SearchScreen from '../screens/SearchScreen';
@@ -40,7 +31,7 @@ import { useTheme } from '@react-navigation/native';
 import { API, graphqlOperation } from "@aws-amplify/api";
 import { TransitionPresets } from '@react-navigation/stack';
 
-export default function Navigation({ navigation, authenticated, setLoading, loading, setBackgroundColor }: any) {
+export default function Navigation({ authenticated, setLoading, loading, setBackgroundColor }: any) {
   const [theme, setTheme] = React.useState('dark');
 
   React.useEffect(() => {
@@ -128,16 +119,16 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
     <RootStack.Navigator initialRouteName={authenticated ? 'app' : 'auth'} screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="auth" options={{ animationEnabled: false }}>
         {props => <AuthStack.Navigator {...props} initialRouteName={Platform.OS === 'web' ? 'login' : 'welcome'} screenOptions={{ headerShown: false, title: 'productabot' }} >
-          <AuthStack.Screen name="login" options={{ animationEnabled: true, ...TransitionPresets.ScaleFromCenterAndroid }}>
+          <AuthStack.Screen name="login">
             {props => <LoginScreen {...props} setLoading={setLoading} loading={loading} setTheme={setTheme} theme={theme} />}
           </AuthStack.Screen>
-          <AuthStack.Screen name="signup" options={{ animationEnabled: true, ...TransitionPresets.ScaleFromCenterAndroid }} >
+          <AuthStack.Screen name="signup" >
             {props => <SignupScreen {...props} setLoading={setLoading} loading={loading} />}
           </AuthStack.Screen>
-          <AuthStack.Screen name="reset" options={{ animationEnabled: true, ...TransitionPresets.ScaleFromCenterAndroid }} >
+          <AuthStack.Screen name="reset" >
             {props => <ResetScreen {...props} setLoading={setLoading} loading={loading} />}
           </AuthStack.Screen>
-          <AuthStack.Screen name="welcome" options={{ animationEnabled: true, ...TransitionPresets.ScaleFromCenterAndroid }}>
+          <AuthStack.Screen name="welcome">
             {props => <WelcomeScreen {...props} setLoading={setLoading} loading={loading} setTheme={setTheme} theme={theme} />}
           </AuthStack.Screen>
         </AuthStack.Navigator>}
@@ -191,17 +182,11 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     <AppStack.Screen name="entry" options={{ ...defaultAnimation }}>
                       {props => <EntryScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="event" options={{ ...defaultAnimation }}>
-                      {props => <EventScreen {...props} refresh={refresh} setLoading={setLoading} />}
-                    </AppStack.Screen>
                     <AppStack.Screen name="task" options={{ ...defaultAnimation }}>
                       {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="edit_task" options={{ ...defaultAnimation }}>
                       {props => <EditTaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
-                    </AppStack.Screen>
-                    <AppStack.Screen name="budget" options={{ ...defaultAnimation }}>
-                      {props => <BudgetScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                   </AppStack.Navigator>
                 )
@@ -225,9 +210,6 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     </AppStack.Screen>
                     <AppStack.Screen name="task" options={{ ...defaultAnimation }}>
                       {props => <TaskScreen {...props} refresh={refresh} setLoading={setLoading} />}
-                    </AppStack.Screen>
-                    <AppStack.Screen name="event" options={{ ...defaultAnimation }}>
-                      {props => <EventScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
                     <AppStack.Screen name="edit_task" options={{ ...defaultAnimation }}>
                       {props => <EditTaskScreen {...props} refresh={refresh} setLoading={setLoading} loading={loading} />}
@@ -358,42 +340,18 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                         ]
                       )).start();
                     return (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, marginRight: 20, marginLeft: 'auto' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginRight: 20, marginLeft: 'auto' }}>
                         {user.plan === 'free' &&
                           <Animated.View style={{ opacity: fadeValue }}>
                             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
-                              <Text style={{ color: colors.text, fontSize: 13 }}>{windowDimensions.width > 400 ? 'upgrade ' : ''}✦</Text>
+                              <Text style={{ color: colors.text, fontSize: 13 }}>{windowDimensions.width > 400 ? 'go premium ' : ''}✦</Text>
                             </TouchableOpacity></Animated.View>}
-                        <div title={'search'}>
-                          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, width: 25, paddingTop: 0, paddingBottom: 0 }} href={`/search`} onPress={(e) => { e.preventDefault(); navigation.navigate('searchTab') }} >
-                            <Text style={{ color: colors.text, fontSize: 13 }}>🔍</Text>
-                          </TouchableOpacity>
-                        </div>
-
-                        <div title={theme === 'dark' ? 'turn on the lights ☀' : 'turn off the lights ◗*'}>
-                          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, width: 25, paddingTop: 0, paddingBottom: 0 }} onPress={async (e) => {
-                            e.preventDefault();
-                            let currentTheme = await AsyncStorage.getItem('theme');
-                            let nextTheme = 'dark';
-                            if (!currentTheme || currentTheme === 'dark') {
-                              nextTheme = 'light';
-                            }
-                            await AsyncStorage.setItem('theme', nextTheme);
-                            setTheme(nextTheme);
-                          }} >
-                            <Text style={{ color: colors.text, fontSize: 13 }}>{theme === 'dark' ? '☀' : '◗*'}</Text>
-                          </TouchableOpacity>
-                        </div>
-
                         <div title={'settings'}>
-                          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 0, width: 25, paddingTop: 0, paddingBottom: 0 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab') }} >
-                            <Text style={{ color: colors.text, fontSize: 13 }}>⚙️</Text>
+                          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 0, paddingTop: 0, paddingBottom: 0 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab') }} >
+                            <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.border, borderRadius: 25, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/24bcecf5-b7a7-4cdd-9663-66dbdd7ad265.jpg` }} />
+                            <Text style={{ color: colors.text, fontSize: 12 }}>heythisischris</Text>
                           </TouchableOpacity>
                         </div>
-                        {/* <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 0, width: 25, paddingTop: 0, paddingBottom: 0 }} onPress={(e) => { e.preventDefault(); setRefresh(!refresh); }} >
-                          <Text style={{ color: colors.text, fontSize: 13 }}>↻</Text>
-                        </TouchableOpacity> */}
-                        {/* <NotificationsComponent /> */}
                       </View>
                     )
                   }
@@ -402,6 +360,6 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
           </AppBottomTab.Navigator>
         }
       </RootStack.Screen>
-    </RootStack.Navigator >
+    </RootStack.Navigator>
   );
 }
