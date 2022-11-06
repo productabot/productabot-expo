@@ -17,9 +17,9 @@ export default function LoginScreen({ route, navigation, setLoading, loading, se
 
     useEffect(() => {
         if (!route.params) { route.params = {}; }
-        if (route.params.success) { setState({ ...state, successMessage: 'success! confirm your email before logging in' }); }
-        if (route.params.reset) { setState({ ...state, successMessage: 'we sent you a link to reset your password' }); }
-        if (route.params.email) { setState({ ...state, email: route.params.email, successMessage: 'email successfully confirmed! you may log in' }); }
+        if (route.params.success) { setState({ ...state, successMessage: 'Success! Confirm your email before logging in' }); }
+        if (route.params.reset) { setState({ ...state, successMessage: 'We sent you a link to reset your password' }); }
+        if (route.params.email) { setState({ ...state, email: route.params.email, successMessage: 'Email successfully confirmed! You may log in' }); }
         if (route.params.demo) {
             setLoading(true);
             Auth.signIn({
@@ -54,7 +54,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading, se
         catch (err) {
             console.log(err);
             setLoading(false);
-            setState({ ...state, successMessage: '', errorMessage: err.code === 'UserNotConfirmedException' ? 'confirm your email address before logging in' : 'your username or password is incorrect' });
+            setState({ ...state, successMessage: '', errorMessage: err.code === 'UserNotConfirmedException' ? 'Confirm your email address before logging in' : 'Your username or password is incorrect' });
         }
     }
 
@@ -86,22 +86,22 @@ export default function LoginScreen({ route, navigation, setLoading, loading, se
                 {state.errorMessage.length > 0 && <Text style={[styles.baseText, { marginTop: 5, marginBottom: -21, color: '#cc0000', textAlign: 'center' }]}>{state.errorMessage}</Text>}
                 {state.successMessage.length > 0 && <Text style={[styles.baseText, { marginTop: 5, marginBottom: -21, color: '#006600', textAlign: 'center' }]}>{state.successMessage}</Text>}
                 <View style={{ margin: 20 }}>
-                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' value={state.email} onChangeText={value => { setState({ ...state, email: value }) }} placeholder='email or username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address'></TextInput>
-                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' value={state.password} onChangeText={value => { setState({ ...state, password: value }) }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
+                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' value={state.email} onChangeText={value => { setState({ ...state, email: value }) }} placeholder='Email or username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address'></TextInput>
+                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' value={state.password} onChangeText={value => { setState({ ...state, password: value }) }} placeholder='Password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                         onSubmitEditing={login}></TextInput>
                 </View>
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F0054' }]}
                     onPress={login}
                 >
-                    <Text style={[styles.baseText, styles.buttonText]}>{loading ? 'logging in...' : 'login'}</Text>
+                    <Text style={[styles.baseText, styles.buttonText]}>{loading ? 'Logging in...' : 'Login'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]}
                     onPress={() => { navigation.push('signup') }}>
-                    <Text style={[styles.baseText, styles.buttonText]}>signup</Text>
+                    <Text style={[styles.baseText, styles.buttonText]}>Sign up</Text>
                 </TouchableOpacity>
                 <View>
-                    <Text style={{ color: colors.text, textDecorationLine: 'underline', marginTop: 10, textAlign: 'center' }} onPress={() => { navigation.push('reset') }}>forgot password?</Text>
+                    <Text style={{ color: colors.text, textDecorationLine: 'underline', marginTop: 10, textAlign: 'center' }} onPress={() => { navigation.push('reset') }}>Forgot password?</Text>
                     <TouchableOpacity style={{ borderColor: colors.placeholder, borderRadius: 5, borderWidth: 1, borderStyle: 'solid', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, paddingTop: 0, paddingBottom: 0, paddingLeft: 10, paddingRight: 10, marginTop: 30, marginBottom: 10 }} onPress={async (e) => {
                         e.preventDefault();
                         let currentTheme = await AsyncStorage.getItem('theme');
@@ -112,7 +112,7 @@ export default function LoginScreen({ route, navigation, setLoading, loading, se
                         await AsyncStorage.setItem('theme', nextTheme);
                         setTheme(nextTheme);
                     }} >
-                        <Text style={{ color: colors.text, fontSize: Platform.OS === 'web' ? 13 : 15 }}>{theme === 'dark' ? 'turn on the lights ☀' : 'turn off the lights ◗*'}</Text>
+                        <Text style={{ color: colors.text, fontSize: Platform.OS === 'web' ? 13 : 15 }}>{theme === 'dark' ? 'Turn on the lights ☀' : 'Turn off the lights ◗*'}</Text>
                     </TouchableOpacity>
                     <Text style={[styles.baseText, { fontSize: 10, color: '#aaaaaa', textAlign: 'center' }]}>© {new Date().getFullYear()} productabot</Text>
                 </View>

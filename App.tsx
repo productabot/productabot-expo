@@ -27,12 +27,6 @@ Amplify.configure({
     userPoolWebClientId: Environment.userPoolWebClientId,
     mandatorySignIn: true,
     authenticationFlowType: "USER_PASSWORD_AUTH",
-    ...(Platform.OS === 'web' && {
-      cookieStorage: {
-        domain: `${window.location.hostname === 'localhost' ? 'localhost' : '.' + window.location.hostname.split('.').slice(1).join('.')}`,
-        secure: true
-      }
-    })
   },
   API: {
     graphql_endpoint: Environment.endpoint,

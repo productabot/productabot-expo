@@ -472,7 +472,7 @@ export function MultipleContainers({
                     width={'100%'}
                     style={{ overflowY: 'scroll' }}
                     itemCount={items[containerId].length}
-                    itemSize={80}
+                    itemSize={65}
                     renderItem={({ index, style }) => {
                       const item = items[containerId][index];
                       return (

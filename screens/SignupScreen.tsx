@@ -20,16 +20,16 @@ export default function SignupScreen({ route, navigation, setLoading, loading }:
         Keyboard.dismiss();
         setState({ ...state, loading: true });
         if (!state.email || !state.username || !state.password || !state.confirmPassword) {
-            setState({ ...state, errorMessage: "you're missing some information" });
+            setState({ ...state, errorMessage: "You're missing some information" });
         }
         else if (!state.checkbox) {
-            setState({ ...state, errorMessage: "you must agree to the terms and privacy policy" });
+            setState({ ...state, errorMessage: "You must agree to the Terms and Privacy Policy" });
         }
         else if (state.password !== state.confirmPassword) {
-            setState({ ...state, errorMessage: "make sure your passwords match!" });
+            setState({ ...state, errorMessage: "Make sure your passwords match!" });
         }
         else if (state.password.length < 6) {
-            setState({ ...state, errorMessage: "your password must be at least 6 characters long" });
+            setState({ ...state, errorMessage: "Your password must be at least 6 characters long" });
         }
         else {
             setLoading(true);
@@ -42,13 +42,13 @@ export default function SignupScreen({ route, navigation, setLoading, loading }:
                 console.log(err);
                 setLoading(false);
                 if (err.message === "Invalid email address format.") {
-                    setState({ ...state, errorMessage: "please enter a valid email address" });
+                    setState({ ...state, errorMessage: "Please enter a valid email address" });
                 }
                 else if (err.message === "An account with the given email already exists.") {
-                    setState({ ...state, errorMessage: "an account with this email already exists" });
+                    setState({ ...state, errorMessage: "An account with this email already exists" });
                 }
                 else {
-                    setState({ ...state, errorMessage: "an account with this email or username already exists" });
+                    setState({ ...state, errorMessage: "An account with this email or username already exists" });
                 }
             }
         }
@@ -66,29 +66,26 @@ export default function SignupScreen({ route, navigation, setLoading, loading }:
                 </TouchableOpacity>
                 {state.errorMessage.length > 0 && <Text style={[styles.baseText, { marginTop: 5, marginBottom: -21, color: '#cc0000', textAlign: 'center' }]}>{state.errorMessage}</Text>}
                 <View style={{ margin: 20 }}>
-                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' />
+                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, email: value }); }} placeholder='Email' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='email-address' />
                     {/* <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, phone: value }); }} placeholder='phone' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} keyboardType='phone-pad' /> */}
-                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, username: value }); }} placeholder='username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
-                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }); }} placeholder='password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send' />
-                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, confirmPassword: value }); }} placeholder='confirm password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
+                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, username: value }); }} placeholder='Username' style={[styles.textInput, isWeb && { outlineWidth: 0 }]} />
+                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, password: value }); }} placeholder='Password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send' />
+                    <TextInput placeholderTextColor={colors.placeholder} spellCheck={false} inputAccessoryViewID='main' onChangeText={value => { setState({ ...state, confirmPassword: value }); }} placeholder='Confirm password' secureTextEntry={true} style={[styles.textInput, isWeb && { outlineWidth: 0 }]} returnKeyType='send'
                         onSubmitEditing={signup} />
-                    <View style={{ marginBottom: 20, marginTop: 20, maxWidth: 280, alignSelf: 'center' }}>
-                        <Text style={[styles.baseText]}>{`your password will be the key used to encrypt your documents and notes.\n\n`}<Text style={{ fontWeight: 'bold', color: '#ff3333' }}>{`▲ DO NOT FORGET YOUR PASSWORD!`}</Text>{`\nwrite it down and keep it somewhere safe.`}</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', margin: 5, marginBottom: 0 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', margin: 5, marginTop: 20 }}>
                         {Platform.OS === 'web' ?
                             <input onClick={() => { setState({ ...state, checkbox: !state.checkbox }) }} checked={state.checkbox} style={{ width: 20, height: 20, margin: 0 }} type="checkbox" /> :
                             <TouchableOpacity onPress={() => { setState({ ...state, checkbox: !state.checkbox }) }} style={{ borderWidth: 1, borderColor: colors.text, borderRadius: 2, height: 20, width: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginLeft: 5 }}><Text style={{ color: colors.text, textAlign: 'center', fontWeight: 'bold' }}>{state.checkbox && '✓'}</Text></TouchableOpacity>}
-                        <Text style={{ marginLeft: 10, color: colors.text, fontSize: root.desktopWeb ? 11 : 12 }}>I agree to the <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/terms'); }} >terms of service</Text> & <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/privacy'); }}>privacy policy</Text></Text>
+                        <Text style={{ marginLeft: 10, color: colors.text, fontSize: 12 }}>I agree to the <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/terms'); }} >Terms of Service</Text> & <Text style={{ textDecorationLine: 'underline' }} onPress={async () => { await WebBrowser.openBrowserAsync('https://productabot.com/privacy'); }}>Privacy Policy</Text></Text>
                     </View>
                 </View>
                 <TouchableOpacity style={[styles.touchableOpacity, { backgroundColor: '#3F91A1' }]} onPress={signup}>
-                    <Text style={[styles.baseText, styles.buttonText]}>signup</Text>
+                    <Text style={[styles.baseText, styles.buttonText]}>Sign up</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={[styles.touchableOpacity, { backgroundColor: 'transparent' }]}
                     onPress={() => { navigation.navigate('login'); }}>
-                    <Text style={[styles.baseText, styles.buttonText, { color: colors.text }]}>go back</Text>
+                    <Text style={[styles.baseText, styles.buttonText, { color: colors.text }]}>Go back</Text>
                 </TouchableOpacity>
                 <InputAccessoryViewComponent />
             </KeyboardAvoidingView >

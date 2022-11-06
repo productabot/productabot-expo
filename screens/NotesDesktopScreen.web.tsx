@@ -299,6 +299,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                         renderItemStyle={{ marginLeft: 5, marginRight: 5, paddingLeft: 7.5, paddingRight: 7.5 }}
                                         noBorder={true}
                                         data={tags}
+                                        virtualSize={60}
                                         virtualHeight={windowDimensions.height - 102}
                                         renderItem={(item) => {
                                             return (
@@ -354,6 +355,7 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
                                 noBorder={true}
                                 data={notes}
                                 onContextMenu={(item) => { alert('hey'); }}
+                                virtualSize={60}
                                 virtualHeight={windowDimensions.height - 102}
                                 renderItem={(item) => {
                                     return (

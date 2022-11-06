@@ -36,7 +36,7 @@ export default function WelcomeScreen({ route, navigation, setTheme, theme }: an
                 directionalLockEnabled={true}
                 decelerationRate={0.999999}
             >
-                <View style={{ flex: 1, height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ flex: 1, height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center', minWidth: windowDimensions.width }}>
                     <View style={{ padding: 40, height: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         <TouchableOpacity onPress={() => { setAnimateLogo(true); setTimeout(() => { setAnimateLogo(false) }, 1400) }}><AnimatedLogo loading={animateLogo} size={3} /></TouchableOpacity>
                         <Text style={{ color: colors.text, fontSize: 30, marginTop: 20, textAlign: 'center', marginBottom: 10 }}>welcome to productabot!</Text>
@@ -47,7 +47,7 @@ export default function WelcomeScreen({ route, navigation, setTheme, theme }: an
                         </TouchableOpacity>
                     </View>
                 </View>
-                <View style={{ flex: 1, height: '100%', width: '100%', alignItems: 'center', justifyContent: 'flex-start' }}>
+                <View style={{ flex: 1, height: '100%', width: '100%', alignItems: 'center', justifyContent: 'flex-start', minWidth: windowDimensions.width }}>
                     <View style={{ padding: 40, height: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, width: '100%' }}>
                             <AnimatedLogo loading={false} size={0.75} /><Text style={{ color: colors.text, fontSize: 20, textAlign: 'left' }}>productabot works with 4 different tabs</Text></View>
@@ -61,7 +61,7 @@ export default function WelcomeScreen({ route, navigation, setTheme, theme }: an
                         </TouchableOpacity>
                     </View>
                 </View>
-                <View style={{ flex: 1, height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ flex: 1, height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center', minWidth: windowDimensions.width }}>
                     <View style={{ padding: 40, height: '100%', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         <Text style={{ color: colors.text, fontSize: 20, textAlign: 'center', marginBottom: 20 }}>the <Text style={{ color: '#ffffff', backgroundColor: '#3F0054' }}> productabot philosophy </Text> is to stay out of the way and let you organize the time you spend on each project.</Text>
                         <Text style={{ color: colors.text, fontSize: 20, textAlign: 'center', marginBottom: 0 }}>it's easier than you might think.</Text>

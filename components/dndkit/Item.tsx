@@ -126,7 +126,7 @@ export const Item = React.memo(
             tabIndex={!handle ? 0 : undefined}
             title={value.details}
           >
-            <div className='sortableItem' style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', cursor: dragOverlay ? 'grabbing' : 'grab', padding: 10, margin: 10, marginBottom: 0, borderRadius: 10, backgroundColor: dragOverlay ? colors.hover : colors.card, height: 50 }}>
+            <div className='sortableItem' style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', cursor: dragOverlay ? 'grabbing' : 'grab', padding: 5, margin: 5, marginBottom: 0, borderRadius: 0, backgroundColor: dragOverlay ? colors.hover : colors.card, height: 50 }}>
               <div style={{ width: 45, }}><img style={{ width: 30, height: 30, borderRadius: 5, borderWidth: 1, borderColor: colors.text, borderStyle: 'solid', objectFit: 'cover' }} src={`https://files.productabot.com/public/${value.image}`} /></div>
               <div style={{ width: '90%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
                 {value.date ?
