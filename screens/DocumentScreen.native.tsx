@@ -41,8 +41,8 @@ export default function DocumentScreen({ route, navigation, setLoading, refresh 
                 content
             }
         }`))).data;
-        let e2eResult = await AsyncStorage.getItem('e2e');
-        data.files_by_pk.content = CryptoJS.AES.decrypt(data.files_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
+        // let e2eResult = await AsyncStorage.getItem('e2e');
+        // data.files_by_pk.content = CryptoJS.AES.decrypt(data.files_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
         setFile(data.files_by_pk);
         inputRef.current.injectJavaScript(`(function() {
             const { from, to } = editor.state.selection;
@@ -68,11 +68,11 @@ export default function DocumentScreen({ route, navigation, setLoading, refresh 
 
     let updateFile = async () => {
         if (file.title) {
-            let e2eResult = await AsyncStorage.getItem('e2e');
-            let encrypted = CryptoJS.AES.encrypt(file.content, e2eResult).toString();
+            // let e2eResult = await AsyncStorage.getItem('e2e');
+            // let encrypted = CryptoJS.AES.encrypt(file.content, e2eResult).toString();
             await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
                 updateFile: update_files_by_pk(pk_columns: {id: "${file.id}"}, _set: {content: $content, title: $title}) {id}
-            }`, { content: encrypted, title: file.title }));
+            }`, { content: file.content, title: file.title }));
         }
     }
 

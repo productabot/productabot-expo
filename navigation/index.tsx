@@ -176,9 +176,6 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                     <AppStack.Screen name="document" options={{ ...defaultAnimation }}>
                       {props => <DocumentScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>
-                    <AppStack.Screen name="sheet" options={{ ...defaultAnimation }}>
-                      {props => <SheetScreen {...props} refresh={refresh} setLoading={setLoading} />}
-                    </AppStack.Screen>
                     <AppStack.Screen name="entry" options={{ ...defaultAnimation }}>
                       {props => <EntryScreen {...props} refresh={refresh} setLoading={setLoading} />}
                     </AppStack.Screen>

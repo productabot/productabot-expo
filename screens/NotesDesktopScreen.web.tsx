@@ -134,12 +134,14 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
             variables: { id: noteId },
             onSubscriptionData: async ({ subscriptionData: { data, error, loading } }) => {
                 setLoading(false);
+                /*
                 try {
                     data.notes_by_pk.content = CryptoJS.AES.decrypt(data.notes_by_pk.content, key).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
                 }
                 catch (err) {
                     console.log(err);
                 }
+                */
 
                 setNoteTitle(data.notes_by_pk.title);
 
@@ -197,7 +199,8 @@ export default function NotesScreen({ route, navigation, refresh, setLoading }: 
             try {
                 await API.graphql(graphqlOperation(`mutation($content: String) {
                     updateNote: update_notes_by_pk(pk_columns: {id: "${noteId}"}, _set: {content: $content}) {id}
-                }`, { content: CryptoJS.AES.encrypt(noteContent, key).toString() }));
+                }`, { content: noteContent }));
+                //CryptoJS.AES.encrypt(noteContent, key).toString()
                 setLoading(false);
                 setSaved(true);
             }

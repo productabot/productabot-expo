@@ -41,8 +41,8 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
                 content
             }
         }`))).data;
-        let e2eResult = await AsyncStorage.getItem('e2e');
-        data.notes_by_pk.content = CryptoJS.AES.decrypt(data.notes_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
+        // let e2eResult = await AsyncStorage.getItem('e2e');
+        // data.notes_by_pk.content = CryptoJS.AES.decrypt(data.notes_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8).replace(/\n/g, "<br />").replace(/\n\n/g, "<p/>");
         setNote(data.notes_by_pk);
         inputRef.current.injectJavaScript(`(function() {
             const { from, to } = editor.state.selection;
@@ -68,11 +68,11 @@ export default function NoteScreen({ route, navigation, setLoading, refresh }: a
 
     let updateNote = async () => {
         if (note.title) {
-            let e2eResult = await AsyncStorage.getItem('e2e');
-            let encrypted = CryptoJS.AES.encrypt(note.content, e2eResult).toString();
+            // let e2eResult = await AsyncStorage.getItem('e2e');
+            // let encrypted = CryptoJS.AES.encrypt(note.content, e2eResult).toString();
             await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
                 updateNote: update_notes_by_pk(pk_columns: {id: "${note.id}"}, _set: {content: $content, title: $title}) {id}
-            }`, { content: encrypted, title: note.title }));
+            }`, { content: note.content, title: note.title }));
         }
     }
 

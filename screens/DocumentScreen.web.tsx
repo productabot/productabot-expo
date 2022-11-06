@@ -75,9 +75,9 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
           }
           `));
         try {
-            let e2eResult = await AsyncStorage.getItem('e2e');
-            let decrypted = CryptoJS.AES.decrypt(data.data.files_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
-            data.data.files_by_pk.content = decrypted;
+            // let e2eResult = await AsyncStorage.getItem('e2e');
+            // let decrypted = CryptoJS.AES.decrypt(data.data.files_by_pk.content, e2eResult).toString(CryptoJS.enc.Utf8);
+            // data.data.files_by_pk.content = decrypted;
         }
         catch (err) { console.log(err) }
         setDocument(data.data.files_by_pk);
@@ -115,12 +115,12 @@ export default function DocumentScreen({ route, navigation, setLoading }: any) {
 
     const updateDocument = async () => {
         try {
-            let e2eResult = await AsyncStorage.getItem('e2e');
+            // let e2eResult = await AsyncStorage.getItem('e2e');
             const html = editor.getHTML();
-            let encrypted = CryptoJS.AES.encrypt(html, e2eResult).toString();
+            // let encrypted = CryptoJS.AES.encrypt(html, e2eResult).toString();
             await API.graphql(graphqlOperation(`mutation($content: String, $title: String) {
                 updateDocument: update_files_by_pk(pk_columns: {id: "${document.id}"}, _set: {content: $content, title: $title}) {id}
-            }`, { content: encrypted, title: document.title }));
+            }`, { content: html, title: document.title }));
         }
         catch (err) {
             console.log(err);
