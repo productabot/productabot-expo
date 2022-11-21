@@ -215,25 +215,26 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                 )
               }}
             </AppBottomTab.Screen>
-            <AppBottomTab.Screen name="timelinesTab" options={{
-              title: `⧖ timelines`,
-              tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
-              tabBarLabelStyle: { fontSize: 12 },
-              tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
-            }}>
-              {props => {
-                const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
-                return (
-                  <AppStack.Navigator {...props} screenOptions={{ headerShown: false, title: 'timelines' }} initialRouteName="timelines">
-                    <AppStack.Screen name="timelines" options={{ ...defaultAnimation }}>
-                      {props => <TimelinesScreen {...props} refresh={refresh} setLoading={setLoading} />}
-                    </AppStack.Screen>
-                    <AppStack.Screen name="timeline" options={{ ...defaultAnimation }}>
-                      {props => <TimelineScreen {...props} refresh={refresh} setLoading={setLoading} />}
-                    </AppStack.Screen>
-                  </AppStack.Navigator>)
-              }}
-            </AppBottomTab.Screen>
+            {Platform.OS === 'web' &&
+              <AppBottomTab.Screen name="timelinesTab" options={{
+                title: `⧖ timelines`,
+                tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },
+                tabBarLabelStyle: { fontSize: 12 },
+                tabBarButton: (props) => <Pressable {...props} style={tabStyle(props)} href={`/notes`} onPress={(e) => { e.preventDefault(); props.onPress(); }} />
+              }}>
+                {props => {
+                  const defaultAnimation = Platform.OS === 'web' ? { animationEnabled: false } : { animationEnabled: true, ...TransitionPresets.DefaultTransition };
+                  return (
+                    <AppStack.Navigator {...props} screenOptions={{ headerShown: false, title: 'timelines' }} initialRouteName="timelines">
+                      <AppStack.Screen name="timelines" options={{ ...defaultAnimation }}>
+                        {props => <TimelinesScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                      </AppStack.Screen>
+                      <AppStack.Screen name="timeline" options={{ ...defaultAnimation }}>
+                        {props => <TimelineScreen {...props} refresh={refresh} setLoading={setLoading} />}
+                      </AppStack.Screen>
+                    </AppStack.Navigator>)
+                }}
+              </AppBottomTab.Screen>}
             <AppBottomTab.Screen name="tasksTab" options={{
               title: `☉ tasks`,
               tabBarItemStyle: { maxWidth: 130, flexDirection: 'row', justifyContent: 'center' },

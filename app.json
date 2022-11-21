@@ -23,7 +23,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.productabot",
       "usesIcloudStorage": true,
-      "buildNumber": "2022.10.23",
+      "buildNumber": "2022.11.20",
       "associatedDomains": [
         "applinks:app.productabot.com"
       ]
