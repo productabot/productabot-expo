@@ -343,6 +343,20 @@ function RootNavigator({ authenticated, setLoading, loading, setTheme, theme }: 
                             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, paddingTop: 0, paddingBottom: 0, paddingLeft: 7, paddingRight: 7 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab'); }} >
                               <Text style={{ color: colors.text, fontSize: 12 }}>{windowDimensions.width > 400 ? 'go premium ' : ''}✦</Text>
                             </TouchableOpacity></Animated.View>}
+                        <div title={theme === 'dark' ? 'turn on the lights ☀' : 'turn off the lights ◗*'}>
+                          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 10, width: 25, paddingTop: 0, paddingBottom: 0 }} onPress={async (e) => {
+                            e.preventDefault();
+                            let currentTheme = await AsyncStorage.getItem('theme');
+                            let nextTheme = 'dark';
+                            if (!currentTheme || currentTheme === 'dark') {
+                              nextTheme = 'light';
+                            }
+                            await AsyncStorage.setItem('theme', nextTheme);
+                            setTheme(nextTheme);
+                          }} >
+                            <Text style={{ color: colors.text, fontSize: 13 }}>{theme === 'dark' ? '☀' : '◗*'}</Text>
+                          </TouchableOpacity>
+                        </div>
                         {user.username && <div title={'settings'}>
                           <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 25, marginRight: 0, paddingTop: 0, paddingBottom: 0 }} href={`/settings`} onPress={(e) => { e.preventDefault(); navigation.navigate('settingsTab') }} >
                             <Image style={{ width: 25, height: 25, borderWidth: 1, borderColor: colors.border, borderRadius: 25, marginRight: 5 }} source={{ uri: `https://files.productabot.com/public/${user.image}` }} />

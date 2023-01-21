@@ -104,12 +104,16 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
             transition,
             color: colors.text,
             opacity: isDragging ? 0 : 1,
-            cursor: draggable ? 'grab' : 'pointer', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 10, backgroundColor: colors.card,
+            cursor: draggable ? 'grab' : 'pointer', 
+            display: 'flex', 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            backgroundColor: colors.card,
             ...virtualStyle,
-            margin: 10,
-            width: 'calc(100% - 50px)',
-            height: virtualSize - 40,
-            padding: 15
+            margin: 5,
+            width: 'calc(100% - 20px)',
+            height: virtualSize - 5,
         };
 
         return (

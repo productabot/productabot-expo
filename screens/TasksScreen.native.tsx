@@ -126,7 +126,7 @@ export default function TasksScreen({ refresh, setLoading, loading, navigation, 
                         }
                     }
                 }}>
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 0 }}>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: Platform.OS === 'web' ? 50 : 12 }}>
                     <TouchableOpacity
                         style={{ position: 'absolute', bottom: 10, right: 10, zIndex: 1, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderStyle: 'solid', borderRadius: 20, padding: 10, paddingLeft: 20, paddingRight: 20 }}
                         onPress={async () => { Platform.OS !== 'web' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); navigation.push('edit_task', { status: index === 0 ? 'backlog' : index === 1 ? 'selected' : index === 2 ? 'in_progress' : 'done', project_id: projectId ?? null }) }}><Text>{`add task +`}</Text></TouchableOpacity>
