@@ -68,7 +68,7 @@ export function CustomDraggableFlatList({ data, onPress, renderItem, ListEmptyCo
                             setTimeout(() => { menuRef.current.open() }, 0);
                         }
                     }}
-                    style={{ borderColor: colors.card, borderWidth: 1, borderStyle: 'solid', borderRadius: 10 }}
+                    style={{ borderColor: colors.card, borderWidth: noBorder ? 0 : 1, borderStyle: 'solid', borderRadius: 10 }}
                     height={virtualHeight}
                     itemCount={data.length}
                     itemSize={virtualSize}

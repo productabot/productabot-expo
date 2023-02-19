@@ -2,8 +2,8 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "npx expo -w",
-    "build": "npx eas update && npx expo export:web && aws s3 --profile productabot sync --delete ./web-build s3://pbot-prod-app && aws --profile productabot cloudfront create-invalidation --distribution-id E2VTFZ53RCS93C --paths \"/*\"",
-    "build-web": "npx expo export:web && aws s3 --profile productabot sync --delete ./web-build s3://pbot-prod-app && aws --profile productabot cloudfront create-invalidation --distribution-id E2VTFZ53RCS93C --paths \"/*\"",
+    "build": "npx eas update && npx expo export:web && aws s3 --profile productabot sync --delete ./web-build s3://pbot-prod-app && aws --profile productabot cloudfront create-invalidation --distribution-id E2VTFZ53RCS93C --paths \"/*\" > /dev/null",
+    "build-web": "npx expo export:web && aws s3 --profile productabot sync --delete ./web-build s3://pbot-prod-app && aws --profile productabot cloudfront create-invalidation --distribution-id E2VTFZ53RCS93C --paths \"/*\" > /dev/null",
     "build-ios": "npx eas build -p ios"
   },
   "jest": {

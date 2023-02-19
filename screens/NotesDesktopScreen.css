@@ -1,8 +1,10 @@
 .ProseMirror {
     padding: 10px;
-    font-family: monospace;
+    font-family: arial;
     outline: none;
     overflow-y: scroll;
+    line-height: 1.4;
+    font-size: 14px
 }
 
 .ProseMirror p {
@@ -20,6 +22,7 @@ code {
     margin: 0px;
     color: #c00;
     background-color: #eee;
+    font-family: monospace;
 }
 
 button {

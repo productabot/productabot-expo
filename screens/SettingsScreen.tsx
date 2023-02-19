@@ -258,7 +258,7 @@ export default function SettingsScreen({ route, navigation, refresh, setLoading,
                             ]
                         },
                         {
-                            key: 'paid', image: require('../assets/images/premium.png'), label: '✦ premium', price: '$4.99 per month', points: [
+                            key: 'paid', image: require('../assets/images/premium.png'), label: '✦ premium', price: '$4 per month', points: [
                                 '500 GB storage', 'unlimited projects', 'custom website', 'API integrations'
                             ]
                         }].map(obj =>
