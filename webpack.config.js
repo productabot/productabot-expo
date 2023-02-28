@@ -12,5 +12,11 @@ module.exports = async function (env, argv) {
   // Customize the config before returning it.
   config.plugins.push(new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /us/));
   // config.plugins.push(new BundleAnalyzerPlugin({ path: 'web-report' }));
+  config.module.rules.push({
+    test: /\.m?js/,
+    resolve: {
+      fullySpecified: false,
+    },
+  });
   return config;
 };
